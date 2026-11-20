@@ -13,7 +13,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
-start_scene = "res://scenes/test_track.tscn"
+start_scene = "res://scenes/stunt_track.tscn"
 test_2d_scene = "res://scenes/sprites_2d.tscn"
 platformer_2d_scene = "res://scenes/platformer_2d.tscn"
 platformer_3d_scene = "res://scenes/platformer_3d.tscn"
@@ -54,7 +54,7 @@ theme_override_constants/separation = 6
 [node name="Start" type="Button" parent="Buttons" unique_id=158718179]
 layout_mode = 2
 size_flags_vertical = 3
-text = "Racer"
+text = "Stunt Track"
 
 [node name="Test2D" type="Button" parent="Buttons" unique_id=59678566]
 layout_mode = 2

@@ -29,7 +29,7 @@ message that names the node.
 The milestones M1 (vertical slice) and M2 (a menu and a drive) are met. Since then the
 work went into covering more of Godot's nodes: 2D and 3D scenes, UI controls, physics
 bodies, animation with blending and skinning, audio buses, tile maps, translations. The repository holds small demos instead (two
-platformers, a race, an island, a ball course).
+platformers, a race, an island, a ball course, a stunt track).
 
 ## Quick start
 

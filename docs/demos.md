@@ -16,6 +16,7 @@ described in [terrain.md](terrain.md).
 | Platformer: move | WASD, arrow keys, d-pad, stick | d-pad, stick |
 | Platformer: jump | Space, A         | A                    |
 | Ball: tilt    | WASD, arrow keys, d-pad, stick | d-pad, stick |
+| Stunt track   | gas, brake and steering as in the racing demo; the brake held at a standstill reverses; R or Y puts the car back at the last checkpoint; Escape or Start goes back to the menu | the same on the pad |
 | Racing: gas   | W, Up, A, right trigger | A, right trigger |
 | Racing: brake | S, Down, B, left trigger | B, left trigger |
 | Racing: steer | A/D, Left/Right, d-pad, stick | d-pad, stick |
@@ -79,6 +80,71 @@ It takes some braking: at full speed the ball needs about 7 m to stop. The run i
 `make test` finishes in 30 seconds without hurrying. In Flycast the scene runs at 60 fps
 where it was looked at (the start, the first bridge and slope, the first checkpoint); the
 draw time there was about 2 ms.
+
+## Stunt track
+
+`scenes/stunt_track.tscn` ("Stunt Track", the first entry of the main menu) is a road in
+the sky, 840 m from the start gate to the finish, driven against the clock: down a slope,
+through a loop, round a banked half circle, over a jump, round a banked left turn, over a
+hill and through an S between rails. Three gates are checkpoints; a run counts when it
+went through all of them, and the best time is kept in a saved game. The car can be put
+back at the last checkpoint at any time. Around the start lies a square of 170 m, to try the
+car on: room to turn, to slide and to drift. The car is the Racing Kit's. Putting the car
+back and leaving for the menu are actions of their own in the Input Map (`respawn`,
+`leave`), because on a pad the buttons of `jump` and `ui_cancel` are gas and brake. The
+scene is written by
+`tools/make_stunt_track.gd`, which lays the road like a pen draws a line (`_run`: so many
+metres, turning, climbing and banking on the way; `_loop`; `_gap`); it can be edited in
+Godot, but running the tool again overwrites it.
+
+- The road is a ribbon of one mesh per ten cross sections, and its collision one box
+  between every two cross sections, turned every way, upside down in the loop. Rails are
+  boxes too; where a rail begins it comes in from the side over 12 m, so that it is no
+  blunt edge across the way.
+- The car (`StuntCar`, `runtime/game/stunt_car.c`) is a `RigidBody3D` with four small
+  spheres near its corners, which the runtime keeps out of the rails. The runtime's
+  bodies do not turn, so the component keeps the car's directions and its spin itself.
+  Four `RayCast3D` nodes are the wheels: each one that finds the road within the length
+  of its spring pushes the car away from it there, with a damper. That carries the car,
+  lays it the way the road lies, lets it dip and lean, tips it over the edge of the road
+  when two wheels reach into the air, and lets it tumble when it falls.
+- The driving follows the raycast vehicle that Godot's own `VehicleBody3D` is: each tyre
+  pushes at the place where it touches the road. Sideways it pushes against sliding
+  across the way its wheel points; along that way the rear tyres push with the engine
+  and all four with the brake; together no more than the load on the wheel times the
+  grip lets through. The front wheels are turned by the steering, less the faster the
+  car goes. Nothing says how the car is to turn: it turns because of where the tyres
+  push. Steered too hard for its speed it runs wide. The brake held at a standstill is
+  the reverse gear.
+- The drift is a slide at speed that is held, not a turn on the spot. The brake in a turn
+  starts it, above 50 km/h. While it lasts all four tyres slide and hold only a part of
+  what they did (`drift`), so the car's way bends in a wide curve and its speed stays;
+  the engine pushes on. The car stands at an angle to its way that the steering says: the
+  stick right over is about 35 degrees, the stick let go brings the nose back to the way,
+  and steering the other way throws the tail round to the other side. For that the nose
+  is turned as fast as the way bends, plus what is missing to the angle asked for: this
+  one thing is set, not left to the tyres. When the car runs straight again the tyres
+  catch. In the run that was measured, at 100 km/h, the car stood at 33 degrees after
+  0.6 s, kept its speed, went round a curve of some 30 m radius, and ran straight again
+  0.6 s after the steering was let go.
+- The air presses a fast car onto the road, which with its speed is what holds it in the
+  loop. The loop is turned a little against the road into it, so that a car that drives
+  straight on is carried over to the loop's other end and comes out straight.
+- A rail takes the speed into it, the scraping costs some more, and because the car is
+  hit at its nose the push also turns it along the rail. A car that lies still without
+  standing on its wheels is put back.
+- The camera looks where the car is going, not where its nose points, and goes through
+  the loop with it.
+
+What was driven with this driving model: with the gas alone the car goes down the slope
+and through the loop to the first checkpoint, without turning by itself on the way (this
+is in `make test`). Steering was looked at in three short runs: full lock at a crawl,
+full lock at top speed, and the brake in a turn, which starts a drift. The rest of the
+course (banked turn, jump, hill, S, finish) was driven by scripts only with earlier
+versions of the driving model, never in one run without a fall, and not again with this
+one. How it feels with a pad in the hand only a person can say. In Flycast the scene
+runs at 60 fps from the start to the first checkpoint (game logic about 3.5 ms a frame,
+drawing about 3 ms); the rest was not measured there.
 
 ## Racing demo
 

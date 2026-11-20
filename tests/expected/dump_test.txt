@@ -225,14 +225,16 @@ audio buses 3
   [0] Master volume 1.000
   [1] Music volume 1.000 -> Master
   [2] SFX volume 1.000 -> Master
-actions 15
+actions 17
   accelerate deadzone 0.20: key 87 key 265 button 7 axis 5+
   brake deadzone 0.20: key 83 key 264 button 6 axis 4+
   jump deadzone 0.20: key 32 button 7
+  leave deadzone 0.20: key 256 button 15
   move_down deadzone 0.20: key 83 key 264 button 3 axis 1+
   move_left deadzone 0.20: key 65 key 263 button 4 axis 0-
   move_right deadzone 0.20: key 68 key 262 button 2 axis 0+
   move_up deadzone 0.20: key 87 key 265 button 1 axis 1-
+  respawn deadzone 0.20: key 82 button 5
   steer_left deadzone 0.20: key 65 key 263 button 4 axis 0-
   steer_right deadzone 0.20: key 68 key 262 button 2 axis 0+
   ui_accept deadzone 0.50: key 257 key 335 key 32

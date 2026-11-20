@@ -152,7 +152,7 @@ addons/retro_runtime/   exporter, per-platform bakers, editor plugin, command li
                         height_terrain.gd (the HeightTerrain node, an editor helper)
 components/             placeholder scripts (declarations only)
 scenes/                 main_menu, test_track, sprites_2d, platformer_2d, platformer_3d,
-                        racing, island, ball_roll, features;
+                        racing, island, ball_roll, stunt_track, features;
                         scenes/platformer/ are parts of the 3D level, scenes/parts/ scenes
                         that are instanced at runtime, scenes/tests/ test inputs
 assets/                 placeholder images and sounds (made by tools/make_test_assets.gd),
@@ -167,6 +167,7 @@ tools/                  rpkdump (C), make_test_assets.gd, make_platformer_2d.gd,
                         make_racing.gd (builds scenes/racing.tscn from track pieces),
                         make_island.gd (builds scenes/island.tscn, the terrain demo),
                         make_ball_roll.gd (builds scenes/ball_roll.tscn, the ball demo),
+                        make_stunt_track.gd (builds scenes/stunt_track.tscn, the stunt demo),
                         make_feature_test.gd (builds scenes/features.tscn, a scene
                         that checks runtime features by itself and prints "features: ok")
                         make_stress_test.gd (builds scenes/tests/stress_triggers.tscn: 100

@@ -19,6 +19,7 @@ func _initialize() -> void:
 	_shadow().save_png("res://assets/sprites/shadow.png")
 	_ground().save_png("res://assets/sprites/ground.png")
 	_tiles().save_png("res://assets/sprites/tiles.png")
+	_road().save_png("res://assets/sprites/road.png")
 
 	_tone(880.0, 0.12, 22050, false).save_to_wav("res://assets/sounds/beep.wav")
 	_tone(110.0, 0.4, 11025, true).save_to_wav("res://assets/sounds/engine.wav")
@@ -167,4 +168,22 @@ func _tiles() -> Image:
 			var joint := x % 32 == 0 or y % 32 == 0
 			var level := 0.55 if joint else (1.0 if light else 0.8)
 			image.set_pixel(x, y, Color(level, level, level))
+	return image
+
+
+## 64x64 road for the stunt track, across the road from left to right: a white line at
+## each edge and a dashed one in the middle on grainy asphalt. It repeats along the road.
+func _road() -> Image:
+	var image := Image.create_empty(64, 64, false, Image.FORMAT_RGBA8)
+	var random := RandomNumberGenerator.new()
+	random.seed = 9
+	for y in 64:
+		for x in 64:
+			var level := 0.36 + random.randf_range(-0.03, 0.03)
+			var color := Color(level, level, level * 1.06)
+			if (x >= 2 and x < 5) or (x >= 59 and x < 62):
+				color = Color(0.95, 0.95, 0.95)
+			elif x >= 31 and x < 33 and y < 32:
+				color = Color(0.95, 0.85, 0.3)
+			image.set_pixel(x, y, color)
 	return image

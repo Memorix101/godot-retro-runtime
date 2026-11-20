@@ -15,6 +15,7 @@ COMPONENT_DECLARE(RaceCar)
 COMPONENT_DECLARE(AiDriver)
 COMPONENT_DECLARE(CrumblePlatform)
 COMPONENT_DECLARE(BallRoller)
+COMPONENT_DECLARE(StuntCar)
 COMPONENT_DECLARE(FeatureTest)
 COMPONENT_DECLARE(TriggerStress)
 COMPONENT_DECLARE(UiTest)
@@ -42,6 +43,7 @@ bool game_register_components(void)
            rr_component_register(&AiDriver_component) &&
            rr_component_register(&CrumblePlatform_component) &&
            rr_component_register(&BallRoller_component) &&
+           rr_component_register(&StuntCar_component) &&
            rr_component_register(&FeatureTest_component) &&
            rr_component_register(&TriggerStress_component) &&
            rr_component_register(&UiTest_component) &&

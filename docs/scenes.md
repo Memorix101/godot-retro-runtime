@@ -77,7 +77,7 @@ something the runtime cannot handle is not exported; the message names the node.
 | Custom `Resource` export      | a script class that extends `Resource` becomes a read-only C struct, see "Data: resources, autoloads, saved games" |
 | Autoloads                     | the nodes from Project Settings > Globals are part of every scene and keep their state |
 | Translations                  | the translations from Project Settings > Localization (CSV with Compress disabled, or PO): `Label`, `Button`, `Label3D` and `RichTextLabel` texts that are keys are translated, unless auto translate is off; `rr_tr`, `rr_set_locale`, `rr_get_locale`. The locale starts as the language of the console (PC: the `RR_LOCALE` variable). Latin-1 characters only; no contexts or plural forms |
-| Rumble                        | `rr_input_vibrate(weak, strong, seconds)` and `rr_input_stop_vibration`, after `Input.start_joy_vibration` |
+| Rumble                        | `rr_input_vibrate(weak, strong, seconds)` and `rr_input_stop_vibration`, after `Input.start_joy_vibration`; on the Dreamcast only: the raylib build of the PC cannot shake a pad |
 | Groups                        | become tags                                                   |
 | Signal connections            | to a method of a node with a component                        |
 | Input Map                     | keys and joypad buttons/axes, mapped per platform             |

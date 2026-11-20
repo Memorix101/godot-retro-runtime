@@ -50,7 +50,7 @@ BUILD := build
 # The scenes of the game. The first scene the runtime loads is main_menu.
 SCENES := scenes/main_menu.tscn scenes/test_track.tscn scenes/sprites_2d.tscn \
           scenes/platformer_2d.tscn scenes/platformer_3d.tscn scenes/racing.tscn \
-          scenes/island.tscn scenes/ball_roll.tscn scenes/features.tscn
+          scenes/island.tscn scenes/ball_roll.tscn scenes/stunt_track.tscn scenes/features.tscn
 # Scenes that are instanced by the ones above.
 PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/*.tscn)
 
@@ -125,13 +125,14 @@ run: $(RUNTIME) $(BUILD)/pkg/pc/.exported
 #    bodies hitting the right things, and a scene that
 #    checks runtime features by itself (rays, paths, ...) must report ok. The controls that
 #    take input are driven by a scripted input and must emit their signals in order.
-# 5. Game flow with scripted input: the menu starts the track, the car reaches the
+# 5. Game flow with scripted input: on the first racer's track the car reaches the
 #    finish trigger and the menu comes back; then the same for the 2D test scene, and
 #    the Quit button ends the program. In the 2D test scene the ship shoots all targets
 #    with instanced bullets, more of them than the pool holds at a time. Both platformer
 #    demos are played to their flag, and the racing demo is driven for three laps by a
 #    recorded input (tests/input/racing.txt). The ball of the ball demo is rolled over
-#    its whole course and through the goal gate.
+#    its whole course and through the goal gate. The menu starts the stunt track, where
+#    the car goes down the slope and through the loop to the first checkpoint.
 #
 # The game flow tests open a window for a few seconds. RR_MUTE keeps them silent.
 
@@ -230,11 +231,17 @@ test: all $(BUILD)/pkg/pc/.exported
 	@echo "== placeholders: every C component has a script, and what the runtime prints is GDScript"
 	$(GODOT) --headless --path . --script res://addons/retro_runtime/placeholders_cli.gd -- --check > $(T)/placeholders.log 2>&1 || \
 	    { echo "FAIL:"; cat $(T)/placeholders.log; exit 1; }
-	@echo "== game flow: menu -> track -> finish trigger -> menu"
-	$(FLOW) "10:ui_accept,30:accelerate:800" > $(T)/flow_track.log
+	@echo "== game flow: the first racer's track -> finish trigger -> menu"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) test_track --data $(BUILD)/pkg/pc --frames 900 \
+	    --input "30:accelerate:800" > $(T)/flow_track.log
 	@test "$$(grep '^scene:' $(T)/flow_track.log | tr -d '\r' | tr '\n' ' ')" = \
-	    "scene: main_menu scene: test_track scene: main_menu " || \
+	    "scene: test_track scene: main_menu " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_track.log; exit 1; }
+	@echo "== game flow: menu -> stunt track, down the slope and through the loop to the first checkpoint -> cancel -> menu"
+	$(FLOW) "10:ui_accept,40:accelerate:600,660:leave" > $(T)/flow_stunt.log
+	@test "$$(grep -E '^(scene|stunt):' $(T)/flow_stunt.log | tr -d '\r' | tr '\n' ' ')" = \
+	    "scene: main_menu scene: stunt_track stunt: checkpoint 1/3 scene: main_menu " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/flow_stunt.log; exit 1; }
 	@echo "== game flow: menu -> 2D test -> cancel -> menu -> quit"
 	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_accept" > $(T)/flow_2d.log
 	@test "$$(tr -d '\r' < $(T)/flow_2d.log | tr '\n' ' ')" = \

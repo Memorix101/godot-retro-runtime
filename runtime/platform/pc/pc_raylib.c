@@ -590,9 +590,8 @@ const char *rr_plat_locale(void)
 
 void rr_plat_vibrate(float weak, float strong)
 {
-    /* The left motor of a pad is the heavy one. It runs until it is told otherwise.
-     * Without a pad there is nothing to shake, and raylib would only print a warning. */
-    if (IsGamepadAvailable(0)) {
-        SetGamepadVibration(0, strong, weak, weak > 0.0f || strong > 0.0f ? 60.0f : 0.0f);
-    }
+    /* raylib's desktop build (GLFW) cannot shake a pad: SetGamepadVibration only prints
+     * a warning there, every time. So the PC has no rumble. */
+    (void)weak;
+    (void)strong;
 }
