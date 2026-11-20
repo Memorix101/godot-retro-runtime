@@ -1,0 +1,48 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://components/crumble_platform.gd" id="1_crumble"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/platformer-kit/platform.obj" id="2_mesh"]
+
+[sub_resource type="BoxShape3D" id="shape"]
+size = Vector3(1, 0.2, 1)
+
+[sub_resource type="BoxShape3D" id="shape_sense"]
+size = Vector3(1, 0.3, 1)
+
+[node name="Crumble" type="StaticBody3D" node_paths=PackedStringArray("fall_timer", "return_timer")]
+script = ExtResource("1_crumble")
+fall_timer = NodePath("Fall")
+return_timer = NodePath("Return")
+drop = 12.0
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_mesh")
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+shape = SubResource("shape")
+
+[node name="Sense" type="Area3D" parent="."]
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Sense"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("shape_sense")
+
+[node name="Warning" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0.52)
+pixel_size = 0.01
+modulate = Color(1, 0.85, 0.2, 1)
+text = "!"
+
+[node name="Fall" type="Timer" parent="."]
+wait_time = 0.45
+one_shot = true
+
+[node name="Return" type="Timer" parent="."]
+wait_time = 3.5
+one_shot = true
+
+[connection signal="body_entered" from="Sense" to="." method="_on_sense_body_entered"]
+[connection signal="timeout" from="Fall" to="." method="_on_fall_timeout"]
+[connection signal="timeout" from="Return" to="." method="_on_return_timeout"]

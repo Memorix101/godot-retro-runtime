@@ -1,0 +1,367 @@
+[gd_scene format=4]
+
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tilemap_packed.png" id="1_w2l1y"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tiles/tile_0151.png" id="2_kr6wo"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tiles/tile_0152.png" id="3_x2irg"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tiles/tile_0111.png" id="4_c5bw3"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tiles/tile_0112.png" id="5_owoe5"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tiles/tile_0131.png" id="6_eulse"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tiles/tile_0068.png" id="7_owg2b"]
+[ext_resource type="Script" path="res://components/platform_player_2d.gd" id="8_cui5b"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/characters/tile_0000.png" id="9_8todm"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/characters/tile_0001.png" id="10_ypgdw"]
+[ext_resource type="AudioStream" path="res://assets/sounds/beep.wav" id="11_bu8dn"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ltt0i"]
+texture = ExtResource("1_w2l1y")
+texture_region_size = Vector2i(18, 18)
+13:7/0 = 0
+14:7/0 = 0
+15:7/0 = 0
+1:0/0 = 0
+1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+2:0/0 = 0
+2:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+3:0/0 = 0
+3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+6:1/0 = 0
+6:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+6:6/0 = 0
+5:6/0 = 0
+8:6/0 = 0
+5:4/0 = 0
+1:1/0 = 0
+1:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+2:1/0 = 0
+2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+3:1/0 = 0
+3:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+1:6/0 = 0
+1:6/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+2:6/0 = 0
+2:6/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+3:6/0 = 0
+3:6/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+
+[sub_resource type="TileSet" id="TileSet_k6yra"]
+tile_size = Vector2i(18, 18)
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_ltt0i")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2tqhv"]
+size = Vector2(18, 18)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_eru2j"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_kr6wo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_x2irg")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 4.0
+}]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bj7pg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_c5bw3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_owoe5")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 3.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3mvqe"]
+size = Vector2(18, 468)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f5dml"]
+size = Vector2(18, 468)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4vqu3"]
+size = Vector2(12, 20)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_1t7fc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_8todm")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_ypgdw")
+}],
+"loop": 1,
+"name": &"jump",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_8todm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_ypgdw")
+}],
+"loop": 1,
+"name": &"walk",
+"speed": 8.0
+}]
+
+[node name="Platformer2D" type="Node2D" unique_id=1657964747]
+texture_filter = 1
+
+[node name="World" type="Node2D" parent="." unique_id=220566165]
+
+[node name="Tiles" type="TileMapLayer" parent="World" unique_id=1788205054]
+tile_map_data = PackedByteArray("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")
+tile_set = SubResource("TileSet_k6yra")
+
+[node name="Items" type="Node2D" parent="World" unique_id=1079441723]
+
+[node name="Coin31_3" type="Area2D" parent="World/Items" unique_id=576226444 groups=["coin"]]
+position = Vector2(567, 63)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin31_3" unique_id=1698733122]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin31_3" unique_id=14070104]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin33_3" type="Area2D" parent="World/Items" unique_id=1634921951 groups=["coin"]]
+position = Vector2(603, 63)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin33_3" unique_id=416858730]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin33_3" unique_id=744776184]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin18_6" type="Area2D" parent="World/Items" unique_id=1925168588 groups=["coin"]]
+position = Vector2(333, 117)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin18_6" unique_id=1885258616]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin18_6" unique_id=994947357]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin19_6" type="Area2D" parent="World/Items" unique_id=558915508 groups=["coin"]]
+position = Vector2(351, 117)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin19_6" unique_id=1069869555]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin19_6" unique_id=1442053009]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin44_6" type="Area2D" parent="World/Items" unique_id=609114586 groups=["coin"]]
+position = Vector2(801, 117)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin44_6" unique_id=1067840202]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin44_6" unique_id=724456305]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin45_6" type="Area2D" parent="World/Items" unique_id=1332270689 groups=["coin"]]
+position = Vector2(819, 117)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin45_6" unique_id=741179823]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin45_6" unique_id=1303765822]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin46_6" type="Area2D" parent="World/Items" unique_id=346283524 groups=["coin"]]
+position = Vector2(837, 117)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin46_6" unique_id=185376801]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin46_6" unique_id=553620381]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin11_7" type="Area2D" parent="World/Items" unique_id=1562246622 groups=["coin"]]
+position = Vector2(207, 135)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin11_7" unique_id=1436663681]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin11_7" unique_id=1631999318]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Flag56_7" type="Area2D" parent="World/Items" unique_id=612321815 groups=["goal"]]
+position = Vector2(1017, 135)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Flag56_7" unique_id=188688884]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Flag56_7" unique_id=817670524]
+sprite_frames = SubResource("SpriteFrames_bj7pg")
+autoplay = "default"
+
+[node name="Pole56_8" type="Area2D" parent="World/Items" unique_id=1546369574 groups=["goal"]]
+position = Vector2(1017, 153)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Pole56_8" unique_id=729764899]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="Sprite2D" parent="World/Items/Pole56_8" unique_id=1623705204]
+texture = ExtResource("6_eulse")
+
+[node name="Spikes23_9" type="Area2D" parent="World/Items" unique_id=338579275 groups=["hazard"]]
+position = Vector2(423, 171)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Spikes23_9" unique_id=254013511]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="Sprite2D" parent="World/Items/Spikes23_9" unique_id=40691710]
+texture = ExtResource("7_owg2b")
+
+[node name="Spikes36_9" type="Area2D" parent="World/Items" unique_id=684589144 groups=["hazard"]]
+position = Vector2(657, 171)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Spikes36_9" unique_id=502946980]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="Sprite2D" parent="World/Items/Spikes36_9" unique_id=120685131]
+texture = ExtResource("7_owg2b")
+
+[node name="Coin50_9" type="Area2D" parent="World/Items" unique_id=240722773 groups=["coin"]]
+position = Vector2(909, 171)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin50_9" unique_id=651373496]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin50_9" unique_id=601026145]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Coin51_9" type="Area2D" parent="World/Items" unique_id=1440544148 groups=["coin"]]
+position = Vector2(927, 171)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Coin51_9" unique_id=115822734]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Items/Coin51_9" unique_id=716452011]
+sprite_frames = SubResource("SpriteFrames_eru2j")
+autoplay = "default"
+
+[node name="Pole56_9" type="Area2D" parent="World/Items" unique_id=1776381194 groups=["goal"]]
+position = Vector2(1017, 171)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Items/Pole56_9" unique_id=2020872276]
+shape = SubResource("RectangleShape2D_2tqhv")
+
+[node name="Sprite" type="Sprite2D" parent="World/Items/Pole56_9" unique_id=2068266797]
+texture = ExtResource("6_eulse")
+
+[node name="WallLeft" type="StaticBody2D" parent="World" unique_id=379997149]
+position = Vector2(-9, 0)
+
+[node name="Shape" type="CollisionShape2D" parent="World/WallLeft" unique_id=499380942]
+shape = SubResource("RectangleShape2D_3mvqe")
+
+[node name="WallRight" type="StaticBody2D" parent="World" unique_id=1512539986]
+position = Vector2(1089, 0)
+
+[node name="Shape" type="CollisionShape2D" parent="World/WallRight" unique_id=2091096141]
+shape = SubResource("RectangleShape2D_f5dml")
+
+[node name="Player" type="CharacterBody2D" parent="World" unique_id=1549575330 node_paths=PackedStringArray("sprite", "coin_label", "coin_sound")]
+position = Vector2(45, 180)
+script = ExtResource("8_cui5b")
+fall_limit = 294.0
+sprite = NodePath("Sprite")
+coin_label = NodePath("../../HudLayer/Hud/Coins")
+coin_sound = NodePath("../../CoinSound")
+menu_scene = "res://scenes/main_menu.tscn"
+
+[node name="Shape" type="CollisionShape2D" parent="World/Player" unique_id=255824372]
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_4vqu3")
+
+[node name="Hitbox" type="Area2D" parent="World/Player" unique_id=1820000570]
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="World/Player/Hitbox" unique_id=1803438897]
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_4vqu3")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="World/Player" unique_id=917806659]
+position = Vector2(0, -12)
+sprite_frames = SubResource("SpriteFrames_1t7fc")
+animation = &"idle"
+
+[node name="Camera" type="Camera2D" parent="World/Player" unique_id=775023534]
+zoom = Vector2(2, 2)
+limit_left = 0
+limit_top = -6
+limit_right = 1080
+limit_bottom = 234
+
+[node name="HudLayer" type="CanvasLayer" parent="." unique_id=2014788577]
+
+[node name="Hud" type="Control" parent="HudLayer" unique_id=1648783304]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Coins" type="Label" parent="HudLayer/Hud" unique_id=41903365]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 316.0
+offset_bottom = 38.0
+theme_override_font_sizes/font_size = 20
+text = "COINS 0/0"
+
+[node name="Hint" type="Label" parent="HudLayer/Hud" unique_id=1229281889]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 452.0
+offset_right = 620.0
+offset_bottom = 475.0
+theme_override_font_sizes/font_size = 14
+text = "Left/Right: move   Space or A: jump   Esc or B: back"
+horizontal_alignment = 1
+
+[node name="CoinSound" type="AudioStreamPlayer" parent="." unique_id=490419751]
+stream = ExtResource("11_bu8dn")
+
+[connection signal="area_entered" from="World/Player/Hitbox" to="World/Player" method="_on_hitbox_area_entered"]

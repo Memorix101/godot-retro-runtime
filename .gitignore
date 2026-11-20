@@ -1,0 +1,19 @@
+# Build output: runtime, tools, packages, disc images, test logs
+/build
+
+# The Godot editor executables (download them, see docs/building.md)
+/godot
+
+# Godot's cache and what the importer generates
+/.godot
+*.translation
+
+# Commands of this machine for the play buttons (see docs/building.md)
+# /retro_local.cfg
+
+# Written when the game or an emulator runs from the project folder
+*.sav
+flycast.log
+
+# Editor settings
+/.vscode

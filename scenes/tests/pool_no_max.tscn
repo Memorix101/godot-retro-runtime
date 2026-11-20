@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://components/tests/test_no_max.gd" id="1_no_max"]
+[ext_resource type="PackedScene" path="res://scenes/tests/spawned.tscn" id="2_spawned"]
+
+[node name="PoolNoMax" type="Node3D"]
+
+[node name="Spawner" type="Node3D" parent="."]
+script = ExtResource("1_no_max")
+spawn = ExtResource("2_spawned")

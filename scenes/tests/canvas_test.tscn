@@ -1,0 +1,83 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/tests/canvas_test.gd" id="1_jmlih"]
+[ext_resource type="Texture2D" path="res://assets/sprites/logo.png" id="2_qp4ds"]
+[ext_resource type="Texture2D" path="res://assets/sprites/coin.png" id="3_tef3b"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ship.png" id="4_s0ddv"]
+
+[node name="CanvasTest" type="Node2D" unique_id=1629386391 node_paths=PackedStringArray("target", "far", "strip", "bound")]
+script = ExtResource("1_jmlih")
+target = NodePath("Target")
+far = NodePath("Far")
+strip = NodePath("Strip")
+bound = NodePath("Bound")
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=1025853281]
+
+[node name="Title" type="Label" parent="Hud" unique_id=1991416694]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 416.0
+offset_bottom = 42.0
+text = "HUD: on top, does not scroll"
+
+[node name="Far" type="Parallax2D" parent="." unique_id=875027704]
+scroll_scale = Vector2(0.5, 0.5)
+scroll_offset = Vector2(40, 20)
+
+[node name="Logo" type="Sprite2D" parent="Far" unique_id=749114166]
+position = Vector2(400, 200)
+texture = ExtResource("2_qp4ds")
+
+[node name="Strip" type="Parallax2D" parent="." unique_id=508077206]
+scroll_scale = Vector2(0.25, 1)
+repeat_size = Vector2(160, 0)
+autoscroll = Vector2(-30, 0)
+repeat_times = 6
+
+[node name="Coin" type="Sprite2D" parent="Strip" unique_id=661375388]
+position = Vector2(40, 420)
+texture = ExtResource("3_tef3b")
+
+[node name="Bound" type="Parallax2D" parent="." unique_id=1023618495]
+scroll_scale = Vector2(0.8, 0.8)
+limit_begin = Vector2(0, 0)
+limit_end = Vector2(800, 600)
+
+[node name="Ship" type="Sprite2D" parent="Bound" unique_id=1515108430]
+position = Vector2(200, 300)
+texture = ExtResource("4_s0ddv")
+
+[node name="Front" type="Sprite2D" parent="." unique_id=494129264]
+z_index = 2
+position = Vector2(330, 250)
+texture = ExtResource("4_s0ddv")
+
+[node name="Middle" type="Sprite2D" parent="." unique_id=696236437]
+position = Vector2(340, 250)
+scale = Vector2(3, 3)
+texture = ExtResource("3_tef3b")
+
+[node name="Back" type="Sprite2D" parent="." unique_id=47754628]
+z_index = -1
+position = Vector2(340, 250)
+texture = ExtResource("2_qp4ds")
+
+[node name="Target" type="Node2D" parent="." unique_id=2116302996]
+position = Vector2(320, 240)
+
+[node name="Look" type="Sprite2D" parent="Target" unique_id=228657503]
+z_index = 5
+texture = ExtResource("4_s0ddv")
+
+[node name="Camera" type="Camera2D" parent="Target" unique_id=1196440199]
+offset = Vector2(0, -10)
+limit_left = 0
+limit_top = 0
+limit_right = 2000
+limit_bottom = 520
+position_smoothing_enabled = true
+position_smoothing_speed = 4.0
+drag_horizontal_enabled = true
+drag_left_margin = 0.3
+drag_right_margin = 0.1

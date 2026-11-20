@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://tfsl3ggovd5i"
+path="res://.godot/imported/treeLarge.obj-a2293833071981cf0e37a44890375842.mesh"
+
+[deps]
+
+files=["res://.godot/imported/treeLarge.obj-a2293833071981cf0e37a44890375842.mesh"]
+
+source_file="res://assets/kenney/racing-kit/treeLarge.obj"
+dest_files=["res://.godot/imported/treeLarge.obj-a2293833071981cf0e37a44890375842.mesh", "res://.godot/imported/treeLarge.obj-a2293833071981cf0e37a44890375842.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/kenney/platformer-kit/flag.obj" id="1_mesh"]
+
+[sub_resource type="BoxShape3D" id="shape"]
+size = Vector3(0.8, 1.2, 0.8)
+
+[node name="Checkpoint" type="Area3D" groups=["checkpoint"]]
+monitoring = false
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_mesh")
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("shape")

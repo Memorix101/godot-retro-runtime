@@ -1,0 +1,159 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/tests/scroll_test.gd" id="1_mjume"]
+[ext_resource type="Texture2D" path="res://assets/sprites/logo.png" id="2_xwg45"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqgsv"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.2, 0.22, 0.3, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.9, 0.7, 0.2, 1)
+
+[node name="ScrollTest" type="Control" unique_id=115263152 node_paths=PackedStringArray("list")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 640.0
+offset_bottom = 480.0
+script = ExtResource("1_mjume")
+list = NodePath("Frame/List")
+
+[node name="Back" type="ColorRect" parent="." unique_id=1075094885]
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 480.0
+color = Color(0.12, 0.13, 0.18, 1)
+
+[node name="Frame" type="PanelContainer" parent="." unique_id=1267577767]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 300.0
+offset_bottom = 240.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_mqgsv")
+
+[node name="List" type="ScrollContainer" parent="Frame" unique_id=1662263362]
+layout_mode = 2
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="Column" type="VBoxContainer" parent="Frame/List" unique_id=676485070]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Item1" type="Button" parent="Frame/List/Column" unique_id=2049550970]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 1"
+
+[node name="Item2" type="Button" parent="Frame/List/Column" unique_id=1374604277]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 2"
+
+[node name="Item3" type="Button" parent="Frame/List/Column" unique_id=1269312594]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 3"
+
+[node name="Item4" type="Button" parent="Frame/List/Column" unique_id=1726371610]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 4"
+
+[node name="Item5" type="Button" parent="Frame/List/Column" unique_id=1272915492]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 5"
+
+[node name="Item6" type="Button" parent="Frame/List/Column" unique_id=2089319624]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 6"
+
+[node name="Item7" type="Button" parent="Frame/List/Column" unique_id=1464989001]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 7"
+
+[node name="Item8" type="Button" parent="Frame/List/Column" unique_id=1944765882]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 8"
+
+[node name="Item9" type="Button" parent="Frame/List/Column" unique_id=999367505]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Item 9"
+
+[node name="Bar" type="TextureProgressBar" parent="." unique_id=1271234035]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 50.0
+offset_right = 340.0
+offset_bottom = 50.0
+value = 60.0
+texture_under = ExtResource("2_xwg45")
+texture_progress = ExtResource("2_xwg45")
+tint_under = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Line" type="HSeparator" parent="." unique_id=6286544]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 110.0
+offset_right = 580.0
+offset_bottom = 122.0
+
+[node name="Grid" type="GridContainer" parent="." unique_id=1695843978]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 130.0
+offset_right = 340.0
+offset_bottom = 130.0
+columns = 2
+
+[node name="CellName" type="Label" parent="Grid" unique_id=720195080]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Name"
+
+[node name="CellScore" type="Label" parent="Grid" unique_id=477208191]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Score"
+
+[node name="CellAda" type="Label" parent="Grid" unique_id=1356405505]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Ada"
+
+[node name="Cell1200" type="Label" parent="Grid" unique_id=66646984]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "1200"
+
+[node name="CellLinus" type="Label" parent="Grid" unique_id=1510642954]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Linus"
+
+[node name="Cell950" type="Label" parent="Grid" unique_id=1318846934]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "950"
+
+[node name="Rich" type="RichTextLabel" parent="." unique_id=229823604]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 250.0
+offset_right = 600.0
+offset_bottom = 420.0
+bbcode_enabled = true
+text = "Plain, [b]bold[/b], [i]italic[/i], [color=red]red[/color] and [color=#40c0ff]blue [b]bold[/b][/color] text [lb]in brackets[rb] that goes on over more lines.
+[center]centred[/center]
+[right]right[/right]"

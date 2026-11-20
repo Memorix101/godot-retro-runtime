@@ -1,0 +1,252 @@
+# PC build, packages and tests. Run from an MSYS2 MINGW64 shell (gcc, make, raylib):
+#
+#   pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-raylib make diffutils
+#
+#   make            build the runtime and the tools
+#   make packages   import the assets and export the game scenes with Godot (headless)
+#   make run        start the game in the PC runtime
+#   make dist       zip the PC game (runtime, DLLs, packages) into build/dist/
+#   make test       run the exporter, loader and game flow tests
+#
+# The Dreamcast build lives in runtime/platform/dreamcast/Makefile.
+
+GODOT   ?= ./godot/Godot_v4.7.2-stable_win64_console.exe
+ifeq ($(origin CC),default)
+CC := gcc
+endif
+CFLAGS  ?= -O2 -g
+CFLAGS  += -std=c11 -Wall -Wextra -Wdouble-promotion
+RAYLIB_LIBS ?= -lraylib -lopengl32 -lgdi32 -lwinmm
+
+BUILD := build
+EXE   := .exe
+
+# The scenes of the game. The first scene the runtime loads is main_menu.
+SCENES := scenes/main_menu.tscn scenes/test_track.tscn scenes/sprites_2d.tscn \
+          scenes/platformer_2d.tscn scenes/platformer_3d.tscn scenes/racing.tscn \
+          scenes/island.tscn scenes/features.tscn
+# Scenes that are instanced by the ones above.
+PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/*.tscn)
+
+CORE_SRC := $(wildcard runtime/core/*.c)
+GAME_SRC := $(wildcard runtime/game/*.c)
+PC_SRC   := runtime/main.c runtime/platform/rr_file_stdio.c runtime/platform/pc/pc_raylib.c
+HEADERS  := $(wildcard runtime/core/*.h runtime/game/*.h)
+
+RUNTIME := $(BUILD)/pc/retro$(EXE)
+RPKDUMP := $(BUILD)/tools/rpkdump$(EXE)
+
+EXPORT  = $(GODOT) --headless --path . --script res://addons/retro_runtime/export_cli.gd --
+ADDON  := $(wildcard addons/retro_runtime/*.gd addons/retro_runtime/bakers/*.gd)
+ASSETS := $(wildcard assets/*/*.png assets/*/*.wav assets/*/*.import \
+                    assets/kenney/*/*.obj assets/kenney/*/*.mtl assets/kenney/*/*/*.png)
+EXPORT_DEPS := $(ADDON) $(wildcard components/*.gd components/tests/*.gd) project.godot $(BUILD)/.imported
+
+.PHONY: all packages dist test run clean
+
+all: $(RUNTIME) $(RPKDUMP)
+
+$(RUNTIME): $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(HEADERS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -o $@ $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(RAYLIB_LIBS)
+	@# Copy the MinGW DLLs the executable needs next to it (and theirs in turn), so it
+	@# also starts outside the MSYS2 shell: by double click or from the packaged zip.
+	@bin="$$(dirname "$$(command -v $(CC))")"; todo="$@"; seen=""; \
+	while [ -n "$$todo" ]; do \
+	    set -- $$todo; file="$$1"; shift; todo="$$*"; \
+	    for dll in $$(objdump -p "$$file" | sed -n 's/.*DLL Name: //p'); do \
+	        case " $$seen " in *" $$dll "*) continue;; esac; \
+	        if [ -f "$$bin/$$dll" ]; then \
+	            seen="$$seen $$dll"; cp "$$bin/$$dll" "$(dir $@)"; todo="$$todo $$bin/$$dll"; \
+	        fi; \
+	    done; \
+	done; echo "DLLs next to the executable:$$seen"
+
+$(RPKDUMP): tools/rpkdump.c runtime/core/rr_package.c runtime/core/rr_dump.c \
+            runtime/platform/rr_file_stdio.c $(HEADERS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -o $@ tools/rpkdump.c runtime/core/rr_package.c runtime/core/rr_dump.c \
+	    runtime/platform/rr_file_stdio.c
+
+# --- packages ---------------------------------------------------------------------------
+# Scenes that use images or sounds can only be loaded after Godot has imported them.
+
+$(BUILD)/.imported: $(ASSETS)
+	@mkdir -p $(BUILD)
+	$(GODOT) --headless --path . --import
+	@touch $@
+
+packages: $(BUILD)/pkg/pc/.exported $(BUILD)/pkg/dreamcast/.exported
+
+$(BUILD)/pkg/%/.exported: $(SCENES) $(PARTS) $(EXPORT_DEPS)
+	$(EXPORT) --platform $* --out $(BUILD)/pkg/$* $(addprefix res://,$(SCENES))
+	@touch $@
+
+# Zip of the PC game that runs after unpacking, in build/dist/. Same as the editor's
+# "Project > Tools > Package PC Build as Zip".
+dist: $(RUNTIME) $(BUILD)/.imported
+	$(GODOT) --headless --path . --script res://addons/retro_runtime/package_cli.gd
+
+run: $(RUNTIME) $(BUILD)/pkg/pc/.exported
+	$(RUNTIME) --data $(BUILD)/pkg/pc
+
+# --- tests ------------------------------------------------------------------------------
+# 1. Tree dump of a scene that uses every node type, compared with the expected text.
+# 2. A scene with an unsupported node must fail and name that node; so must a PackedScene
+#    field without the number of instances to make.
+# 3. The runtime must reject a package baked for another platform.
+# 4. A scene with many areas and bodies must report every overlap once, with rays and
+#    bodies hitting the right things, and a scene that
+#    checks runtime features by itself (rays, paths, ...) must report ok. The controls that
+#    take input are driven by a scripted input and must emit their signals in order.
+# 5. Game flow with scripted input: the menu starts the track, the car reaches the
+#    finish trigger and the menu comes back; then the same for the 2D test scene, and
+#    the Quit button ends the program. In the 2D test scene the ship shoots all targets
+#    with instanced bullets, more of them than the pool holds at a time. Both platformer
+#    demos are played to their flag, and the racing demo is driven for three laps by a
+#    recorded input (tests/input/racing.txt).
+#
+# The game flow tests open a window for a few seconds. RR_MUTE keeps them silent.
+
+T := $(BUILD)/test
+FLOW = RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) --data $(BUILD)/pkg/pc --frames 900 --input
+
+test: all $(BUILD)/pkg/pc/.exported
+	@mkdir -p $(T)
+	@echo "== tree dump"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/dump_test.tscn
+	$(RPKDUMP) $(T)/pc/dump_test.rpk > $(T)/dump_test.txt
+	diff -u --strip-trailing-cr tests/expected/dump_test.txt $(T)/dump_test.txt
+	@echo "== unsupported node"
+	@if $(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/unsupported.tscn \
+	        > $(T)/unsupported.log 2>&1; then \
+	    echo "FAIL: export of unsupported.tscn succeeded"; exit 1; fi
+	grep -q "node 'Unsupported/Effects/Sparks' (GPUParticles3D): unsupported node type" $(T)/unsupported.log
+	@test ! -e $(T)/pc/unsupported.rpk || { echo "FAIL: a package was written anyway"; exit 1; }
+	@echo "== PackedScene field without a pool size"
+	@if $(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/pool_no_max.tscn \
+	        > $(T)/pool_no_max.log 2>&1; then \
+	    echo "FAIL: export of pool_no_max.tscn succeeded"; exit 1; fi
+	grep -q "node 'PoolNoMax/Spawner' (Node3D): exported field 'spawn' is a PackedScene" $(T)/pool_no_max.log
+	@echo "== wrong platform"
+	$(EXPORT) --platform dreamcast --out $(T)/dreamcast res://scenes/tests/dump_test.tscn
+	@if $(RUNTIME) dump_test --data $(T)/dreamcast --dump > $(T)/wrong_platform.log 2>&1; then \
+	    echo "FAIL: the PC runtime accepted a Dreamcast package"; exit 1; fi
+	grep -q "baked for platform 'dreamcast'" $(T)/wrong_platform.log
+	@echo "== many areas and bodies: every overlap reported once, rays and bodies hit right"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/stress_triggers.tscn
+	RR_MUTE=1 $(RUNTIME) stress_triggers --data $(T)/pc --frames 32 > $(T)/stress.log
+	@test "$$(tr -d '\r' < $(T)/stress.log | tr '\n' ' ')" = \
+	    "scene: stress_triggers stress: entered 360 stress: exited 20 stress: rays 20/20 hit, 10/10 through the gaps stress: walkers at 0.00 and -0.40 " || \
+	    { echo "FAIL: unexpected counts:"; cat $(T)/stress.log; exit 1; }
+	@echo "== self-checking feature scene"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) features --data $(BUILD)/pkg/pc --frames 120 > $(T)/features.log
+	@grep -q "^features: ok" $(T)/features.log || \
+	    { echo "FAIL: the feature scene reports:"; cat $(T)/features.log; exit 1; }
+	@echo "== controls: focus passes a disabled button, toggles, slider steps and repeats"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/ui_test.tscn
+	RR_MUTE=1 $(RUNTIME) ui_test --data $(T)/pc --frames 400 --input "10:ui_accept,20:ui_down,30:ui_accept,40:ui_down,50:ui_accept,60:ui_down,70:ui_right,80:ui_left:120,210:ui_down,220:ui_accept,230:ui_down,240:ui_accept,250:ui_up,260:ui_up,270:ui_up,280:ui_up,290:ui_up,300:ui_accept" > $(T)/ui.log
+	@test "$$(tr -d '\r' < $(T)/ui.log | tr '\n' ' ')" = \
+	    "scene: ui_test ui: pressed Plain ui: toggled Check on ui: toggled Switch off ui: value Volume 6.00 ui: value Volume 5.00 ui: value Volume 4.00 ui: value Volume 3.00 ui: value Volume 2.00 ui: value Volume 1.00 ui: value Volume 0.00 ui: pressed Picture ui: pressed Unlock ui: pressed Locked quit " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/ui.log; exit 1; }
+	@echo "== one-way platforms: up through them, down onto them, sideways through them"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/tile_test.tscn
+	RR_MUTE=1 $(RUNTIME) tile_test --data $(T)/pc --frames 130 > $(T)/tiles.log
+	@test "$$(tr -d '\r' < $(T)/tiles.log | tr '\n' ' ')" = \
+	    "scene: tile_test tiles: jumper 244.0 roller 244.0 faller 227.0 riser 227.0 sider 240.0 " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/tiles.log; exit 1; }
+	@echo "== 2D view: Camera2D (drag, smoothing, limits) and Parallax2D give what Godot gives"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/canvas_test.tscn
+	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/canvas_reference.gd > $(T)/canvas_godot.log
+	RR_MUTE=1 $(RUNTIME) canvas_test --data $(T)/pc --frames 152 > $(T)/canvas.log
+	@grep -q "^canvas: center " $(T)/canvas.log && \
+	    test "$$(grep '^canvas:' $(T)/canvas.log | tr -d '\r')" = "$$(grep '^canvas:' $(T)/canvas_godot.log | tr -d '\r')" || \
+	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/canvas.log $(T)/canvas_godot.log; exit 1; }
+	@echo "== ScrollContainer: follows the focus as far as Godot does"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/scroll_test.tscn
+	$(GODOT) --headless --path . --script res://tools/scroll_reference.gd > $(T)/scroll_godot.log
+	RR_MUTE=1 $(RUNTIME) scroll_test --data $(T)/pc --frames 165 --input "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,60:ui_down,70:ui_down,80:ui_down,105:ui_up,115:ui_up,125:ui_up,135:ui_up,145:ui_up" > $(T)/scroll.log
+	@grep -q "^scroll: bottom " $(T)/scroll.log && \
+	    test "$$(grep '^scroll:' $(T)/scroll.log | tr -d '\r')" = "$$(grep '^scroll:' $(T)/scroll_godot.log | tr -d '\r')" || \
+	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/scroll.log $(T)/scroll_godot.log; exit 1; }
+	@echo "== AnimationPlayer: speed scale and blending between clips give what Godot gives"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/anim_test.tscn
+	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/anim_reference.gd > $(T)/anim_godot.log
+	RR_MUTE=1 $(RUNTIME) anim_test --data $(T)/pc --frames 75 > $(T)/anim.log
+	@test "$$(grep -c '^anim:' $(T)/anim.log)" = 4 && \
+	    test "$$(grep '^anim:' $(T)/anim.log | tr -d '\r' | sed 's/-0\.00/0.00/g')" = \
+	         "$$(grep '^anim:' $(T)/anim_godot.log | tr -d '\r' | sed 's/-0\.00/0.00/g')" || \
+	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/anim.log $(T)/anim_godot.log; exit 1; }
+	@echo "== GridMap: a body stops at its floor and wall where Godot's physics stops it"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/grid_test.tscn
+	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/grid_reference.gd > $(T)/grid_godot.log
+	RR_MUTE=1 $(RUNTIME) grid_test --data $(T)/pc --frames 485 > $(T)/grid.log
+	@grep -q "^grid: walker at " $(T)/grid.log && \
+	    test "$$(grep '^grid:' $(T)/grid.log | tr -d '\r')" = "$$(grep '^grid:' $(T)/grid_godot.log | tr -d '\r')" || \
+	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/grid.log $(T)/grid_godot.log; exit 1; }
+	@echo "== ShapeCast: a sphere, box, capsule and circle touch where Godot's physics says"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/cast_test.tscn
+	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/cast_reference.gd > $(T)/cast_godot.log
+	RR_MUTE=1 $(RUNTIME) cast_test --data $(T)/pc --frames 6 > $(T)/cast.log
+	@test "$$(grep -c '^cast:' $(T)/cast.log)" = 5 && \
+	    test "$$(grep '^cast:' $(T)/cast.log | tr -d '\r' | sed 's/-0\.0/0.0/g')" = \
+	         "$$(grep '^cast:' $(T)/cast_godot.log | tr -d '\r' | sed 's/-0\.0/0.0/g')" || \
+	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/cast.log $(T)/cast_godot.log; exit 1; }
+	@echo "== skinning: vertices between two bones are where the pose of Godot's skeleton puts them"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/skin_test.tscn
+	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/skin_reference.gd > $(T)/skin_godot.log
+	RR_MUTE=1 $(RUNTIME) skin_test --data $(T)/pc --frames 85 > $(T)/skin.log
+	@grep -q "^skin: " $(T)/skin.log && \
+	    test "$$(grep '^skin:' $(T)/skin.log | tr -d '\r' | sed 's/-0\.00/0.00/g')" = \
+	         "$$(grep '^skin:' $(T)/skin_godot.log | tr -d '\r' | sed 's/-0\.00/0.00/g')" || \
+	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/skin.log $(T)/skin_godot.log; exit 1; }
+	@echo "== placeholders: every C component has a script, and what the runtime prints is GDScript"
+	$(GODOT) --headless --path . --script res://addons/retro_runtime/placeholders_cli.gd -- --check > $(T)/placeholders.log 2>&1 || \
+	    { echo "FAIL:"; cat $(T)/placeholders.log; exit 1; }
+	@echo "== game flow: menu -> track -> finish trigger -> menu"
+	$(FLOW) "10:ui_accept,30:accelerate:800" > $(T)/flow_track.log
+	@test "$$(grep '^scene:' $(T)/flow_track.log | tr -d '\r' | tr '\n' ' ')" = \
+	    "scene: main_menu scene: test_track scene: main_menu " || \
+	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_track.log; exit 1; }
+	@echo "== game flow: menu -> 2D test -> cancel -> menu -> quit"
+	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_accept" > $(T)/flow_2d.log
+	@test "$$(tr -d '\r' < $(T)/flow_2d.log | tr '\n' ' ')" = \
+	    "scene: main_menu scene: sprites_2d scene: main_menu quit " || \
+	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_2d.log; exit 1; }
+	@echo "== game flow: menu -> 2D test, all targets shot with instanced bullets -> menu"
+	$(FLOW) "10:ui_down,20:ui_accept,30:jump,40:steer_right:30,80:jump,90:steer_left:60,100:jump,110:jump,120:jump,130:jump,135:jump,160:jump" > $(T)/flow_pool.log
+	@test "$$(tr -d '\r' < $(T)/flow_pool.log | tr '\n' ' ')" = \
+	    "scene: main_menu scene: sprites_2d scene: main_menu " || \
+	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_pool.log; exit 1; }
+	@echo "== game flow: menu -> feature test, report on screen -> cancel -> menu"
+	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,55:ui_down,60:ui_accept,210:ui_cancel" > $(T)/flow_features.log
+	@test "$$(tr -d '\r' < $(T)/flow_features.log | tr '\n' ' ')" = \
+	    "scene: main_menu scene: features scene: features features: ok scene: main_menu " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/flow_features.log; exit 1; }
+	@echo "== game flow: racing, three laps driven by a recorded input -> menu"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) racing --data $(BUILD)/pkg/pc --frames 3300 \
+	    --input "$$(cat tests/input/racing.txt)" > $(T)/flow_racing.log
+	@grep -q "^race: lap 3 " $(T)/flow_racing.log && grep -q "^race: finish P" $(T)/flow_racing.log && \
+	    test "$$(grep '^scene:' $(T)/flow_racing.log | tr -d '\r' | tr '\n' ' ')" = \
+	        "scene: racing scene: main_menu " || \
+	    { echo "FAIL: the race did not run to the end:"; cat $(T)/flow_racing.log; exit 1; }
+	@echo "== game flow: island, walked over the height map up to the flag -> menu"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) island --data $(BUILD)/pkg/pc --frames 600 \
+	    --input "10:move_up:400,10:move_right:165" > $(T)/flow_island.log
+	@test "$$(tr -d '\r' < $(T)/flow_island.log | tr '\n' ' ')" = \
+	    "scene: island scene: main_menu " || \
+	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_island.log; exit 1; }
+	@echo "== game flow: menu -> 2D platformer, played to the flag -> menu"
+	$(FLOW) "10:ui_down,20:ui_down,30:ui_accept,30:move_right:870,115:jump:20,166:jump:20,266:jump:20,320:jump:20,424:jump:20,489:jump:20" > $(T)/flow_platformer_2d.log
+	@test "$$(tr -d '\r' < $(T)/flow_platformer_2d.log | tr '\n' ' ')" = \
+	    "scene: main_menu scene: platformer_2d scene: main_menu " || \
+	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_platformer_2d.log; exit 1; }
+	@echo "== game flow: menu -> 3D platformer, played to the flag -> menu"
+	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_accept,40:move_right:417,99:jump:20,174:jump:20,219:jump:20,264:jump:20,413:jump:20,517:move_right:200,525:jump:20" > $(T)/flow_platformer_3d.log
+	@test "$$(tr -d '\r' < $(T)/flow_platformer_3d.log | tr '\n' ' ')" = \
+	    "scene: main_menu scene: platformer_3d scene: main_menu " || \
+	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_platformer_3d.log; exit 1; }
+	@echo "ALL TESTS PASSED"
+
+clean:
+	rm -rf $(BUILD)/pc $(BUILD)/tools $(BUILD)/pkg $(BUILD)/test $(BUILD)/.imported

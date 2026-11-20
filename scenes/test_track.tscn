@@ -1,0 +1,172 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://components/player_car.gd" id="1_car"]
+[ext_resource type="AudioStream" path="res://assets/sounds/engine.wav" id="2_engine"]
+[ext_resource type="Texture2D" path="res://assets/sprites/coin.png" id="3_coin"]
+
+[sub_resource type="StandardMaterial3D" id="mat_road"]
+albedo_color = Color(0.3, 0.3, 0.34, 1)
+
+[sub_resource type="BoxMesh" id="mesh_road"]
+material = SubResource("mat_road")
+size = Vector3(12, 0.2, 240)
+
+[sub_resource type="StandardMaterial3D" id="mat_post"]
+albedo_color = Color(0.95, 0.85, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="mesh_post"]
+material = SubResource("mat_post")
+size = Vector3(0.5, 2, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="mat_car"]
+albedo_color = Color(0.85, 0.12, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="mesh_car"]
+material = SubResource("mat_car")
+size = Vector3(1.8, 1, 4)
+
+[sub_resource type="StandardMaterial3D" id="mat_gate"]
+albedo_color = Color(0.2, 0.9, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="mesh_gate"]
+material = SubResource("mat_gate")
+size = Vector3(12, 0.6, 0.6)
+
+[sub_resource type="BoxShape3D" id="shape_car"]
+size = Vector3(1.8, 1, 4)
+
+[sub_resource type="BoxShape3D" id="shape_finish"]
+size = Vector3(12, 4, 2)
+
+[sub_resource type="Environment" id="env"]
+background_mode = 1
+background_color = Color(0.431373, 0.627451, 0.862745, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.4, 0.4, 1)
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.431373, 0.627451, 0.862745, 1)
+fog_density = 1.0
+fog_depth_begin = 40.0
+fog_depth_end = 160.0
+
+[node name="TestTrack" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.409576, 0.286788, 0, 0.573576, 0.819152, -0.5, -0.709406, 0.496732, 0, 10, 0)
+
+[node name="Track" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -90)
+mesh = SubResource("mesh_road")
+
+[node name="PostL1" type="MeshInstance3D" parent="Track"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.1, 60)
+mesh = SubResource("mesh_post")
+
+[node name="PostR1" type="MeshInstance3D" parent="Track"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.1, 30)
+mesh = SubResource("mesh_post")
+
+[node name="PostL2" type="MeshInstance3D" parent="Track"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.1, 0)
+mesh = SubResource("mesh_post")
+
+[node name="PostR2" type="MeshInstance3D" parent="Track"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.1, -30)
+mesh = SubResource("mesh_post")
+
+[node name="PostL3" type="MeshInstance3D" parent="Track"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.1, -60)
+mesh = SubResource("mesh_post")
+
+[node name="PostR3" type="MeshInstance3D" parent="Track"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.1, -90)
+mesh = SubResource("mesh_post")
+
+[node name="Finish" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -180)
+
+[node name="Shape" type="CollisionShape3D" parent="Finish"]
+shape = SubResource("shape_finish")
+
+[node name="Gate" type="MeshInstance3D" parent="Finish"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 0)
+mesh = SubResource("mesh_gate")
+
+[node name="Sign" type="Label3D" parent="Finish"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
+pixel_size = 0.04
+text = "FINISH"
+
+[node name="StartSign" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -14)
+pixel_size = 0.03
+text = "GO!"
+
+[node name="Marker" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.5, -10)
+pixel_size = 0.08
+billboard = 1
+texture_filter = 0
+texture = ExtResource("3_coin")
+
+[node name="Car" type="MeshInstance3D" parent="." node_paths=PackedStringArray("camera", "speed_label")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("mesh_car")
+script = ExtResource("1_car")
+max_speed = 45.0
+acceleration = 20.0
+steer_speed = 8.0
+track_half_width = 5.0
+camera = NodePath("../Camera")
+speed_label = NodePath("../Hud/Speed")
+menu_scene = "res://scenes/main_menu.tscn"
+
+[node name="Hitbox" type="Area3D" parent="Car" groups=["player"]]
+
+[node name="Shape" type="CollisionShape3D" parent="Car/Hitbox"]
+shape = SubResource("shape_car")
+
+[node name="Engine" type="AudioStreamPlayer" parent="Car"]
+stream = ExtResource("2_engine")
+volume_db = -8.0
+autoplay = true
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 3.5, 8)
+fov = 60.0
+near = 0.1
+far = 300.0
+
+[node name="Hud" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Speed" type="Label" parent="Hud"]
+layout_mode = 0
+offset_left = 440.0
+offset_top = 420.0
+offset_right = 620.0
+offset_bottom = 460.0
+theme_override_font_sizes/font_size = 24
+text = "0 km/h"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Goal" type="Label" parent="Hud"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 16.0
+offset_right = 620.0
+offset_bottom = 42.0
+text = "Reach the green gate"
+horizontal_alignment = 1
+
+[connection signal="area_entered" from="Finish" to="Car" method="_on_finish_area_entered"]

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bvxxxb2he8uha"
+path="res://.godot/imported/overhead.obj-8d4f36c44cd6457d64d2e6c03e242027.mesh"
+
+[deps]
+
+files=["res://.godot/imported/overhead.obj-8d4f36c44cd6457d64d2e6c03e242027.mesh"]
+
+source_file="res://assets/kenney/racing-kit/overhead.obj"
+dest_files=["res://.godot/imported/overhead.obj-8d4f36c44cd6457d64d2e6c03e242027.mesh", "res://.godot/imported/overhead.obj-8d4f36c44cd6457d64d2e6c03e242027.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

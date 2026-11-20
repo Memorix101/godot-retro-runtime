@@ -1,0 +1,74 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/tests/cast_test.gd" id="1_lvo05"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_it6iq"]
+size = Vector3(1, 4, 4)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_q0ub6"]
+radius = 1.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_dj41m"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_45eyc"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_erh87"]
+radius = 0.3
+height = 1.4
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ypxgp"]
+size = Vector2(40, 200)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_res8y"]
+
+[node name="CastTest" type="Node3D" unique_id=1379080595 node_paths=PackedStringArray("sphere_cast", "box_cast", "capsule_cast", "miss_cast", "circle_cast")]
+script = ExtResource("1_lvo05")
+sphere_cast = NodePath("SphereCast")
+box_cast = NodePath("BoxCast")
+capsule_cast = NodePath("CapsuleCast")
+miss_cast = NodePath("MissCast")
+circle_cast = NodePath("Layer2D/CircleCast")
+
+[node name="Wall" type="StaticBody3D" parent="." unique_id=298334479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="Wall" unique_id=784901941]
+shape = SubResource("BoxShape3D_it6iq")
+
+[node name="Ball" type="StaticBody3D" parent="." unique_id=1544129629]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6)
+
+[node name="Shape" type="CollisionShape3D" parent="Ball" unique_id=1259975049]
+shape = SubResource("SphereShape3D_q0ub6")
+
+[node name="SphereCast" type="ShapeCast3D" parent="." unique_id=405645175]
+shape = SubResource("SphereShape3D_dj41m")
+target_position = Vector3(10, 0, 0)
+
+[node name="BoxCast" type="ShapeCast3D" parent="." unique_id=1501146572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_45eyc")
+target_position = Vector3(8, 0, 0)
+
+[node name="CapsuleCast" type="ShapeCast3D" parent="." unique_id=1016212893]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -6)
+shape = SubResource("CapsuleShape3D_erh87")
+target_position = Vector3(5, 0, 0)
+
+[node name="MissCast" type="ShapeCast3D" parent="." unique_id=23793670]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
+shape = SubResource("SphereShape3D_dj41m")
+target_position = Vector3(10, 0, 0)
+
+[node name="Layer2D" type="Node2D" parent="." unique_id=896788628]
+
+[node name="Block" type="StaticBody2D" parent="Layer2D" unique_id=604733038]
+position = Vector2(300, 100)
+
+[node name="Shape" type="CollisionShape2D" parent="Layer2D/Block" unique_id=1276549673]
+shape = SubResource("RectangleShape2D_ypxgp")
+
+[node name="CircleCast" type="ShapeCast2D" parent="Layer2D" unique_id=330632541]
+position = Vector2(100, 100)
+shape = SubResource("CircleShape2D_res8y")
+target_position = Vector2(400, 0)

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://dm2sl2jqad0jf"
+path="res://.godot/imported/lightPostLarge.obj-d4e5db28c6c7331e2b5db707c9ca8c83.mesh"
+
+[deps]
+
+files=["res://.godot/imported/lightPostLarge.obj-d4e5db28c6c7331e2b5db707c9ca8c83.mesh"]
+
+source_file="res://assets/kenney/racing-kit/lightPostLarge.obj"
+dest_files=["res://.godot/imported/lightPostLarge.obj-d4e5db28c6c7331e2b5db707c9ca8c83.mesh", "res://.godot/imported/lightPostLarge.obj-d4e5db28c6c7331e2b5db707c9ca8c83.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

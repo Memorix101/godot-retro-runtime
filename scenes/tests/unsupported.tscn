@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[node name="Unsupported" type="Node3D"]
+
+[node name="Effects" type="Node3D" parent="."]
+
+[node name="Sparks" type="GPUParticles3D" parent="Effects"]

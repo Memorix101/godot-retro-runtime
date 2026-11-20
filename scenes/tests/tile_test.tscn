@@ -1,0 +1,105 @@
+[gd_scene format=4]
+
+[ext_resource type="Script" path="res://components/tests/tile_test.gd" id="1_531jx"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tilemap_packed.png" id="2_8ofhx"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/characters/tile_0000.png" id="3_ymt2o"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_om2lk"]
+texture = ExtResource("2_8ofhx")
+texture_region_size = Vector2i(18, 18)
+2:0/0 = 0
+2:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+6:7/0 = 0
+6:7/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+6:7/0/physics_layer_0/polygon_0/one_way = true
+8:4/0 = 0
+11:7/animation_frame_0/duration = 0.2
+11:7/animation_frame_1/duration = 0.3
+11:7/animation_frame_2/duration = 0.4
+11:7/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_kvab4"]
+tile_size = Vector2i(18, 18)
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_om2lk")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ntgss"]
+size = Vector2(80, 10)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_btgea"]
+size = Vector2(12, 16)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_82775"]
+radius = 8.0
+
+[node name="TileTest" type="Node2D" unique_id=1894598631 node_paths=PackedStringArray("jumper", "roller", "faller", "riser", "sider")]
+texture_filter = 1
+script = ExtResource("1_531jx")
+jumper = NodePath("Jumper")
+roller = NodePath("Roller")
+faller = NodePath("Faller")
+riser = NodePath("Riser")
+sider = NodePath("Sider")
+
+[node name="Tiles" type="TileMapLayer" parent="." unique_id=562326612]
+tile_map_data = PackedByteArray("AAAAABQAAAACAAAAAAABABQAAAACAAAAAAACABQAAAACAAAAAAADABQAAAACAAAAAAAEABQAAAACAAAAAAAFABQAAAACAAAAAAAGABQAAAACAAAAAAAHABQAAAACAAAAAAAIABQAAAACAAAAAAAJABQAAAACAAAAAAAKABQAAAACAAAAAAALABQAAAACAAAAAAAMABQAAAACAAAAAAANABQAAAACAAAAAAAOABQAAAACAAAAAAAPABQAAAACAAAAAAAQABQAAAACAAAAAAARABQAAAACAAAAAAASABQAAAACAAAAAAATABQAAAACAAAAAAAUABQAAAACAAAAAAAVABQAAAACAAAAAAAWABQAAAACAAAAAAAXABQAAAACAAAAAAAYABQAAAACAAAAAAAZABQAAAACAAAAAAAaABQAAAACAAAAAAAbABQAAAACAAAAAAAcABQAAAACAAAAAAAdABQAAAACAAAAAAAEAA4AAAAGAAcAAAAFAA4AAAAGAAcAAAAGAA4AAAAGAAcAAAAHAA4AAAAGAAcAAAAIAA4AAAAGAAcAAAAJAA4AAAAGAAcAAAAUAAwAAAAIAAQAAAAWAAwAAAAIAAQAABAYAAwAAAAIAAQAACAaAAwAAAAIAAQAAFAUABAAAAALAAcAAAAWABAAAAALAAcAAAA=")
+tile_set = SubResource("TileSet_kvab4")
+
+[node name="Ledge" type="StaticBody2D" parent="." unique_id=1685082413]
+position = Vector2(260, 240)
+
+[node name="Shape" type="CollisionShape2D" parent="Ledge" unique_id=1695715680]
+shape = SubResource("RectangleShape2D_ntgss")
+one_way_collision = true
+
+[node name="Look" type="ColorRect" parent="Ledge" unique_id=1220666857]
+offset_left = -40.0
+offset_top = -5.0
+offset_right = 40.0
+offset_bottom = 5.0
+color = Color(0.9, 0.7, 0.2, 1)
+
+[node name="Jumper" type="CharacterBody2D" parent="." unique_id=1622186052]
+position = Vector2(100, 330)
+
+[node name="Shape" type="CollisionShape2D" parent="Jumper" unique_id=1809860475]
+shape = SubResource("RectangleShape2D_btgea")
+
+[node name="Look" type="Sprite2D" parent="Jumper" unique_id=570226374]
+texture = ExtResource("3_ymt2o")
+
+[node name="Roller" type="CharacterBody2D" parent="." unique_id=1977381552]
+position = Vector2(140, 330)
+
+[node name="Shape" type="CollisionShape2D" parent="Roller" unique_id=2068807811]
+shape = SubResource("CircleShape2D_82775")
+
+[node name="Look" type="Sprite2D" parent="Roller" unique_id=576861911]
+texture = ExtResource("3_ymt2o")
+
+[node name="Faller" type="CharacterBody2D" parent="." unique_id=324209576]
+position = Vector2(240, 180)
+
+[node name="Shape" type="CollisionShape2D" parent="Faller" unique_id=1964180965]
+shape = SubResource("RectangleShape2D_btgea")
+
+[node name="Look" type="Sprite2D" parent="Faller" unique_id=1289274747]
+texture = ExtResource("3_ymt2o")
+
+[node name="Riser" type="CharacterBody2D" parent="." unique_id=926421412]
+position = Vector2(280, 330)
+
+[node name="Shape" type="CollisionShape2D" parent="Riser" unique_id=1762044554]
+shape = SubResource("RectangleShape2D_btgea")
+
+[node name="Look" type="Sprite2D" parent="Riser" unique_id=1716022677]
+texture = ExtResource("3_ymt2o")
+
+[node name="Sider" type="CharacterBody2D" parent="." unique_id=1402155086]
+position = Vector2(40, 261)
+
+[node name="Shape" type="CollisionShape2D" parent="Sider" unique_id=1590107564]
+shape = SubResource("RectangleShape2D_btgea")
+
+[node name="Look" type="Sprite2D" parent="Sider" unique_id=295922775]
+texture = ExtResource("3_ymt2o")

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://7a0fnmjllnja"
+path="res://.godot/imported/tent.obj-8c9678d955c676a4a82890100cbc83fd.mesh"
+
+[deps]
+
+files=["res://.godot/imported/tent.obj-8c9678d955c676a4a82890100cbc83fd.mesh"]
+
+source_file="res://assets/kenney/racing-kit/tent.obj"
+dest_files=["res://.godot/imported/tent.obj-8c9678d955c676a4a82890100cbc83fd.mesh", "res://.godot/imported/tent.obj-8c9678d955c676a4a82890100cbc83fd.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

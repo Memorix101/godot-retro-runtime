@@ -1,0 +1,566 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://components/tests/test_probe.gd" id="1_probe"]
+[ext_resource type="Texture2D" path="res://assets/sprites/logo.png" id="2_logo"]
+[ext_resource type="Texture2D" path="res://assets/sprites/coin.png" id="3_coin"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ship.png" id="4_ship"]
+[ext_resource type="AudioStream" path="res://assets/sounds/beep.wav" id="5_beep"]
+[ext_resource type="PackedScene" path="res://scenes/tests/spawned.tscn" id="6_spawned"]
+[ext_resource type="Script" path="res://components/tests/test_stats.gd" id="7_stats"]
+[ext_resource type="AudioStream" path="res://assets/sounds/music.ogg" id="8_music"]
+[ext_resource type="AudioStream" path="res://assets/sounds/sweep.wav" id="9_sweep"]
+
+[sub_resource type="CapsuleShape3D" id="shape_capsule"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="PhysicsMaterial" id="rubber"]
+friction = 0.6
+bounce = 0.4
+
+[sub_resource type="Resource" id="stats"]
+script = ExtResource("7_stats")
+power = 3.0
+gears = 2
+
+[sub_resource type="StandardMaterial3D" id="mat_box"]
+albedo_color = Color(0.2, 0.6, 1, 1)
+albedo_texture = ExtResource("4_ship")
+texture_filter = 0
+
+[sub_resource type="BoxMesh" id="mesh_box"]
+material = SubResource("mat_box")
+size = Vector3(1, 2, 3)
+
+[sub_resource type="BoxShape3D" id="shape_box"]
+size = Vector3(1, 2, 3)
+
+[sub_resource type="SphereShape3D" id="shape_sphere"]
+radius = 1.5
+
+[sub_resource type="Animation" id="anim_blink"]
+resource_name = "blink"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Box:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+
+[sub_resource type="Animation" id="anim_move"]
+resource_name = "move"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Box")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 1, 2, 3, 1, 1, 1, 4, 3, 2, 1, 1, 2, 3)
+tracks/1/type = "rotation_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Box")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1, 0, 0.70710677, 0, 0.70710677)
+tracks/2/type = "scale_3d"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Box/Hidden")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = PackedFloat32Array(0, 1, 2, 2, 2, 2, 1, 2, 2, 2)
+
+[sub_resource type="AnimationLibrary" id="library"]
+_data = {
+&"blink": SubResource("anim_blink"),
+&"move": SubResource("anim_move")
+}
+
+[sub_resource type="StandardMaterial3D" id="mat_spark"]
+albedo_color = Color(1, 0.5, 0, 1)
+albedo_texture = ExtResource("3_coin")
+
+[sub_resource type="QuadMesh" id="mesh_spark"]
+material = SubResource("mat_spark")
+size = Vector2(0.5, 0.25)
+
+[sub_resource type="Gradient" id="ramp_spark"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="AtlasTexture" id="atlas_ship"]
+atlas = ExtResource("4_ship")
+region = Rect2(0, 0, 12, 24)
+
+[sub_resource type="SpriteFrames" id="frames_test"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_coin")
+}, {
+"duration": 2.0,
+"texture": SubResource("atlas_ship")
+}],
+"loop": true,
+"name": &"spin",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_coin")
+}],
+"loop": false,
+"name": &"still",
+"speed": 5.0
+}]
+
+[sub_resource type="TileSetAtlasSource" id="tiles_source"]
+texture = ExtResource("4_ship")
+texture_region_size = Vector2i(12, 12)
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-6, -6, 6, -6, 6, 6, -6, 6)
+1:0/0 = 0
+1:1/0 = 0
+
+[sub_resource type="TileSet" id="tiles_set"]
+tile_size = Vector2i(12, 12)
+physics_layer_0/collision_layer = 4
+sources/0 = SubResource("tiles_source")
+
+[sub_resource type="Environment" id="env_test"]
+background_mode = 1
+background_color = Color(0.2, 0.4, 0.6, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.5, 0.5, 0.5, 1)
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(1, 0.5, 0, 1)
+fog_density = 1.0
+fog_depth_begin = 5.0
+fog_depth_end = 50.0
+
+[sub_resource type="RectangleShape2D" id="shape_rect"]
+size = Vector2(64, 16)
+
+[sub_resource type="CircleShape2D" id="shape_circle"]
+radius = 6.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_cast"]
+radius = 0.25
+
+[node name="DumpTest" type="Node3D"]
+
+[node name="Box" type="MeshInstance3D" parent="." groups=["solid", "obstacle"]]
+visibility_range_begin = 2.0
+visibility_range_end = 40.0
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1, 2, 3)
+mesh = SubResource("mesh_box")
+
+[node name="Hidden" type="Node3D" parent="Box"]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.5, 0)
+visible = false
+
+[node name="Zone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+collision_layer = 2
+collision_mask = 5
+monitorable = false
+
+[node name="BoxShape" type="CollisionShape3D" parent="Zone"]
+shape = SubResource("shape_box")
+
+[node name="SphereShape" type="CollisionShape3D" parent="Zone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+shape = SubResource("shape_sphere")
+disabled = true
+
+[node name="Logic" type="Node" parent="."]
+
+[node name="Probe" type="Node3D" parent="Logic" node_paths=PackedStringArray("target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0.25)
+script = ExtResource("1_probe")
+ratio = 0.75
+count = -12
+target = NodePath("../../Box")
+next_scene = "res://scenes/tests/unsupported.tscn"
+spawn = ExtResource("6_spawned")
+spawn_max = 3
+stats = SubResource("stats")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 6)
+current = true
+fov = 70.0
+near = 0.5
+far = 100.0
+
+[node name="Layer2D" type="Node2D" parent="."]
+position = Vector2(100, 50)
+rotation = 1.5708
+
+[node name="Coin" type="Sprite2D" parent="Layer2D"]
+modulate = Color(1, 0.5, 0.25, 0.5)
+texture_filter = 1
+position = Vector2(10, 20)
+scale = Vector2(2, 2)
+texture = ExtResource("3_coin")
+flip_h = true
+
+[node name="Ship" type="Sprite2D" parent="Layer2D"]
+z_index = 3
+texture = ExtResource("4_ship")
+centered = false
+offset = Vector2(4, 6)
+region_enabled = true
+region_rect = Rect2(0, 4, 24, 16)
+hframes = 2
+frame = 1
+
+[node name="Ui" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Logo" type="TextureRect" parent="Ui"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 112.0
+offset_bottom = 56.0
+texture = ExtResource("2_logo")
+
+[node name="Title" type="Label" parent="Ui"]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 16.0
+offset_right = 520.0
+offset_bottom = 56.0
+theme_override_colors/font_color = Color(1, 0.5, 0, 1)
+theme_override_font_sizes/font_size = 24
+text = "Dump Test"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Row" type="HBoxContainer" parent="Ui"]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 400.0
+offset_right = 540.0
+offset_bottom = 440.0
+
+[node name="Yes" type="Button" parent="Ui/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Yes"
+
+[node name="No" type="Button" parent="Ui/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "No"
+
+[node name="Beep" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_beep")
+volume_db = -6.0
+autoplay = true
+
+
+[node name="Anim" type="AnimationPlayer" parent="."]
+speed_scale = 1.5
+playback_default_blend_time = 0.25
+libraries = {
+&"": SubResource("library")
+}
+autoplay = &"move"
+
+[node name="Sparks" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+amount = 20
+lifetime = 1.5
+one_shot = true
+explosiveness = 0.5
+mesh = SubResource("mesh_spark")
+emission_shape = 1
+emission_sphere_radius = 0.25
+direction = Vector3(0, 1, 0)
+spread = 90.0
+gravity = Vector3(0, -4, 0)
+initial_velocity_min = 1.0
+initial_velocity_max = 2.0
+scale_amount_min = 0.5
+scale_amount_max = 2.0
+color_ramp = SubResource("ramp_spark")
+
+[node name="Spinner" type="AnimatedSprite2D" parent="Layer2D"]
+position = Vector2(10, 5)
+sprite_frames = SubResource("frames_test")
+animation = &"spin"
+autoplay = "spin"
+flip_h = true
+
+[node name="View" type="Camera2D" parent="Layer2D"]
+position_smoothing_enabled = true
+position_smoothing_speed = 3.0
+drag_vertical_enabled = true
+drag_top_margin = 0.4
+enabled = false
+zoom = Vector2(2, 2)
+limit_left = 0
+limit_right = 1000
+
+[node name="Tiles" type="TileMapLayer" parent="Layer2D"]
+position = Vector2(100, 0)
+tile_map_data = PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0)
+tile_set = SubResource("tiles_set")
+
+[node name="Clock" type="Timer" parent="."]
+wait_time = 2.5
+one_shot = true
+autostart = true
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("env_test")
+
+[node name="Wall" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+collision_layer = 2
+
+[node name="Shape" type="CollisionShape3D" parent="Wall"]
+shape = SubResource("shape_box")
+
+[node name="Walker" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, 0)
+collision_mask = 3
+
+[node name="Shape" type="CollisionShape3D" parent="Walker"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("shape_box")
+
+[node name="Floor2D" type="StaticBody2D" parent="."]
+position = Vector2(40, 60)
+
+[node name="Shape" type="CollisionShape2D" parent="Floor2D"]
+shape = SubResource("shape_rect")
+
+[node name="Hero2D" type="CharacterBody2D" parent="."]
+position = Vector2(40, 20)
+
+[node name="Shape" type="CollisionShape2D" parent="Hero2D"]
+position = Vector2(0, -8)
+shape = SubResource("shape_rect")
+
+[node name="Pickup2D" type="Area2D" parent="Layer2D"]
+position = Vector2(70, 20)
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="Layer2D/Pickup2D"]
+shape = SubResource("shape_circle")
+
+[node name="Badge" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+pixel_size = 0.02
+billboard = 2
+texture = ExtResource("4_ship")
+hframes = 2
+frame = 1
+
+[node name="Sign" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+pixel_size = 0.01
+billboard = 1
+text = "Exit"
+font_size = 16
+horizontal_alignment = 0
+
+[node name="Dust" type="CPUParticles2D" parent="Layer2D"]
+position = Vector2(30, 40)
+amount = 4
+lifetime = 0.5
+one_shot = true
+direction = Vector2(0, -1)
+spread = 20.0
+gravity = Vector2(0, 100)
+initial_velocity_min = 10.0
+initial_velocity_max = 20.0
+
+[node name="Crate" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 3, 0)
+mass = 2.0
+physics_material_override = SubResource("rubber")
+gravity_scale = 0.5
+linear_velocity = Vector3(1, 0, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="Crate"]
+shape = SubResource("shape_capsule")
+
+[node name="Horn" type="AudioStreamPlayer3D" parent="."]
+pitch_scale = 1.5
+bus = &"SFX"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -2)
+stream = ExtResource("5_beep")
+attenuation_model = 1
+unit_size = 4.0
+max_distance = 50.0
+
+[node name="Tune" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_music")
+volume_db = -6.0
+
+[node name="Bulb" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+light_color = Color(1, 0.8, 0.6, 1)
+omni_range = 6.0
+
+[node name="Wide" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_sweep")
+
+[node name="Feeler" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+target_position = Vector3(0, -3, 0.5)
+collision_mask = 3
+collide_with_areas = true
+
+[node name="Sweep" type="ShapeCast3D" parent="."]
+shape = SubResource("SphereShape3D_cast")
+target_position = Vector3(0, -2, 0)
+collision_mask = 3
+
+[node name="Spot" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2, 3)
+
+[node name="Panel" type="ColorRect" parent="Ui"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 300.0
+offset_right = 600.0
+offset_bottom = 340.0
+color = Color(0.2, 0.4, 0.6, 0.5)
+
+[node name="Health" type="ProgressBar" parent="Ui"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 350.0
+offset_right = 600.0
+offset_bottom = 370.0
+max_value = 200.0
+value = 50.0
+fill_mode = 1
+show_percentage = false
+
+[node name="Frame" type="NinePatchRect" parent="Ui"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 380.0
+offset_right = 500.0
+offset_bottom = 440.0
+texture = ExtResource("2_logo")
+draw_center = false
+patch_margin_left = 4
+patch_margin_top = 5
+patch_margin_right = 6
+patch_margin_bottom = 7
+
+[node name="Mute" type="CheckBox" parent="Ui"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 300.0
+offset_right = 220.0
+offset_bottom = 332.0
+disabled = true
+button_pressed = true
+text = "Mute"
+
+[node name="Volume" type="HSlider" parent="Ui"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 340.0
+offset_right = 220.0
+offset_bottom = 356.0
+max_value = 10.0
+value = 7.0
+
+[node name="Start" type="TextureButton" parent="Ui"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 370.0
+offset_right = 84.0
+offset_bottom = 434.0
+toggle_mode = true
+texture_normal = ExtResource("4_ship")
+texture_pressed = ExtResource("3_coin")
+stretch_mode = 0
+
+[node name="Clouds" type="Parallax2D" parent="Layer2D"]
+scroll_scale = Vector2(0.5, 1)
+repeat_size = Vector2(320, 0)
+autoscroll = Vector2(-20, 0)
+repeat_times = 2
+
+[node name="Box" type="Panel" parent="Ui"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 20.0
+offset_right = 620.0
+offset_bottom = 140.0
+
+[node name="Scroll" type="ScrollContainer" parent="Ui/Box"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 210.0
+offset_bottom = 110.0
+follow_focus = true
+
+[node name="Tall" type="Control" parent="Ui/Box/Scroll"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+
+[node name="Power" type="TextureProgressBar" parent="Ui"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 150.0
+offset_right = 496.0
+offset_bottom = 190.0
+value = 25.0
+fill_mode = 1
+texture_progress = ExtResource("2_logo")
+
+[node name="Rule" type="VSeparator" parent="Ui"]
+layout_mode = 0
+offset_left = 390.0
+offset_top = 20.0
+offset_right = 394.0
+offset_bottom = 140.0
+
+[node name="Story" type="RichTextLabel" parent="Ui"]
+layout_mode = 0
+offset_left = 240.0
+offset_top = 390.0
+offset_right = 380.0
+offset_bottom = 470.0
+bbcode_enabled = true
+text = "A [b]bold[/b] [color=yellow]word[/color]"
+vertical_alignment = 1
+
+[node name="Note" type="Label" parent="Ui"]
+layout_mode = 0
+offset_left = 240.0
+offset_top = 300.0
+offset_right = 380.0
+offset_bottom = 380.0
+text = "Wrapped by the runtime"
+autowrap_mode = 2
+
+[connection signal="visibility_changed" from="Box" to="Logic/Probe" method="_on_box_visibility_changed"]
+[connection signal="area_entered" from="Zone" to="Logic/Probe" method="_on_zone_area_entered"]

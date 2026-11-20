@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://b1lmipypb8egl"]
+
+[ext_resource type="Script" uid="uid://bf1qi7fkvmwde" path="res://components/player_car.gd" id="1_car"]
+
+[sub_resource type="StandardMaterial3D" id="mat_road"]
+albedo_color = Color(0.3, 0.3, 0.34, 1)
+
+[sub_resource type="BoxMesh" id="mesh_road"]
+material = SubResource("mat_road")
+size = Vector3(12, 0.2, 240)
+
+[sub_resource type="StandardMaterial3D" id="mat_post"]
+albedo_color = Color(0.95, 0.85, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="mesh_post"]
+material = SubResource("mat_post")
+size = Vector3(0.5, 2, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="mat_car"]
+albedo_color = Color(0.85, 0.12, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="mesh_car"]
+material = SubResource("mat_car")
+size = Vector3(1.8, 1, 4)
+
+[node name="Slice" type="Node3D" unique_id=829428957]
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1024157066]
+transform = Transform3D(0.866025, -0.409576, 0.286788, 0, 0.573576, 0.819152, -0.5, -0.709406, 0.496732, 0, 10, 0)
+
+[node name="Track" type="MeshInstance3D" parent="." unique_id=1017061731]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -90)
+mesh = SubResource("mesh_road")
+
+[node name="PostL1" type="MeshInstance3D" parent="Track" unique_id=1373700119]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.1, 60)
+mesh = SubResource("mesh_post")
+
+[node name="PostR1" type="MeshInstance3D" parent="Track" unique_id=554206212]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.1, 30)
+mesh = SubResource("mesh_post")
+
+[node name="PostL2" type="MeshInstance3D" parent="Track" unique_id=1029798364]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.1, 0)
+mesh = SubResource("mesh_post")
+
+[node name="PostR2" type="MeshInstance3D" parent="Track" unique_id=1375087436]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.1, -30)
+mesh = SubResource("mesh_post")
+
+[node name="PostL3" type="MeshInstance3D" parent="Track" unique_id=463394618]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.1, -60)
+mesh = SubResource("mesh_post")
+
+[node name="PostR3" type="MeshInstance3D" parent="Track" unique_id=518836989]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 1.1, -90)
+mesh = SubResource("mesh_post")
+
+[node name="Car" type="MeshInstance3D" parent="." unique_id=906449651 node_paths=PackedStringArray("camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("mesh_car")
+script = ExtResource("1_car")
+camera = NodePath("../Camera")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=2004057695]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 3.5, 8)
+fov = 60.0
+near = 0.1
+far = 300.0

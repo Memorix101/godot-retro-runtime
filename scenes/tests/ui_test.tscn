@@ -1,0 +1,116 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/tests/ui_test.gd" id="1_amuus"]
+[ext_resource type="Texture2D" path="res://assets/sprites/coin.png" id="2_yjxm8"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ship.png" id="3_hfcsk"]
+[ext_resource type="AudioStream" path="res://assets/sounds/engine.wav" id="4_d6hno"]
+
+[node name="UiTest" type="Control" unique_id=250310091 node_paths=PackedStringArray("locked", "engine")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 640.0
+offset_bottom = 480.0
+script = ExtResource("1_amuus")
+locked = NodePath("Locked")
+engine = NodePath("Engine")
+
+[node name="Back" type="ColorRect" parent="." unique_id=817624426]
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 480.0
+color = Color(0.12, 0.13, 0.18, 1)
+
+[node name="Help" type="Label" parent="." unique_id=2045056545]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 16.0
+offset_right = 340.0
+offset_bottom = 106.0
+text = "A long line of text that the runtime has to break into several lines by itself."
+autowrap_mode = 3
+
+[node name="Plain" type="Button" parent="." unique_id=313910624]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 120.0
+offset_right = 280.0
+offset_bottom = 160.0
+text = "Plain"
+icon = ExtResource("2_yjxm8")
+
+[node name="Locked" type="Button" parent="." unique_id=1961794715]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 166.0
+offset_right = 280.0
+offset_bottom = 206.0
+disabled = true
+text = "Locked"
+
+[node name="Check" type="CheckBox" parent="." unique_id=732757210]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 212.0
+offset_right = 280.0
+offset_bottom = 248.0
+text = "Check"
+
+[node name="Switch" type="CheckButton" parent="." unique_id=487465676]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 254.0
+offset_right = 280.0
+offset_bottom = 290.0
+button_pressed = true
+text = "Switch"
+
+[node name="Volume" type="HSlider" parent="." unique_id=1473845587]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 300.0
+offset_right = 280.0
+offset_bottom = 324.0
+max_value = 10.0
+value = 5.0
+
+[node name="Picture" type="TextureButton" parent="." unique_id=1751423781]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 336.0
+offset_right = 104.0
+offset_bottom = 400.0
+texture_normal = ExtResource("3_hfcsk")
+texture_hover = ExtResource("2_yjxm8")
+stretch_mode = 0
+
+[node name="Unlock" type="Button" parent="." unique_id=1441171005]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 420.0
+offset_right = 280.0
+offset_bottom = 460.0
+text = "Unlock"
+
+[node name="Level" type="VSlider" parent="." unique_id=499981505]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 120.0
+offset_right = 364.0
+offset_bottom = 320.0
+max_value = 1.0
+step = 0.25
+value = 0.5
+editable = false
+
+[node name="Engine" type="AudioStreamPlayer" parent="." unique_id=2075667324]
+stream = ExtResource("4_d6hno")
+autoplay = true
+bus = &"SFX"
+
+[connection signal="pressed" from="Plain" to="." method="_on_plain"]
+[connection signal="pressed" from="Locked" to="." method="_on_locked"]
+[connection signal="toggled" from="Check" to="." method="_on_toggled"]
+[connection signal="toggled" from="Switch" to="." method="_on_toggled"]
+[connection signal="value_changed" from="Volume" to="." method="_on_value_changed"]
+[connection signal="pressed" from="Picture" to="." method="_on_picture"]
+[connection signal="pressed" from="Unlock" to="." method="_on_unlock"]

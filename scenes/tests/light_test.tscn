@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[sub_resource type="Environment" id="Environment_sxvn3"]
+background_mode = 1
+background_color = Color(0.02, 0.02, 0.05, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.15, 0.15, 0.2, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_o1iq5"]
+size = Vector2(20, 20)
+subdivide_width = 39
+subdivide_depth = 39
+
+[sub_resource type="BoxMesh" id="BoxMesh_6tfx2"]
+size = Vector3(1.5, 1.5, 1.5)
+
+[node name="LightTest" type="Node3D" unique_id=1868731686]
+
+[node name="World" type="WorldEnvironment" parent="." unique_id=292882718]
+environment = SubResource("Environment_sxvn3")
+
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=1593604198]
+mesh = SubResource("PlaneMesh_o1iq5")
+
+[node name="Box" type="MeshInstance3D" parent="." unique_id=378086434]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BoxMesh_6tfx2")
+
+[node name="Lamp" type="OmniLight3D" parent="." unique_id=1232707634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, 0)
+light_color = Color(1, 0.45, 0.2, 1)
+light_energy = 3.0
+omni_range = 7.0
+
+[node name="Spot" type="SpotLight3D" parent="." unique_id=347328638]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 5, 5, 0)
+light_color = Color(0.3, 0.6, 1, 1)
+light_energy = 12.0
+spot_range = 8.0
+spot_angle = 30.0
+
+[node name="Camera" type="Camera3D" parent="." unique_id=295908477]
+transform = Transform3D(1, 0, 0, 0, 0.76604444, 0.6427876, 0, -0.6427876, 0.76604444, 0, 9, 11)
+current = true

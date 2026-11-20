@@ -1,0 +1,91 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/kenney/platformer-kit/coin-gold.obj" id="1_mesh"]
+
+[sub_resource type="StandardMaterial3D" id="mat_far"]
+albedo_color = Color(0.96, 0.76, 0.22, 1)
+
+[sub_resource type="BoxMesh" id="mesh_far"]
+material = SubResource("mat_far")
+size = Vector3(0.36, 0.36, 0.08)
+
+[sub_resource type="SphereShape3D" id="shape"]
+radius = 0.3
+
+[sub_resource type="Animation" id="anim_spin"]
+resource_name = "spin"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Mesh")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.6666667, 1, 0, 0.8660254, 0, 0.5, 1.3333334, 1, 0, 0.8660254, 0, -0.5, 2, 1, 0, 0, 0, -1)
+
+[sub_resource type="Animation" id="anim_collect"]
+resource_name = "collect"
+length = 0.45
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Mesh")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 0.3, 1, 0, 1, 0, 0.45, 1, 0, 1.2, 0)
+tracks/1/type = "rotation_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Mesh")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.15, 1, 0, 0.8660254, 0, 0.5, 0.3, 1, 0, 0.8660254, 0, -0.5, 0.45, 1, 0, 0, 0, -1)
+tracks/2/type = "scale_3d"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Mesh")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = PackedFloat32Array(0, 1, 1, 1, 1, 0.15, 1, 1.5, 1.5, 1.5, 0.45, 1, 0.1, 0.1, 0.1)
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Mesh:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.45),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+
+[sub_resource type="AnimationLibrary" id="library"]
+_data = {
+&"collect": SubResource("anim_collect"),
+&"spin": SubResource("anim_spin")
+}
+
+[node name="Coin" type="Area3D" groups=["coin"]]
+monitoring = false
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_mesh")
+visibility_range_end = 14.0
+
+[node name="Far" type="MeshInstance3D" parent="Mesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("mesh_far")
+visibility_range_begin = 14.0
+visibility_range_end = 35.0
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+shape = SubResource("shape")
+
+[node name="Animation" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("library")
+}
+autoplay = &"spin"

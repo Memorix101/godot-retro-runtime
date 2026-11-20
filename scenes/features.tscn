@@ -1,0 +1,430 @@
+[gd_scene format=3]
+
+[ext_resource type="AudioStream" path="res://assets/sounds/beep.wav" id="1_bfnlj"]
+[ext_resource type="Texture2D" path="res://assets/sprites/logo.png" id="2_defte"]
+[ext_resource type="AudioStream" path="res://assets/sounds/sweep.wav" id="3_qhu77"]
+[ext_resource type="AudioStream" path="res://assets/sounds/music.ogg" id="4_mj57t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ship.png" id="5_k2llq"]
+[ext_resource type="Script" path="res://components/tests/feature_test.gd" id="6_8kb1s"]
+[ext_resource type="Script" path="res://components/tests/test_stats.gd" id="7_srtmd"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mr1t3"]
+size = Vector3(4, 2, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f8urx"]
+albedo_color = Color(0.45, 0.5, 0.55, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sbcv2"]
+material = SubResource("StandardMaterial3D_f8urx")
+size = Vector3(4, 2, 4)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_5ujqk"]
+sky_top_color = Color(0.2, 0.4, 0.8, 1)
+sky_horizon_color = Color(0.7, 0.8, 0.9, 1)
+ground_bottom_color = Color(0.2, 0.25, 0.2, 1)
+ground_horizon_color = Color(0.6, 0.65, 0.6, 1)
+
+[sub_resource type="Sky" id="Sky_yo733"]
+sky_material = SubResource("ProceduralSkyMaterial_5ujqk")
+
+[sub_resource type="Environment" id="Environment_aggjm"]
+background_mode = 2
+sky = SubResource("Sky_yo733")
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.4, 0.4, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_q0ohd"]
+
+[sub_resource type="Curve2D" id="Curve2D_f6wu5"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve3D_6o7my"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_625r7"]
+albedo_color = Color(0.3, 0.8, 0.9, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_m6duq"]
+material = SubResource("StandardMaterial3D_625r7")
+size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xnq03"]
+albedo_color = Color(0.9, 0.8, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b18sd"]
+material = SubResource("StandardMaterial3D_xnq03")
+size = Vector3(0.5, 0.5, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gmq22"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2m7xp"]
+albedo_color = Color(0.9, 0.5, 0.9, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_irjb4"]
+material = SubResource("StandardMaterial3D_2m7xp")
+size = Vector3(0.6, 0.6, 0.6)
+
+[sub_resource type="Animation" id="Animation_05nxv"]
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Layer2D/Mover:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(100, 50)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Layer2D/Mover:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.5707963267948966]
+}
+tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Probe")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.25),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"_on_anim_mark"
+}]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_d0255"]
+_data = {
+&"move": SubResource("Animation_05nxv")
+}
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oal5k"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ill07"]
+size = Vector3(12, 1, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e8uac"]
+albedo_color = Color(0.6, 0.45, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1x615"]
+material = SubResource("StandardMaterial3D_e8uac")
+size = Vector3(12, 1, 4)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wsgso"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ba1x"]
+albedo_color = Color(0.3, 0.8, 0.4, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_vh1nb"]
+material = SubResource("StandardMaterial3D_6ba1x")
+radial_segments = 10
+rings = 3
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_54ga0"]
+size = Vector3(4, 1, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oa52d"]
+albedo_color = Color(0.4, 0.4, 0.7, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pvgmg"]
+material = SubResource("StandardMaterial3D_oa52d")
+size = Vector3(4, 1, 4)
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_mberg"]
+bounce = 0.5
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_v0t4j"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gpyy8"]
+albedo_color = Color(0.9, 0.3, 0.3, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_oo7pw"]
+material = SubResource("StandardMaterial3D_gpyy8")
+radial_segments = 12
+rings = 6
+
+[sub_resource type="Resource" id="Resource_hvocp"]
+script = ExtResource("7_srtmd")
+gears = 4
+
+[sub_resource type="Resource" id="Resource_4rnlw"]
+script = ExtResource("7_srtmd")
+power = 2.5
+gears = 6
+next = SubResource("Resource_hvocp")
+
+[node name="Features" type="Node3D" unique_id=2124735559]
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=72827343]
+
+[node name="Shape" type="CollisionShape3D" parent="Floor" unique_id=789030298]
+shape = SubResource("BoxShape3D_mr1t3")
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor" unique_id=386605812]
+mesh = SubResource("BoxMesh_sbcv2")
+
+[node name="Environment" type="WorldEnvironment" parent="." unique_id=91818561]
+environment = SubResource("Environment_aggjm")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=120501255]
+transform = Transform3D(0.8660254, -0.38302222, 0.32139382, 0, 0.64278764, 0.76604444, -0.5, -0.66341394, 0.5566704, 0, 0, 0)
+
+[node name="RayDown" type="RayCast3D" parent="." unique_id=60163202]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+target_position = Vector3(0, -10, 0)
+
+[node name="RayMiss" type="RayCast3D" parent="." unique_id=868067954]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 5, 0)
+target_position = Vector3(0, -10, 0)
+
+[node name="Layer2D" type="Node2D" parent="." unique_id=2144767856]
+
+[node name="Bubble" type="Area2D" parent="Layer2D" unique_id=899510703]
+position = Vector2(50, 0)
+
+[node name="Shape" type="CollisionShape2D" parent="Layer2D/Bubble" unique_id=731986829]
+shape = SubResource("CircleShape2D_q0ohd")
+
+[node name="Ray2D" type="RayCast2D" parent="Layer2D" unique_id=1770576847]
+target_position = Vector2(100, 0)
+collide_with_areas = true
+
+[node name="Track2D" type="Path2D" parent="Layer2D" unique_id=1559402047]
+curve = SubResource("Curve2D_f6wu5")
+
+[node name="Follower2D" type="PathFollow2D" parent="Layer2D/Track2D" unique_id=1348382111]
+progress = 30.0
+loop = false
+
+[node name="Speaker2D" type="AudioStreamPlayer2D" parent="Layer2D" unique_id=22783123]
+position = Vector2(480, 240)
+stream = ExtResource("1_bfnlj")
+max_distance = 320.0
+
+[node name="Mover" type="Node2D" parent="Layer2D" unique_id=803782122]
+
+[node name="Sparks2D" type="CPUParticles2D" parent="Layer2D" unique_id=1430474925]
+position = Vector2(450, 380)
+amount = 24
+lifetime = 0.6
+direction = Vector2(0, -1)
+spread = 35.0
+gravity = Vector2(0, 300)
+initial_velocity_min = 120.0
+initial_velocity_max = 200.0
+scale_amount_min = 6.0
+scale_amount_max = 10.0
+color = Color(1, 0.6, 0.1, 1)
+
+[node name="Track" type="Path3D" parent="." unique_id=1553867949]
+curve = SubResource("Curve3D_6o7my")
+
+[node name="Follower" type="PathFollow3D" parent="Track" unique_id=996809233]
+progress = 2.5
+rotation_mode = 1
+loop = false
+
+[node name="Mesh" type="MeshInstance3D" parent="Track/Follower" unique_id=809088484]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0)
+mesh = SubResource("BoxMesh_m6duq")
+
+[node name="FollowerLoop" type="PathFollow3D" parent="Track" unique_id=1341846802]
+rotation_mode = 4
+
+[node name="Seat" type="Marker3D" parent="Track/FollowerLoop" unique_id=660998162]
+
+[node name="Mesh" type="MeshInstance3D" parent="Track/FollowerLoop" unique_id=2023546833]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+mesh = SubResource("BoxMesh_b18sd")
+
+[node name="FarBox" type="MeshInstance3D" parent="." unique_id=1358065632]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+visibility_range_end = 5.0
+mesh = SubResource("BoxMesh_gmq22")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=2052279409]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 10)
+
+[node name="Hud" type="Control" parent="." unique_id=256829859]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Backdrop" type="ColorRect" parent="Hud" unique_id=928394819]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 60.0
+color = Color(0.1, 0.2, 0.5, 0.8)
+
+[node name="Bar" type="ProgressBar" parent="Hud" unique_id=1353697884]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 70.0
+offset_right = 220.0
+offset_bottom = 97.0
+value = 30.0
+
+[node name="Frame" type="NinePatchRect" parent="Hud" unique_id=1705346152]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 110.0
+offset_right = 180.0
+offset_bottom = 190.0
+texture = ExtResource("2_defte")
+patch_margin_left = 8
+patch_margin_top = 8
+patch_margin_right = 8
+patch_margin_bottom = 8
+
+[node name="Result" type="Label" parent="Hud" unique_id=63489356 groups=["result"]]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 14.0
+offset_right = 626.0
+offset_bottom = 314.0
+text = "RUNNING..."
+horizontal_alignment = 2
+
+[node name="Greeting" type="Label" parent="Hud" unique_id=1745125770]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 414.0
+offset_right = 320.0
+offset_bottom = 438.0
+text = "GREETING"
+
+[node name="Hint" type="Label" parent="Hud" unique_id=865792867]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 446.0
+offset_right = 620.0
+offset_bottom = 470.0
+text = "Esc or B: back"
+horizontal_alignment = 1
+
+[node name="Speaker" type="AudioStreamPlayer3D" parent="." unique_id=1087534979]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 3, 10)
+stream = ExtResource("1_bfnlj")
+
+[node name="Beep" type="AudioStreamPlayer" parent="." unique_id=844956450]
+stream = ExtResource("1_bfnlj")
+autoplay = true
+
+[node name="Wide" type="AudioStreamPlayer" parent="." unique_id=864204643]
+stream = ExtResource("3_qhu77")
+autoplay = true
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1768217567]
+stream = ExtResource("4_mj57t")
+volume_db = -6.0
+autoplay = true
+
+[node name="TweenTarget" type="Node3D" parent="." unique_id=794169021]
+
+[node name="Mesh" type="MeshInstance3D" parent="TweenTarget" unique_id=310897068]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 0)
+mesh = SubResource("BoxMesh_irjb4")
+
+[node name="Anim" type="AnimationPlayer" parent="." unique_id=1281831066]
+libraries/ = SubResource("AnimationLibrary_d0255")
+autoplay = &"move"
+
+[node name="Sensor" type="Area3D" parent="." unique_id=1949786944]
+
+[node name="Shape" type="CollisionShape3D" parent="Sensor" unique_id=1470059518]
+shape = SubResource("BoxShape3D_oal5k")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=24781270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3, 0)
+pixel_size = 0.08
+billboard = 1
+texture_filter = 0
+texture = ExtResource("5_k2llq")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=25990515]
+transform = Transform3D(0.8660254, 0, -0.5, 0, 1, 0, 0.5, 0, 0.8660254, 3, 3, 0)
+pixel_size = 0.03
+text = "LABEL 3D"
+
+[node name="Ramp" type="StaticBody3D" parent="." unique_id=2004751387]
+transform = Transform3D(0.8660254, -0.5, 0, 0.5, 0.8660254, 0, 0, 0, 1, 9, 0, -4)
+
+[node name="Shape" type="CollisionShape3D" parent="Ramp" unique_id=1988998601]
+shape = SubResource("BoxShape3D_ill07")
+
+[node name="Mesh" type="MeshInstance3D" parent="Ramp" unique_id=1078707015]
+mesh = SubResource("BoxMesh_1x615")
+
+[node name="Walker" type="CharacterBody3D" parent="." unique_id=1988798033 groups=["walker"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.2, -4)
+
+[node name="Shape" type="CollisionShape3D" parent="Walker" unique_id=91198414]
+shape = SubResource("CapsuleShape3D_wsgso")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walker" unique_id=1310496304]
+mesh = SubResource("CapsuleMesh_vh1nb")
+
+[node name="Pad" type="StaticBody3D" parent="." unique_id=61065392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -4)
+
+[node name="Shape" type="CollisionShape3D" parent="Pad" unique_id=450643238]
+shape = SubResource("BoxShape3D_54ga0")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pad" unique_id=1827263401]
+mesh = SubResource("BoxMesh_pvgmg")
+
+[node name="Ball" type="RigidBody3D" parent="." unique_id=331697481 groups=["ball"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, -4)
+physics_material_override = SubResource("PhysicsMaterial_mberg")
+
+[node name="Shape" type="CollisionShape3D" parent="Ball" unique_id=627585757]
+shape = SubResource("SphereShape3D_v0t4j")
+
+[node name="Mesh" type="MeshInstance3D" parent="Ball" unique_id=1493293742]
+mesh = SubResource("SphereMesh_oo7pw")
+
+[node name="Probe" type="Node" parent="." unique_id=1390877845 node_paths=PackedStringArray("ray_down", "ray_miss", "ray_2d", "track", "follower", "follower_loop", "follower_2d", "bar", "speaker", "speaker_2d", "beep", "music", "mover", "tween_target", "greeting")]
+script = ExtResource("6_8kb1s")
+ray_down = NodePath("../RayDown")
+ray_miss = NodePath("../RayMiss")
+ray_2d = NodePath("../Layer2D/Ray2D")
+track = NodePath("../Track")
+follower = NodePath("../Track/Follower")
+follower_loop = NodePath("../Track/FollowerLoop")
+follower_2d = NodePath("../Layer2D/Track2D/Follower2D")
+bar = NodePath("../Hud/Bar")
+speaker = NodePath("../Speaker")
+speaker_2d = NodePath("../Layer2D/Speaker2D")
+beep = NodePath("../Beep")
+music = NodePath("../Music")
+mover = NodePath("../Layer2D/Mover")
+tween_target = NodePath("../TweenTarget")
+greeting = NodePath("../Hud/Greeting")
+stats = SubResource("Resource_4rnlw")
+self_scene = "res://scenes/features.tscn"
+
+[connection signal="finished" from="Beep" to="Probe" method="_on_beep_finished"]
+[connection signal="animation_finished" from="Anim" to="Probe" method="_on_anim_finished"]
+[connection signal="body_entered" from="Sensor" to="Probe" method="_on_sensor_body_entered"]

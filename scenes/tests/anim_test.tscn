@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/tests/anim_test.gd" id="1_yekph"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_8pkai"]
+size = Vector3(1, 0.5, 2)
+
+[sub_resource type="Animation" id="Animation_ch0i2"]
+loop_mode = 1
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Mover")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 4, 0, 0)
+tracks/1/type = "rotation_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Mover")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1, 0, 0.70710677, 0, 0.70710677)
+
+[sub_resource type="Animation" id="Animation_sarsi"]
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Mover")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 2, 0, 1, 1, 0, 2, 4)
+tracks/1/type = "rotation_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Mover")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 1, 0.70710677, 0, 0, 0.70710677)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_2jh4y"]
+_data = {
+&"a": SubResource("Animation_ch0i2"),
+&"b": SubResource("Animation_sarsi")
+}
+
+[node name="AnimTest" type="Node3D" unique_id=1682875922 node_paths=PackedStringArray("mover", "anim")]
+script = ExtResource("1_yekph")
+mover = NodePath("Mover")
+anim = NodePath("Anim")
+
+[node name="Mover" type="MeshInstance3D" parent="." unique_id=1191244620]
+mesh = SubResource("BoxMesh_8pkai")
+
+[node name="Anim" type="AnimationPlayer" parent="." unique_id=1112627088]
+libraries/ = SubResource("AnimationLibrary_2jh4y")
+autoplay = &"a"
+playback_default_blend_time = 0.4
+speed_scale = 1.5
+
+[node name="Camera" type="Camera3D" parent="." unique_id=863971717]
+transform = Transform3D(1, 0, 0, 0, 0.9848077, 0.17364818, 0, -0.17364818, 0.9848077, 2, 3, 9)
+current = true

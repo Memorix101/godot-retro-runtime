@@ -1,0 +1,317 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/sky_panorama.png" id="sky_panorama"]
+[ext_resource type="Script" path="res://components/platform_player_3d.gd" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/block_large.tscn" id="2_block"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/coin.tscn" id="4_coin"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/spikes.tscn" id="5_spikes"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/flag.tscn" id="6_flag"]
+[ext_resource type="PackedScene" path="res://assets/kenney/platformer-kit/character-oobi.glb" id="7_character"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/platformer-kit/tree.obj" id="8_tree"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/platformer-kit/flowers.obj" id="9_flowers"]
+[ext_resource type="AudioStream" path="res://assets/sounds/beep.wav" id="10_beep"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tiles/tile_0151.png" id="11_coin"]
+[ext_resource type="Script" path="res://components/path_patrol.gd" id="12_patrol"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/enemy.tscn" id="13_enemy"]
+[ext_resource type="Texture2D" path="res://assets/sprites/shadow.png" id="14_shadow"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/crumble.tscn" id="15_crumble"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/checkpoint.tscn" id="16_checkpoint"]
+[ext_resource type="PackedScene" path="res://scenes/platformer/spring.tscn" id="17_spring"]
+
+[sub_resource type="StandardMaterial3D" id="mat_burst"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("11_coin")
+texture_filter = 0
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="mesh_burst"]
+material = SubResource("mat_burst")
+size = Vector2(0.28, 0.28)
+
+[sub_resource type="Gradient" id="ramp_burst"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="BoxShape3D" id="shape_player"]
+size = Vector3(0.6, 0.9, 0.6)
+
+[sub_resource type="PanoramaSkyMaterial" id="sky_material"]
+panorama = ExtResource("sky_panorama")
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_material")
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.4, 0.4, 1)
+
+[sub_resource type="Curve3D" id="curve_lift"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.4, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="curve_enemy"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.2, 0, 0),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[node name="Platformer3D" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+
+[node name="Level" type="Node3D" parent="."]
+
+[node name="BlockA1" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="BlockA2" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+
+[node name="BlockA3" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+
+[node name="BlockA4" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="BlockA5" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -2)
+
+[node name="BlockA6" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -2)
+
+[node name="TreeA" type="MeshInstance3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -2.3)
+mesh = ExtResource("8_tree")
+
+[node name="FlowersA" type="MeshInstance3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6, 1, -2.2)
+mesh = ExtResource("9_flowers")
+
+[node name="CoinA1" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 1.3, -0.5)
+
+[node name="CoinA2" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.3, -2)
+
+[node name="BlockB1" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.6, 0.5, -1)
+
+[node name="BlockB2" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.6, 0.5, -1)
+
+[node name="CoinB1" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.6, 1.8, -0.5)
+
+[node name="Step1" parent="Level" instance=ExtResource("3_platform")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 1.7, -0.5)
+
+[node name="Step2" parent="Level" instance=ExtResource("15_crumble")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.5, 2.1, -0.5)
+
+[node name="Step3" parent="Level" instance=ExtResource("3_platform")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.4, 2.5, -0.5)
+
+[node name="CoinS1" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 2.3, -0.5)
+
+[node name="CoinS2" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.5, 2.7, -0.5)
+
+[node name="CoinS3" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.4, 3.1, -0.5)
+
+[node name="BlockC1" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.8, 1.2, -1)
+
+[node name="BlockC2" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.8, 1.2, -1)
+
+[node name="BlockC3" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.8, 1.2, -1)
+
+[node name="SpikesC" parent="Level" instance=ExtResource("5_spikes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.8, 2.2, -1.5)
+
+[node name="CoinC1" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.8, 2.5, -0.4)
+
+[node name="TreeC" type="MeshInstance3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.2, 2.2, -1.6)
+mesh = ExtResource("8_tree")
+
+[node name="Checkpoint" parent="Level" instance=ExtResource("16_checkpoint")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.6, 2.2, -0.6)
+
+[node name="Spring" parent="Level" instance=ExtResource("17_spring")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.6, 2.2, -1.7)
+
+[node name="CoinH1" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.6, 6.4, -1.7)
+
+[node name="LiftPath" type="Path3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 2, -0.5)
+curve = SubResource("curve_lift")
+
+[node name="Lift" type="PathFollow3D" parent="Level/LiftPath"]
+rotation_mode = 0
+loop = false
+script = ExtResource("12_patrol")
+speed = 1.6
+
+[node name="Platform" parent="Level/LiftPath/Lift" instance=ExtResource("3_platform")]
+
+[node name="CoinL1" parent="Level" instance=ExtResource("4_coin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.2, 3.1, -0.5)
+
+[node name="BlockD1" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.6, 1.2, -1)
+
+[node name="BlockD2" parent="Level" instance=ExtResource("2_block")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.6, 1.2, -1)
+
+[node name="EnemyPathB" type="Path3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1.5, -1.7)
+curve = SubResource("curve_enemy")
+
+[node name="Walk" type="PathFollow3D" parent="Level/EnemyPathB"]
+rotation_mode = 0
+loop = false
+script = ExtResource("12_patrol")
+speed = 1.2
+
+[node name="Enemy" parent="Level/EnemyPathB/Walk" instance=ExtResource("13_enemy")]
+
+[node name="EnemyPathD" type="Path3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 2.2, -1.7)
+curve = SubResource("curve_enemy")
+
+[node name="Walk" type="PathFollow3D" parent="Level/EnemyPathD"]
+rotation_mode = 0
+loop = false
+script = ExtResource("12_patrol")
+speed = 1.5
+
+[node name="Enemy" parent="Level/EnemyPathD/Walk" instance=ExtResource("13_enemy")]
+
+[node name="Flag" parent="Level" instance=ExtResource("6_flag")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 2.2, -0.5)
+
+[node name="Player" type="CharacterBody3D" parent="." node_paths=PackedStringArray("model", "anim", "camera", "coin_label", "coin_sound", "coin_burst", "shadow_ray", "shadow", "status_label")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, -0.5)
+script = ExtResource("1_player")
+run_speed = 4.0
+jump_speed = 7.5
+gravity = 20.0
+fall_limit = -6.0
+model = NodePath("Model")
+anim = NodePath("Model/AnimationPlayer")
+camera = NodePath("../Camera")
+coin_label = NodePath("../Hud/Coins")
+coin_sound = NodePath("../CoinSound")
+coin_burst = NodePath("../CoinBurst")
+shadow_ray = NodePath("ShadowRay")
+shadow = NodePath("../Shadow")
+status_label = NodePath("../Hud/Status")
+menu_scene = "res://scenes/main_menu.tscn"
+
+[node name="Shape" type="CollisionShape3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("shape_player")
+
+[node name="ShadowRay" type="RayCast3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+target_position = Vector3(0, -8, 0)
+
+[node name="Model" parent="Player" instance=ExtResource("7_character")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
+
+[node name="Hitbox" type="Area3D" parent="Player"]
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Player/Hitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("shape_player")
+
+[node name="Shadow" type="Sprite3D" parent="."]
+pixel_size = 0.028
+axis = 1
+texture = ExtResource("14_shadow")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 1, 4.5, 6.5)
+current = true
+fov = 55.0
+near = 0.5
+far = 80.0
+
+[node name="Hud" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Coins" type="Label" parent="Hud"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 316.0
+offset_bottom = 38.0
+theme_override_font_sizes/font_size = 20
+text = "COINS 0/0"
+
+[node name="Status" type="Label" parent="Hud"]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 10.0
+offset_right = 624.0
+offset_bottom = 38.0
+theme_override_font_sizes/font_size = 20
+text = "LIVES 3  TIME 0.0"
+horizontal_alignment = 2
+
+[node name="Hint" type="Label" parent="Hud"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 452.0
+offset_right = 620.0
+offset_bottom = 474.0
+theme_override_font_sizes/font_size = 14
+text = "Arrows or stick: move   Space or A: jump   Esc or B: back"
+horizontal_alignment = 1
+
+[node name="CoinSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("10_beep")
+
+[node name="CoinBurst" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 14
+lifetime = 0.7
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("mesh_burst")
+direction = Vector3(0, 1, 0)
+spread = 55.0
+gravity = Vector3(0, -9, 0)
+initial_velocity_min = 2.5
+initial_velocity_max = 4.5
+scale_amount_min = 0.6
+scale_amount_max = 1.2
+color_ramp = SubResource("ramp_burst")
+
+[connection signal="area_entered" from="Player/Hitbox" to="Player" method="_on_hitbox_area_entered"]
+
+[editable path="Player/Model"]

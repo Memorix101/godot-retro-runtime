@@ -1,0 +1,1551 @@
+[gd_scene format=4]
+
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/roadStartPositions.obj" id="1_0mvdl"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/roadStraight.obj" id="2_8i77g"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/roadCornerLarge.obj" id="3_gi3st"]
+[ext_resource type="Script" path="res://components/ai_driver.gd" id="4_51363"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/raceCarGreen.obj" id="5_2p7ge"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/raceCarOrange.obj" id="6_tbona"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/raceCarWhite.obj" id="7_olt5w"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/grandStandCovered.obj" id="8_mxcv8"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/overhead.obj" id="9_6b36a"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/flagCheckers.obj" id="10_6qkf3"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/tent.obj" id="11_x6ff5"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/treeSmall.obj" id="12_7ffcf"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/treeLarge.obj" id="13_h2mw8"]
+[ext_resource type="Script" path="res://components/race_car.gd" id="14_n21ep"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney/racing-kit/raceCarRed.obj" id="15_c8468"]
+[ext_resource type="AudioStream" path="res://assets/sounds/music.ogg" id="16_dov37"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rpmgi"]
+sky_top_color = Color(0.25, 0.45, 0.85, 1)
+sky_horizon_color = Color(0.72, 0.82, 0.92, 1)
+ground_bottom_color = Color(0.25, 0.4, 0.3, 1)
+ground_horizon_color = Color(0.6, 0.7, 0.62, 1)
+
+[sub_resource type="Sky" id="Sky_s42w4"]
+sky_material = SubResource("ProceduralSkyMaterial_rpmgi")
+
+[sub_resource type="Environment" id="Environment_764k5"]
+background_mode = 2
+sky = SubResource("Sky_s42w4")
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.45, 0.45, 1)
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.72, 0.82, 0.92, 1)
+fog_density = 1.0
+fog_depth_begin = 140.0
+fog_depth_end = 300.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cjdt3"]
+albedo_color = Color(0.3, 0.56, 0.43, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_6qa5o"]
+material = SubResource("StandardMaterial3D_cjdt3")
+size = Vector2(560, 560)
+
+[sub_resource type="Image" id="Image_sf2ia"]
+data = {
+"data": PackedByteArray("2CYm/9gmJv/YJib/2CYm//Ly8v/y8vL/8vLy//Ly8v/YJib/2CYm/9gmJv/YJib/8vLy//Ly8v/y8vL/8vLy/9gmJv/YJib/2CYm/9gmJv/y8vL/8vLy//Ly8v/y8vL/2CYm/9gmJv/YJib/2CYm//Ly8v/y8vL/8vLy//Ly8v/YJib/2CYm/9gmJv/YJib/8vLy//Ly8v/y8vL/8vLy/9gmJv/YJib/2CYm/9gmJv/y8vL/8vLy//Ly8v/y8vL/2CYm/9gmJv/YJib/2CYm//Ly8v/y8vL/8vLy//Ly8v/YJib/2CYm/9gmJv/YJib/8vLy//Ly8v/y8vL/8vLy/w=="),
+"format": "RGBA8",
+"height": 8,
+"mipmaps": false,
+"width": 8
+}
+
+[sub_resource type="ImageTexture" id="ImageTexture_2phbh"]
+image = SubResource("Image_sf2ia")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5gyhc"]
+albedo_texture = SubResource("ImageTexture_2phbh")
+texture_filter = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_5xag5"]
+_surfaces = [{
+"aabb": AABB(-12, 0, 0, 12, 1.2, 1),
+"attribute_data": PackedByteArray("AAAAgAAAAAAAAACAq6qqPgAAQEAAAAAAAABAQAAAAAAAAACAq6qqPgAAQECrqqo+AAAAgKuqqj4AAACAq6oqPwAAQECrqqo+AABAQKuqqj4AAACAq6oqPwAAQECrqio/AAAAgKuqKj8AAACAAACAPwAAQECrqio/AABAQKuqKj8AAACAAACAPwAAQEAAAIA/"),
+"format": 34359738391,
+"material": SubResource("StandardMaterial3D_5gyhc"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 18,
+"vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAJqZmT8AAAAAAABAwQAAAAAAAAAAAABAwQAAAAAAAAAAAAAAAJqZmT8AAAAAAABAwZqZmT8AAAAAAAAAAJqZmT8AAAAAAAAAAJqZmT8AAIA/AABAwZqZmT8AAAAAAABAwZqZmT8AAAAAAAAAAJqZmT8AAIA/AABAwZqZmT8AAIA/AAAAAJqZmT8AAIA/AAAAAAAAAAAAAIA/AABAwZqZmT8AAIA/AABAwZqZmT8AAIA/AAAAAAAAAAAAAIA/AABAwQAAAAAAAIA///////9/AID/v///qipUlf//////fwCA//////9/AID/v///qipUlf+///+qKlSV/7///6oqVJX/f/+/VFWpqv+///+qKlSV/7///6oqVJX/f/+/VFWpqv9//79UVamq/3//v1RVqar/f/9//38AgP9//79UVamq/3//v1RVqar/f/9//38AgP9//3//fwCA")
+}]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_v5krs"]
+size = Vector3(12, 1.2, 1)
+
+[sub_resource type="Curve3D" id="Curve3D_dsvpc"]
+bake_interval = 2.0
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 0, 36, 0, 0, 0, 0, 0, 0, 0, 0, 48, 0, 0, 0, 0, 0, 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, -0.3458662, 0, 63.511627, 0, 0, 0, 0, 0, 0, -1.3701696, 0, 66.888306, 0, 0, 0, 0, 0, 0, -3.033547, 0, 70.00027, 0, 0, 0, 0, 0, 0, -5.2720785, 0, 72.72792, 0, 0, 0, 0, 0, 0, -7.999736, 0, 74.96645, 0, 0, 0, 0, 0, 0, -11.111698, 0, 76.62984, 0, 0, 0, 0, 0, 0, -14.488375, 0, 77.65414, 0, 0, 0, 0, 0, 0, -18, 0, 78, 0, 0, 0, 0, 0, 0, -30, 0, 78, 0, 0, 0, 0, 0, 0, -42, 0, 78, 0, 0, 0, 0, 0, 0, -45.511627, 0, 78.34586, 0, 0, 0, 0, 0, 0, -48.8883, 0, 79.37016, 0, 0, 0, 0, 0, 0, -52.000267, 0, 81.03355, 0, 0, 0, 0, 0, 0, -54.727924, 0, 83.27208, 0, 0, 0, 0, 0, 0, -56.966454, 0, 85.99973, 0, 0, 0, 0, 0, 0, -58.629833, 0, 89.111694, 0, 0, 0, 0, 0, 0, -59.654137, 0, 92.48837, 0, 0, 0, 0, 0, 0, -60, 0, 96, 0, 0, 0, 0, 0, 0, -60.345863, 0, 99.51163, 0, 0, 0, 0, 0, 0, -61.370167, 0, 102.888306, 0, 0, 0, 0, 0, 0, -63.033546, 0, 106.00026, 0, 0, 0, 0, 0, 0, -65.27208, 0, 108.72792, 0, 0, 0, 0, 0, 0, -67.99973, 0, 110.96646, 0, 0, 0, 0, 0, 0, -71.111694, 0, 112.62984, 0, 0, 0, 0, 0, 0, -74.48837, 0, 113.65414, 0, 0, 0, 0, 0, 0, -78, 0, 114, 0, 0, 0, 0, 0, 0, -90, 0, 114, 0, 0, 0, 0, 0, 0, -93.51163, 0, 113.65414, 0, 0, 0, 0, 0, 0, -96.888306, 0, 112.62984, 0, 0, 0, 0, 0, 0, -100.00026, 0, 110.96646, 0, 0, 0, 0, 0, 0, -102.72792, 0, 108.72792, 0, 0, 0, 0, 0, 0, -104.96646, 0, 106.00026, 0, 0, 0, 0, 0, 0, -106.62984, 0, 102.888306, 0, 0, 0, 0, 0, 0, -107.65414, 0, 99.51163, 0, 0, 0, 0, 0, 0, -108, 0, 96, 0, 0, 0, 0, 0, 0, -108, 0, 84, 0, 0, 0, 0, 0, 0, -108, 0, 72, 0, 0, 0, 0, 0, 0, -108, 0, 60, 0, 0, 0, 0, 0, 0, -108, 0, 48, 0, 0, 0, 0, 0, 0, -108, 0, 36, 0, 0, 0, 0, 0, 0, -108, 0, 24, 0, 0, 0, 0, 0, 0, -108, 0, 12, 0, 0, 0, 0, 0, 0, -108, 0, 0, 0, 0, 0, 0, 0, 0, -107.65414, 0, -3.511626, 0, 0, 0, 0, 0, 0, -106.62984, 0, -6.888302, 0, 0, 0, 0, 0, 0, -104.96646, 0, -10.000265, 0, 0, 0, 0, 0, 0, -102.72792, 0, -12.727922, 0, 0, 0, 0, 0, 0, -100.00026, 0, -14.9664545, 0, 0, 0, 0, 0, 0, -96.888306, 0, -16.629831, 0, 0, 0, 0, 0, 0, -93.51163, 0, -17.654135, 0, 0, 0, 0, 0, 0, -90, 0, -18.000002, 0, 0, 0, 0, 0, 0, -78, 0, -18, 0, 0, 0, 0, 0, 0, -66, 0, -18, 0, 0, 0, 0, 0, 0, -54, 0, -18, 0, 0, 0, 0, 0, 0, -42, 0, -18, 0, 0, 0, 0, 0, 0, -30, 0, -18, 0, 0, 0, 0, 0, 0, -18, 0, -18, 0, 0, 0, 0, 0, 0, -14.488375, 0, -17.654135, 0, 0, 0, 0, 0, 0, -11.111698, 0, -16.629831, 0, 0, 0, 0, 0, 0, -7.999735, 0, -14.9664545, 0, 0, 0, 0, 0, 0, -5.272077, 0, -12.727922, 0, 0, 0, 0, 0, 0, -3.0335455, 0, -10.000265, 0, 0, 0, 0, 0, 0, -1.3701682, 0, -6.8883033, 0, 0, 0, 0, 0, 0, -0.34586477, 0, -3.5116272, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 71
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2ea3i"]
+size = Vector3(1.8, 1, 3.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_le36q"]
+albedo_color = Color(0.3, 0.56, 0.43, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gs7va"]
+albedo_color = Color(0.2, 0.2, 0.22, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_8yw4p"]
+_surfaces = [{
+"aabb": AABB(-0.85, 0.18, -1.8000001, 1.7, 0.82, 3.4750001),
+"attribute_data": PackedByteArray("AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/"),
+"format": 34359742487,
+"index_count": 144,
+"index_data": PackedByteArray("AAACAAQAAgAGAAQAAQADAAUAAwAHAAUACAAKAAwACgAOAAwACQALAA0ACwAPAA0AEAASABQAEgAWABQAEQATABUAEwAXABUAGAAaABwAGgAeABwAGQAbAB0AGwAfAB0AIAAiACQAIgAmACQAIQAjACUAIwAnACUAKAAqACwAKgAuACwAKQArAC0AKwAvAC0AMAAyADQAMgA2ADQAMQAzADUAMwA3ADUAOAA6ADwAOgA+ADwAOQA7AD0AOwA/AD0AQABCAEQAQgBGAEQAQQBDAEUAQwBHAEUASABKAEwASgBOAEwASQBLAE0ASwBPAE0AUABSAFQAUgBWAFQAUQBTAFUAUwBXAFUAWABaAFwAWgBeAFwAWQBbAF0AWwBfAF0A"),
+"material": SubResource("StandardMaterial3D_le36q"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 96,
+"vertex_data": PackedByteArray("zczMvpqZOT/NzMw/zczMPpqZOT/NzMy/zczMPpqZOT/NzMw/zczMvpqZOT/NzMy/zczMvs3MjD7NzMw/zczMPs3MjD7NzMy/zczMPs3MjD7NzMw/zczMvs3MjD7NzMy/zczMPpqZOT/NzMw/zczMvpqZOT/NzMy/zczMPpqZOT/NzMy/zczMvpqZOT/NzMw/zczMPs3MjD7NzMw/zczMvs3MjD7NzMy/zczMPs3MjD7NzMy/zczMvs3MjD7NzMw/zczMPpqZOT/NzMw/zczMvs3MjD7NzMw/zczMvpqZOT/NzMw/zczMPs3MjD7NzMw/zczMPpqZOT/NzMy/zczMvs3MjD7NzMy/zczMvpqZOT/NzMy/zczMPs3MjD7NzMy/AABAv83MDD/NzEw/AABAP83MDD/OzMy+AABAP83MDD/NzEw/AABAv83MDD/OzMy+AABAvwAAgD7NzEw/AABAPwAAgD7OzMy+AABAPwAAgD7NzEw/AABAvwAAgD7OzMy+AABAP83MDD/NzEw/AABAv83MDD/OzMy+AABAP83MDD/OzMy+AABAv83MDD/NzEw/AABAPwAAgD7NzEw/AABAvwAAgD7OzMy+AABAPwAAgD7OzMy+AABAvwAAgD7NzEw/AABAP83MDD/NzEw/AABAvwAAgD7NzEw/AABAv83MDD/NzEw/AABAPwAAgD7NzEw/AABAP83MDD/OzMy+AABAvwAAgD7OzMy+AABAv83MDD/OzMy+AABAPwAAgD7OzMy+zcxMvwAAgD9nZtY/zcxMPwAAgD/NzJw/zcxMPwAAgD9nZtY/zcxMvwAAgD/NzJw/zcxMv2ZmZj9nZtY/zcxMP2ZmZj/NzJw/zcxMP2ZmZj9nZtY/zcxMv2ZmZj/NzJw/zcxMPwAAgD9nZtY/zcxMvwAAgD/NzJw/zcxMPwAAgD/NzJw/zcxMvwAAgD9nZtY/zcxMP2ZmZj9nZtY/zcxMv2ZmZj/NzJw/zcxMP2ZmZj/NzJw/zcxMv2ZmZj9nZtY/zcxMPwAAgD9nZtY/zcxMv2ZmZj9nZtY/zcxMvwAAgD9nZtY/zcxMP2ZmZj9nZtY/zcxMPwAAgD/NzJw/zcxMv2ZmZj/NzJw/zcxMvwAAgD/NzJw/zcxMP2ZmZj/NzJw/mplZv7gehT4zM7O/mplZP7gehT5nZua/mplZP7gehT4zM7O/mplZv7gehT5nZua/mplZv+xROD4zM7O/mplZP+xROD5nZua/mplZP+xROD4zM7O/mplZv+xROD5nZua/mplZP7gehT4zM7O/mplZv7gehT5nZua/mplZP7gehT5nZua/mplZv7gehT4zM7O/mplZP+xROD4zM7O/mplZv+xROD5nZua/mplZP+xROD5nZua/mplZv+xROD4zM7O/mplZP7gehT4zM7O/mplZv+xROD4zM7O/mplZv7gehT4zM7O/mplZP+xROD4zM7O/mplZP7gehT5nZua/mplZv+xROD5nZua/mplZv7gehT5nZua/mplZP+xROD5nZua//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+/")
+}, {
+"aabb": AABB(-1.025, 0, -1.3, 2.05, 0.62, 2.61),
+"attribute_data": PackedByteArray("AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/"),
+"format": 34359742487,
+"index_count": 144,
+"index_data": PackedByteArray("AAACAAQAAgAGAAQAAQADAAUAAwAHAAUACAAKAAwACgAOAAwACQALAA0ACwAPAA0AEAASABQAEgAWABQAEQATABUAEwAXABUAGAAaABwAGgAeABwAGQAbAB0AGwAfAB0AIAAiACQAIgAmACQAIQAjACUAIwAnACUAKAAqACwAKgAuACwAKQArAC0AKwAvAC0AMAAyADQAMgA2ADQAMQAzADUAMwA3ADUAOAA6ADwAOgA+ADwAOQA7AD0AOwA/AD0AQABCAEQAQgBGAEQAQQBDAEUAQwBHAEUASABKAEwASgBOAEwASQBLAE0ASwBPAE0AUABSAFQAUgBWAFQAUQBTAFUAUwBXAFUAWABaAFwAWgBeAFwAWQBbAF0AWwBfAF0A"),
+"material": SubResource("StandardMaterial3D_gs7va"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 96,
+"vertex_data": PackedByteArray("zcwsP1K4Hj8Urqc/MzODP1K4Hj/XozA/MzODP1K4Hj8Urqc/zcwsP1K4Hj/XozA/zcwsPwAAAAAUrqc/MzODPwAAAADXozA/MzODPwAAAAAUrqc/zcwsPwAAAADXozA/MzODP1K4Hj8Urqc/zcwsP1K4Hj/XozA/MzODP1K4Hj/XozA/zcwsP1K4Hj8Urqc/MzODPwAAAAAUrqc/zcwsPwAAAADXozA/MzODPwAAAADXozA/zcwsPwAAAAAUrqc/MzODP1K4Hj8Urqc/zcwsPwAAAAAUrqc/zcwsP1K4Hj8Urqc/MzODPwAAAAAUrqc/MzODP1K4Hj/XozA/zcwsPwAAAADXozA/zcwsP1K4Hj/XozA/MzODPwAAAADXozA/MzODv1K4Hj8Urqc/zcwsv1K4Hj/XozA/zcwsv1K4Hj8Urqc/MzODv1K4Hj/XozA/MzODvwAAAAAUrqc/zcwsvwAAAADXozA/zcwsvwAAAAAUrqc/MzODvwAAAADXozA/zcwsv1K4Hj8Urqc/MzODv1K4Hj/XozA/zcwsv1K4Hj/XozA/MzODv1K4Hj8Urqc/zcwsvwAAAAAUrqc/MzODvwAAAADXozA/zcwsvwAAAADXozA/MzODvwAAAAAUrqc/zcwsv1K4Hj8Urqc/MzODvwAAAAAUrqc/MzODv1K4Hj8Urqc/zcwsvwAAAAAUrqc/zcwsv1K4Hj/XozA/MzODvwAAAADXozA/MzODv1K4Hj/XozA/zcwsvwAAAADXozA/ZmYmPwAAAD/MzEy/NDNzPwAAAD9mZqa/NDNzPwAAAD/MzEy/ZmYmPwAAAD9mZqa/ZmYmPwAAAADMzEy/NDNzPwAAAABmZqa/NDNzPwAAAADMzEy/ZmYmPwAAAABmZqa/NDNzPwAAAD/MzEy/ZmYmPwAAAD9mZqa/NDNzPwAAAD9mZqa/ZmYmPwAAAD/MzEy/NDNzPwAAAADMzEy/ZmYmPwAAAABmZqa/NDNzPwAAAABmZqa/ZmYmPwAAAADMzEy/NDNzPwAAAD/MzEy/ZmYmPwAAAADMzEy/ZmYmPwAAAD/MzEy/NDNzPwAAAADMzEy/NDNzPwAAAD9mZqa/ZmYmPwAAAABmZqa/ZmYmPwAAAD9mZqa/NDNzPwAAAABmZqa/NDNzvwAAAD/MzEy/ZmYmvwAAAD9mZqa/ZmYmvwAAAD/MzEy/NDNzvwAAAD9mZqa/NDNzvwAAAADMzEy/ZmYmvwAAAABmZqa/ZmYmvwAAAADMzEy/NDNzvwAAAABmZqa/ZmYmvwAAAD/MzEy/NDNzvwAAAD9mZqa/ZmYmvwAAAD9mZqa/NDNzvwAAAD/MzEy/ZmYmvwAAAADMzEy/NDNzvwAAAABmZqa/ZmYmvwAAAABmZqa/NDNzvwAAAADMzEy/ZmYmvwAAAD/MzEy/NDNzvwAAAADMzEy/NDNzvwAAAD/MzEy/ZmYmvwAAAADMzEy/ZmYmvwAAAD9mZqa/NDNzvwAAAABmZqa/NDNzvwAAAD9mZqa/ZmYmvwAAAABmZqa//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+/")
+}]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_a8215"]
+size = Vector3(1.8, 1, 3.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g63lw"]
+albedo_color = Color(0.96, 0.73, 0.26, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tau1r"]
+albedo_color = Color(0.2, 0.2, 0.22, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_71lh0"]
+_surfaces = [{
+"aabb": AABB(-0.85, 0.18, -1.8000001, 1.7, 0.82, 3.4750001),
+"attribute_data": PackedByteArray("AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/"),
+"format": 34359742487,
+"index_count": 144,
+"index_data": PackedByteArray("AAACAAQAAgAGAAQAAQADAAUAAwAHAAUACAAKAAwACgAOAAwACQALAA0ACwAPAA0AEAASABQAEgAWABQAEQATABUAEwAXABUAGAAaABwAGgAeABwAGQAbAB0AGwAfAB0AIAAiACQAIgAmACQAIQAjACUAIwAnACUAKAAqACwAKgAuACwAKQArAC0AKwAvAC0AMAAyADQAMgA2ADQAMQAzADUAMwA3ADUAOAA6ADwAOgA+ADwAOQA7AD0AOwA/AD0AQABCAEQAQgBGAEQAQQBDAEUAQwBHAEUASABKAEwASgBOAEwASQBLAE0ASwBPAE0AUABSAFQAUgBWAFQAUQBTAFUAUwBXAFUAWABaAFwAWgBeAFwAWQBbAF0AWwBfAF0A"),
+"material": SubResource("StandardMaterial3D_g63lw"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 96,
+"vertex_data": PackedByteArray("zczMvpqZOT/NzMw/zczMPpqZOT/NzMy/zczMPpqZOT/NzMw/zczMvpqZOT/NzMy/zczMvs3MjD7NzMw/zczMPs3MjD7NzMy/zczMPs3MjD7NzMw/zczMvs3MjD7NzMy/zczMPpqZOT/NzMw/zczMvpqZOT/NzMy/zczMPpqZOT/NzMy/zczMvpqZOT/NzMw/zczMPs3MjD7NzMw/zczMvs3MjD7NzMy/zczMPs3MjD7NzMy/zczMvs3MjD7NzMw/zczMPpqZOT/NzMw/zczMvs3MjD7NzMw/zczMvpqZOT/NzMw/zczMPs3MjD7NzMw/zczMPpqZOT/NzMy/zczMvs3MjD7NzMy/zczMvpqZOT/NzMy/zczMPs3MjD7NzMy/AABAv83MDD/NzEw/AABAP83MDD/OzMy+AABAP83MDD/NzEw/AABAv83MDD/OzMy+AABAvwAAgD7NzEw/AABAPwAAgD7OzMy+AABAPwAAgD7NzEw/AABAvwAAgD7OzMy+AABAP83MDD/NzEw/AABAv83MDD/OzMy+AABAP83MDD/OzMy+AABAv83MDD/NzEw/AABAPwAAgD7NzEw/AABAvwAAgD7OzMy+AABAPwAAgD7OzMy+AABAvwAAgD7NzEw/AABAP83MDD/NzEw/AABAvwAAgD7NzEw/AABAv83MDD/NzEw/AABAPwAAgD7NzEw/AABAP83MDD/OzMy+AABAvwAAgD7OzMy+AABAv83MDD/OzMy+AABAPwAAgD7OzMy+zcxMvwAAgD9nZtY/zcxMPwAAgD/NzJw/zcxMPwAAgD9nZtY/zcxMvwAAgD/NzJw/zcxMv2ZmZj9nZtY/zcxMP2ZmZj/NzJw/zcxMP2ZmZj9nZtY/zcxMv2ZmZj/NzJw/zcxMPwAAgD9nZtY/zcxMvwAAgD/NzJw/zcxMPwAAgD/NzJw/zcxMvwAAgD9nZtY/zcxMP2ZmZj9nZtY/zcxMv2ZmZj/NzJw/zcxMP2ZmZj/NzJw/zcxMv2ZmZj9nZtY/zcxMPwAAgD9nZtY/zcxMv2ZmZj9nZtY/zcxMvwAAgD9nZtY/zcxMP2ZmZj9nZtY/zcxMPwAAgD/NzJw/zcxMv2ZmZj/NzJw/zcxMvwAAgD/NzJw/zcxMP2ZmZj/NzJw/mplZv7gehT4zM7O/mplZP7gehT5nZua/mplZP7gehT4zM7O/mplZv7gehT5nZua/mplZv+xROD4zM7O/mplZP+xROD5nZua/mplZP+xROD4zM7O/mplZv+xROD5nZua/mplZP7gehT4zM7O/mplZv7gehT5nZua/mplZP7gehT5nZua/mplZv7gehT4zM7O/mplZP+xROD4zM7O/mplZv+xROD5nZua/mplZP+xROD5nZua/mplZv+xROD4zM7O/mplZP7gehT4zM7O/mplZv+xROD4zM7O/mplZv7gehT4zM7O/mplZP+xROD4zM7O/mplZP7gehT5nZua/mplZv+xROD5nZua/mplZv7gehT5nZua/mplZP+xROD5nZua//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+/")
+}, {
+"aabb": AABB(-1.025, 0, -1.3, 2.05, 0.62, 2.61),
+"attribute_data": PackedByteArray("AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/"),
+"format": 34359742487,
+"index_count": 144,
+"index_data": PackedByteArray("AAACAAQAAgAGAAQAAQADAAUAAwAHAAUACAAKAAwACgAOAAwACQALAA0ACwAPAA0AEAASABQAEgAWABQAEQATABUAEwAXABUAGAAaABwAGgAeABwAGQAbAB0AGwAfAB0AIAAiACQAIgAmACQAIQAjACUAIwAnACUAKAAqACwAKgAuACwAKQArAC0AKwAvAC0AMAAyADQAMgA2ADQAMQAzADUAMwA3ADUAOAA6ADwAOgA+ADwAOQA7AD0AOwA/AD0AQABCAEQAQgBGAEQAQQBDAEUAQwBHAEUASABKAEwASgBOAEwASQBLAE0ASwBPAE0AUABSAFQAUgBWAFQAUQBTAFUAUwBXAFUAWABaAFwAWgBeAFwAWQBbAF0AWwBfAF0A"),
+"material": SubResource("StandardMaterial3D_tau1r"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 96,
+"vertex_data": PackedByteArray("zcwsP1K4Hj8Urqc/MzODP1K4Hj/XozA/MzODP1K4Hj8Urqc/zcwsP1K4Hj/XozA/zcwsPwAAAAAUrqc/MzODPwAAAADXozA/MzODPwAAAAAUrqc/zcwsPwAAAADXozA/MzODP1K4Hj8Urqc/zcwsP1K4Hj/XozA/MzODP1K4Hj/XozA/zcwsP1K4Hj8Urqc/MzODPwAAAAAUrqc/zcwsPwAAAADXozA/MzODPwAAAADXozA/zcwsPwAAAAAUrqc/MzODP1K4Hj8Urqc/zcwsPwAAAAAUrqc/zcwsP1K4Hj8Urqc/MzODPwAAAAAUrqc/MzODP1K4Hj/XozA/zcwsPwAAAADXozA/zcwsP1K4Hj/XozA/MzODPwAAAADXozA/MzODv1K4Hj8Urqc/zcwsv1K4Hj/XozA/zcwsv1K4Hj8Urqc/MzODv1K4Hj/XozA/MzODvwAAAAAUrqc/zcwsvwAAAADXozA/zcwsvwAAAAAUrqc/MzODvwAAAADXozA/zcwsv1K4Hj8Urqc/MzODv1K4Hj/XozA/zcwsv1K4Hj/XozA/MzODv1K4Hj8Urqc/zcwsvwAAAAAUrqc/MzODvwAAAADXozA/zcwsvwAAAADXozA/MzODvwAAAAAUrqc/zcwsv1K4Hj8Urqc/MzODvwAAAAAUrqc/MzODv1K4Hj8Urqc/zcwsvwAAAAAUrqc/zcwsv1K4Hj/XozA/MzODvwAAAADXozA/MzODv1K4Hj/XozA/zcwsvwAAAADXozA/ZmYmPwAAAD/MzEy/NDNzPwAAAD9mZqa/NDNzPwAAAD/MzEy/ZmYmPwAAAD9mZqa/ZmYmPwAAAADMzEy/NDNzPwAAAABmZqa/NDNzPwAAAADMzEy/ZmYmPwAAAABmZqa/NDNzPwAAAD/MzEy/ZmYmPwAAAD9mZqa/NDNzPwAAAD9mZqa/ZmYmPwAAAD/MzEy/NDNzPwAAAADMzEy/ZmYmPwAAAABmZqa/NDNzPwAAAABmZqa/ZmYmPwAAAADMzEy/NDNzPwAAAD/MzEy/ZmYmPwAAAADMzEy/ZmYmPwAAAD/MzEy/NDNzPwAAAADMzEy/NDNzPwAAAD9mZqa/ZmYmPwAAAABmZqa/ZmYmPwAAAD9mZqa/NDNzPwAAAABmZqa/NDNzvwAAAD/MzEy/ZmYmvwAAAD9mZqa/ZmYmvwAAAD/MzEy/NDNzvwAAAD9mZqa/NDNzvwAAAADMzEy/ZmYmvwAAAABmZqa/ZmYmvwAAAADMzEy/NDNzvwAAAABmZqa/ZmYmvwAAAD/MzEy/NDNzvwAAAD9mZqa/ZmYmvwAAAD9mZqa/NDNzvwAAAD/MzEy/ZmYmvwAAAADMzEy/NDNzvwAAAABmZqa/ZmYmvwAAAABmZqa/NDNzvwAAAADMzEy/ZmYmvwAAAD/MzEy/NDNzvwAAAADMzEy/NDNzvwAAAD/MzEy/ZmYmvwAAAADMzEy/ZmYmvwAAAD9mZqa/NDNzvwAAAABmZqa/NDNzvwAAAD9mZqa/ZmYmvwAAAABmZqa//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+/")
+}]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2rt1n"]
+size = Vector3(1.8, 1, 3.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_v335a"]
+albedo_color = Color(0.95, 0.95, 0.96, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xt0cr"]
+albedo_color = Color(0.2, 0.2, 0.22, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_3cka5"]
+_surfaces = [{
+"aabb": AABB(-0.85, 0.18, -1.8000001, 1.7, 0.82, 3.4750001),
+"attribute_data": PackedByteArray("AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/"),
+"format": 34359742487,
+"index_count": 144,
+"index_data": PackedByteArray("AAACAAQAAgAGAAQAAQADAAUAAwAHAAUACAAKAAwACgAOAAwACQALAA0ACwAPAA0AEAASABQAEgAWABQAEQATABUAEwAXABUAGAAaABwAGgAeABwAGQAbAB0AGwAfAB0AIAAiACQAIgAmACQAIQAjACUAIwAnACUAKAAqACwAKgAuACwAKQArAC0AKwAvAC0AMAAyADQAMgA2ADQAMQAzADUAMwA3ADUAOAA6ADwAOgA+ADwAOQA7AD0AOwA/AD0AQABCAEQAQgBGAEQAQQBDAEUAQwBHAEUASABKAEwASgBOAEwASQBLAE0ASwBPAE0AUABSAFQAUgBWAFQAUQBTAFUAUwBXAFUAWABaAFwAWgBeAFwAWQBbAF0AWwBfAF0A"),
+"material": SubResource("StandardMaterial3D_v335a"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 96,
+"vertex_data": PackedByteArray("zczMvpqZOT/NzMw/zczMPpqZOT/NzMy/zczMPpqZOT/NzMw/zczMvpqZOT/NzMy/zczMvs3MjD7NzMw/zczMPs3MjD7NzMy/zczMPs3MjD7NzMw/zczMvs3MjD7NzMy/zczMPpqZOT/NzMw/zczMvpqZOT/NzMy/zczMPpqZOT/NzMy/zczMvpqZOT/NzMw/zczMPs3MjD7NzMw/zczMvs3MjD7NzMy/zczMPs3MjD7NzMy/zczMvs3MjD7NzMw/zczMPpqZOT/NzMw/zczMvs3MjD7NzMw/zczMvpqZOT/NzMw/zczMPs3MjD7NzMw/zczMPpqZOT/NzMy/zczMvs3MjD7NzMy/zczMvpqZOT/NzMy/zczMPs3MjD7NzMy/AABAv83MDD/NzEw/AABAP83MDD/OzMy+AABAP83MDD/NzEw/AABAv83MDD/OzMy+AABAvwAAgD7NzEw/AABAPwAAgD7OzMy+AABAPwAAgD7NzEw/AABAvwAAgD7OzMy+AABAP83MDD/NzEw/AABAv83MDD/OzMy+AABAP83MDD/OzMy+AABAv83MDD/NzEw/AABAPwAAgD7NzEw/AABAvwAAgD7OzMy+AABAPwAAgD7OzMy+AABAvwAAgD7NzEw/AABAP83MDD/NzEw/AABAvwAAgD7NzEw/AABAv83MDD/NzEw/AABAPwAAgD7NzEw/AABAP83MDD/OzMy+AABAvwAAgD7OzMy+AABAv83MDD/OzMy+AABAPwAAgD7OzMy+zcxMvwAAgD9nZtY/zcxMPwAAgD/NzJw/zcxMPwAAgD9nZtY/zcxMvwAAgD/NzJw/zcxMv2ZmZj9nZtY/zcxMP2ZmZj/NzJw/zcxMP2ZmZj9nZtY/zcxMv2ZmZj/NzJw/zcxMPwAAgD9nZtY/zcxMvwAAgD/NzJw/zcxMPwAAgD/NzJw/zcxMvwAAgD9nZtY/zcxMP2ZmZj9nZtY/zcxMv2ZmZj/NzJw/zcxMP2ZmZj/NzJw/zcxMv2ZmZj9nZtY/zcxMPwAAgD9nZtY/zcxMv2ZmZj9nZtY/zcxMvwAAgD9nZtY/zcxMP2ZmZj9nZtY/zcxMPwAAgD/NzJw/zcxMv2ZmZj/NzJw/zcxMvwAAgD/NzJw/zcxMP2ZmZj/NzJw/mplZv7gehT4zM7O/mplZP7gehT5nZua/mplZP7gehT4zM7O/mplZv7gehT5nZua/mplZv+xROD4zM7O/mplZP+xROD5nZua/mplZP+xROD4zM7O/mplZv+xROD5nZua/mplZP7gehT4zM7O/mplZv7gehT5nZua/mplZP7gehT5nZua/mplZv7gehT4zM7O/mplZP+xROD4zM7O/mplZv+xROD5nZua/mplZP+xROD5nZua/mplZv+xROD4zM7O/mplZP7gehT4zM7O/mplZv+xROD4zM7O/mplZv7gehT4zM7O/mplZP+xROD4zM7O/mplZP7gehT5nZua/mplZv+xROD5nZua/mplZv7gehT5nZua/mplZP+xROD5nZua//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+/")
+}, {
+"aabb": AABB(-1.025, 0, -1.3, 2.05, 0.62, 2.61),
+"attribute_data": PackedByteArray("AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/AAAAAAAAAACrqio/AAAAAKuqqj4AAAAAAACAPwAAAAAAAAAAAAAAP6uqKj8AAAA/q6qqPgAAAD8AAIA/AAAAP6uqqj4AAAAAAAAAAAAAAD+rqio/AAAAAKuqqj4AAAA/q6qqPgAAAD8AAAAAAACAP6uqKj8AAAA/q6qqPgAAgD+rqqo+AAAAP6uqKj8AAAA/q6oqPwAAAD8AAIA/AAAAP6uqqj4AAIA/q6oqPwAAgD+rqio/AACAPwAAgD8AAIA/"),
+"format": 34359742487,
+"index_count": 144,
+"index_data": PackedByteArray("AAACAAQAAgAGAAQAAQADAAUAAwAHAAUACAAKAAwACgAOAAwACQALAA0ACwAPAA0AEAASABQAEgAWABQAEQATABUAEwAXABUAGAAaABwAGgAeABwAGQAbAB0AGwAfAB0AIAAiACQAIgAmACQAIQAjACUAIwAnACUAKAAqACwAKgAuACwAKQArAC0AKwAvAC0AMAAyADQAMgA2ADQAMQAzADUAMwA3ADUAOAA6ADwAOgA+ADwAOQA7AD0AOwA/AD0AQABCAEQAQgBGAEQAQQBDAEUAQwBHAEUASABKAEwASgBOAEwASQBLAE0ASwBPAE0AUABSAFQAUgBWAFQAUQBTAFUAUwBXAFUAWABaAFwAWgBeAFwAWQBbAF0AWwBfAF0A"),
+"material": SubResource("StandardMaterial3D_xt0cr"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 96,
+"vertex_data": PackedByteArray("zcwsP1K4Hj8Urqc/MzODP1K4Hj/XozA/MzODP1K4Hj8Urqc/zcwsP1K4Hj/XozA/zcwsPwAAAAAUrqc/MzODPwAAAADXozA/MzODPwAAAAAUrqc/zcwsPwAAAADXozA/MzODP1K4Hj8Urqc/zcwsP1K4Hj/XozA/MzODP1K4Hj/XozA/zcwsP1K4Hj8Urqc/MzODPwAAAAAUrqc/zcwsPwAAAADXozA/MzODPwAAAADXozA/zcwsPwAAAAAUrqc/MzODP1K4Hj8Urqc/zcwsPwAAAAAUrqc/zcwsP1K4Hj8Urqc/MzODPwAAAAAUrqc/MzODP1K4Hj/XozA/zcwsPwAAAADXozA/zcwsP1K4Hj/XozA/MzODPwAAAADXozA/MzODv1K4Hj8Urqc/zcwsv1K4Hj/XozA/zcwsv1K4Hj8Urqc/MzODv1K4Hj/XozA/MzODvwAAAAAUrqc/zcwsvwAAAADXozA/zcwsvwAAAAAUrqc/MzODvwAAAADXozA/zcwsv1K4Hj8Urqc/MzODv1K4Hj/XozA/zcwsv1K4Hj/XozA/MzODv1K4Hj8Urqc/zcwsvwAAAAAUrqc/MzODvwAAAADXozA/zcwsvwAAAADXozA/MzODvwAAAAAUrqc/zcwsv1K4Hj8Urqc/MzODvwAAAAAUrqc/MzODv1K4Hj8Urqc/zcwsvwAAAAAUrqc/zcwsv1K4Hj/XozA/MzODvwAAAADXozA/MzODv1K4Hj/XozA/zcwsvwAAAADXozA/ZmYmPwAAAD/MzEy/NDNzPwAAAD9mZqa/NDNzPwAAAD/MzEy/ZmYmPwAAAD9mZqa/ZmYmPwAAAADMzEy/NDNzPwAAAABmZqa/NDNzPwAAAADMzEy/ZmYmPwAAAABmZqa/NDNzPwAAAD/MzEy/ZmYmPwAAAD9mZqa/NDNzPwAAAD9mZqa/ZmYmPwAAAD/MzEy/NDNzPwAAAADMzEy/ZmYmPwAAAABmZqa/NDNzPwAAAABmZqa/ZmYmPwAAAADMzEy/NDNzPwAAAD/MzEy/ZmYmPwAAAADMzEy/ZmYmPwAAAD/MzEy/NDNzPwAAAADMzEy/NDNzPwAAAD9mZqa/ZmYmPwAAAABmZqa/ZmYmPwAAAD9mZqa/NDNzPwAAAABmZqa/NDNzvwAAAD/MzEy/ZmYmvwAAAD9mZqa/ZmYmvwAAAD/MzEy/NDNzvwAAAD9mZqa/NDNzvwAAAADMzEy/ZmYmvwAAAABmZqa/ZmYmvwAAAADMzEy/NDNzvwAAAABmZqa/ZmYmvwAAAD/MzEy/NDNzvwAAAD9mZqa/ZmYmvwAAAD9mZqa/NDNzvwAAAD/MzEy/ZmYmvwAAAADMzEy/NDNzvwAAAABmZqa/ZmYmvwAAAABmZqa/NDNzvwAAAADMzEy/ZmYmvwAAAD/MzEy/NDNzvwAAAADMzEy/NDNzvwAAAD/MzEy/ZmYmvwAAAADMzEy/ZmYmvwAAAD9mZqa/NDNzvwAAAABmZqa/NDNzvwAAAD9mZqa/ZmYmvwAAAABmZqa//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+//3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+/")
+}]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kql0t"]
+size = Vector3(18, 6, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6o0wl"]
+size = Vector3(1.8, 1, 3.3)
+
+[node name="Racing" type="Node3D" unique_id=2025877202]
+
+[node name="Environment" type="WorldEnvironment" parent="." unique_id=2057914668]
+environment = SubResource("Environment_764k5")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1438332061]
+transform = Transform3D(0.81915206, -0.46984634, 0.32898995, 0, 0.57357645, 0.81915206, -0.57357645, -0.6710101, 0.46984634, 0, 0, 0)
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=1403007205]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55, -0.03, 50)
+mesh = SubResource("PlaneMesh_6qa5o")
+
+[node name="Track" type="Node3D" parent="." unique_id=335881663]
+
+[node name="Road0" type="MeshInstance3D" parent="Track" unique_id=257807530]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, 6, 0, 0)
+mesh = ExtResource("1_0mvdl")
+
+[node name="Road1" type="MeshInstance3D" parent="Track" unique_id=1704622323]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, 6, 0, 24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road2" type="MeshInstance3D" parent="Track" unique_id=670951107]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, 6, 0, 36)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road3" type="MeshInstance3D" parent="Track" unique_id=1055865333]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, 6, 0, 48)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road4" type="MeshInstance3D" parent="Track" unique_id=497778248]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, 6, 0, 60)
+mesh = ExtResource("3_gi3st")
+
+[node name="Road5" type="MeshInstance3D" parent="Track" unique_id=363735923]
+transform = Transform3D(-5.2453663e-07, 0, -12, 0, 12, 0, 12, 0, -5.2453663e-07, -18, 0, 84)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road6" type="MeshInstance3D" parent="Track" unique_id=1164860746]
+transform = Transform3D(-5.2453663e-07, 0, -12, 0, 12, 0, 12, 0, -5.2453663e-07, -30, 0, 84)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road7" type="MeshInstance3D" parent="Track" unique_id=1521953070]
+transform = Transform3D(-12, 0, 1.0490733e-06, 0, 12, 0, -1.0490733e-06, 0, -12, -66, 0, 96)
+mesh = ExtResource("3_gi3st")
+
+[node name="Road8" type="MeshInstance3D" parent="Track" unique_id=524045153]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, -54, 0, 96)
+mesh = ExtResource("3_gi3st")
+
+[node name="Road9" type="MeshInstance3D" parent="Track" unique_id=1976665982]
+transform = Transform3D(-5.2453663e-07, 0, -12, 0, 12, 0, 12, 0, -5.2453663e-07, -78, 0, 120)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road10" type="MeshInstance3D" parent="Track" unique_id=942992591]
+transform = Transform3D(-5.2453663e-07, 0, -12, 0, 12, 0, 12, 0, -5.2453663e-07, -90, 0, 120)
+mesh = ExtResource("3_gi3st")
+
+[node name="Road11" type="MeshInstance3D" parent="Track" unique_id=1278796134]
+transform = Transform3D(-12, 0, -1.0490733e-06, 0, 12, 0, 1.0490733e-06, 0, -12, -114, 0, 96)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road12" type="MeshInstance3D" parent="Track" unique_id=1598804900]
+transform = Transform3D(-12, 0, 1.0490733e-06, 0, 12, 0, -1.0490733e-06, 0, -12, -114, 0, 84)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road13" type="MeshInstance3D" parent="Track" unique_id=1722866977]
+transform = Transform3D(-12, 0, -1.0490733e-06, 0, 12, 0, 1.0490733e-06, 0, -12, -114, 0, 72)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road14" type="MeshInstance3D" parent="Track" unique_id=1839326312]
+transform = Transform3D(-12, 0, 1.0490733e-06, 0, 12, 0, -1.0490733e-06, 0, -12, -114, 0, 60)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road15" type="MeshInstance3D" parent="Track" unique_id=1473465037]
+transform = Transform3D(-12, 0, -1.0490733e-06, 0, 12, 0, 1.0490733e-06, 0, -12, -114, 0, 48)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road16" type="MeshInstance3D" parent="Track" unique_id=1408266493]
+transform = Transform3D(-12, 0, 1.0490733e-06, 0, 12, 0, -1.0490733e-06, 0, -12, -114, 0, 36)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road17" type="MeshInstance3D" parent="Track" unique_id=2049234547]
+transform = Transform3D(-12, 0, -1.0490733e-06, 0, 12, 0, 1.0490733e-06, 0, -12, -114, 0, 24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road18" type="MeshInstance3D" parent="Track" unique_id=843262642]
+transform = Transform3D(-12, 0, 1.0490733e-06, 0, 12, 0, -1.0490733e-06, 0, -12, -114, 0, 11.999999)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road19" type="MeshInstance3D" parent="Track" unique_id=1500692209]
+transform = Transform3D(-12, 0, -1.0490733e-06, 0, 12, 0, 1.0490733e-06, 0, -12, -114, 0, 5.2453663e-07)
+mesh = ExtResource("3_gi3st")
+
+[node name="Road20" type="MeshInstance3D" parent="Track" unique_id=94150280]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, -90, 0, -24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road21" type="MeshInstance3D" parent="Track" unique_id=1156358402]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, -78, 0, -24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road22" type="MeshInstance3D" parent="Track" unique_id=432343337]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, -66, 0, -24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road23" type="MeshInstance3D" parent="Track" unique_id=501328887]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, -54, 0, -24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road24" type="MeshInstance3D" parent="Track" unique_id=1409654447]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, -42, 0, -24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road25" type="MeshInstance3D" parent="Track" unique_id=1048541363]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, -30, 0, -24)
+mesh = ExtResource("2_8i77g")
+
+[node name="Road26" type="MeshInstance3D" parent="Track" unique_id=90719573]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, -18, 0, -24)
+mesh = ExtResource("3_gi3st")
+
+[node name="Barriers" type="Node3D" parent="." unique_id=180098502]
+
+[node name="Barrier0" type="StaticBody3D" parent="Barriers" unique_id=643996193]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6, 0, 12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier0" unique_id=1960736842]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier0" unique_id=188187085]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier1" type="StaticBody3D" parent="Barriers" unique_id=1004244471]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6, 0, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier1" unique_id=1809628170]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier1" unique_id=1112932202]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier2" type="StaticBody3D" parent="Barriers" unique_id=135841537]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6, 0, 24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier2" unique_id=1101497841]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier2" unique_id=1474317620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier3" type="StaticBody3D" parent="Barriers" unique_id=1367765275]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6, 0, 12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier3" unique_id=1814147717]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier3" unique_id=1119646400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier4" type="StaticBody3D" parent="Barriers" unique_id=909593269]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6, 0, 36)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier4" unique_id=646175773]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier4" unique_id=1253509807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier5" type="StaticBody3D" parent="Barriers" unique_id=826604743]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6, 0, 24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier5" unique_id=1566892982]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier5" unique_id=937096153]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier6" type="StaticBody3D" parent="Barriers" unique_id=338727415]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6, 0, 48)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier6" unique_id=453385422]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier6" unique_id=1206391821]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier7" type="StaticBody3D" parent="Barriers" unique_id=1557999842]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6, 0, 36)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier7" unique_id=799215001]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier7" unique_id=1087272621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier8" type="StaticBody3D" parent="Barriers" unique_id=210321991]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -6, 0, 60)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier8" unique_id=1296463235]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier8" unique_id=1852633539]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier9" type="StaticBody3D" parent="Barriers" unique_id=1614182475]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6, 0, 48)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier9" unique_id=1483076678]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier9" unique_id=610939213]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier10" type="StaticBody3D" parent="Barriers" unique_id=844216518]
+transform = Transform3D(0.15224099, 0, 0.98078525, 0, 1, 0, -0.76536703, 0, 0.19509035, 6, 0, 60)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier10" unique_id=346157245]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier10" unique_id=641919660]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier11" type="StaticBody3D" parent="Barriers" unique_id=190532682]
+transform = Transform3D(0.43354544, 0, 0.83146966, 0, 1, 0, -0.6488466, 0, 0.55557024, 4.173108, 0, 69.1844)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier11" unique_id=645610284]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier11" unique_id=398619423]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier12" type="StaticBody3D" parent="Barriers" unique_id=1185348988]
+transform = Transform3D(0.6488467, 0, 0.55557036, 0, 1, 0, -0.43354562, 0, 0.8314696, -1.0294375, 0, 76.970566)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier12" unique_id=623165352]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier12" unique_id=690783245]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier13" type="StaticBody3D" parent="Barriers" unique_id=625072355]
+transform = Transform3D(0.76536685, 0, 0.1950901, 0, 1, 0, -0.15224075, 0, 0.9807853, -8.815598, 0, 82.17311)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier13" unique_id=695079938]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier13" unique_id=563489605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier14" type="StaticBody3D" parent="Barriers" unique_id=1325405500]
+transform = Transform3D(-0.29289323, 0, -0.9238795, 0, 1, 0, 0.7071066, 0, -0.38268355, -9.514719, 0, 68.485275)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier14" unique_id=300494058]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier14" unique_id=328029508]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier15" type="StaticBody3D" parent="Barriers" unique_id=435203960]
+transform = Transform3D(-0.70710677, 0, -0.38268366, 0, 1, 0, 0.2928934, 0, -0.92387944, -18, 0, 72)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier15" unique_id=599530998]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier15" unique_id=46714788]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier16" type="StaticBody3D" parent="Barriers" unique_id=1761425083]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -30, 0, 72)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier16" unique_id=1604366440]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier16" unique_id=1638121366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier17" type="StaticBody3D" parent="Barriers" unique_id=1661937287]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, 84)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier17" unique_id=487155845]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier17" unique_id=33021943]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier18" type="StaticBody3D" parent="Barriers" unique_id=1479980736]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -42, 0, 72)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier18" unique_id=522968609]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier18" unique_id=528511796]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier19" type="StaticBody3D" parent="Barriers" unique_id=487912354]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 84)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier19" unique_id=1930509444]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier19" unique_id=453766981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier20" type="StaticBody3D" parent="Barriers" unique_id=2134737616]
+transform = Transform3D(-0.76536703, 0, -0.19509006, 0, 1, 0, 0.15224075, 0, -0.9807853, -51.184402, 0, 73.82689)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier20" unique_id=963365551]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier20" unique_id=844826624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier21" type="StaticBody3D" parent="Barriers" unique_id=1488129296]
+transform = Transform3D(-0.6488466, 0, -0.55557036, 0, 1, 0, 0.43354562, 0, -0.83146954, -58.970566, 0, 79.029434)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier21" unique_id=638275068]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier21" unique_id=45335488]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier22" type="StaticBody3D" parent="Barriers" unique_id=507651142]
+transform = Transform3D(-0.43354562, 0, -0.83146954, 0, 1, 0, 0.6488466, 0, -0.55557036, -64.17311, 0, 86.8156)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier22" unique_id=666770201]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier22" unique_id=2038611290]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier23" type="StaticBody3D" parent="Barriers" unique_id=1011637131]
+transform = Transform3D(-0.15224075, 0, -0.9807853, 0, 1, 0, 0.76536703, 0, -0.19509006, -66, 0, 96)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier23" unique_id=1619387512]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier23" unique_id=2039141225]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier24" type="StaticBody3D" parent="Barriers" unique_id=763870564]
+transform = Transform3D(0.7071066, 0, 0.38268372, 0, 1, 0, -0.2928934, 0, 0.9238794, -42, 0, 84)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier24" unique_id=2004144948]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier24" unique_id=1708575849]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier25" type="StaticBody3D" parent="Barriers" unique_id=1428374978]
+transform = Transform3D(0.2928934, 0, 0.9238794, 0, 1, 0, -0.7071066, 0, 0.38268372, -50.48528, 0, 87.514725)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier25" unique_id=465273284]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier25" unique_id=664446631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier26" type="StaticBody3D" parent="Barriers" unique_id=1947332277]
+transform = Transform3D(0.15224075, 0, 0.98078525, 0, 1, 0, -0.76536655, 0, 0.19509016, -54, 0, 96)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier26" unique_id=2062789168]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier26" unique_id=168599118]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier27" type="StaticBody3D" parent="Barriers" unique_id=1980915381]
+transform = Transform3D(0.43354562, 0, 0.83146954, 0, 1, 0, -0.6488466, 0, 0.55557036, -55.82689, 0, 105.1844)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier27" unique_id=260437]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier27" unique_id=330024732]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier28" type="StaticBody3D" parent="Barriers" unique_id=1770109242]
+transform = Transform3D(0.6488466, 0, 0.5555708, 0, 1, 0, -0.43354607, 0, 0.83146924, -61.029434, 0, 112.97056)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier28" unique_id=405242742]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier28" unique_id=444050091]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier29" type="StaticBody3D" parent="Barriers" unique_id=775935786]
+transform = Transform3D(0.76536703, 0, 0.19509006, 0, 1, 0, -0.15224075, 0, 0.9807853, -68.8156, 0, 118.17311)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier29" unique_id=2132464856]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier29" unique_id=1058813452]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier30" type="StaticBody3D" parent="Barriers" unique_id=816305749]
+transform = Transform3D(-0.2928934, 0, -0.9238794, 0, 1, 0, 0.7071066, 0, -0.38268372, -69.514725, 0, 104.485275)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier30" unique_id=1988766632]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier30" unique_id=125770134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier31" type="StaticBody3D" parent="Barriers" unique_id=1628866732]
+transform = Transform3D(-0.7071066, 0, -0.38268372, 0, 1, 0, 0.2928934, 0, -0.9238794, -78, 0, 108)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier31" unique_id=1494882225]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier31" unique_id=1561539641]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier32" type="StaticBody3D" parent="Barriers" unique_id=1665515277]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -90, 0, 108)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier32" unique_id=1167028195]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier32" unique_id=225946484]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier33" type="StaticBody3D" parent="Barriers" unique_id=303885811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0, 120)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier33" unique_id=1457595259]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier33" unique_id=1249636740]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier34" type="StaticBody3D" parent="Barriers" unique_id=1538393779]
+transform = Transform3D(0.76536655, 0, -0.19509016, 0, 1, 0, 0.15224075, 0, 0.98078525, -90, 0, 120)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier34" unique_id=1809679571]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier34" unique_id=2109498603]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier35" type="StaticBody3D" parent="Barriers" unique_id=128344647]
+transform = Transform3D(0.6488466, 0, -0.5555708, 0, 1, 0, 0.43354607, 0, 0.83146924, -99.1844, 0, 118.17311)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier35" unique_id=1042467787]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier35" unique_id=2132934791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier36" type="StaticBody3D" parent="Barriers" unique_id=1544201092]
+transform = Transform3D(0.43354607, 0, -0.83146924, 0, 1, 0, 0.6488466, 0, 0.5555708, -106.97056, 0, 112.97056)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier36" unique_id=1661894123]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier36" unique_id=809340502]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier37" type="StaticBody3D" parent="Barriers" unique_id=1886281067]
+transform = Transform3D(0.15224075, 0, -0.98078525, 0, 1, 0, 0.76536655, 0, 0.19509016, -112.17311, 0, 105.1844)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier37" unique_id=2087914338]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier37" unique_id=989398547]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier38" type="StaticBody3D" parent="Barriers" unique_id=1191708248]
+transform = Transform3D(-0.7071066, 0, 0.38268372, 0, 1, 0, -0.2928934, 0, -0.9238794, -98.485275, 0, 104.485275)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier38" unique_id=256451828]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier38" unique_id=569149868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier39" type="StaticBody3D" parent="Barriers" unique_id=1991904808]
+transform = Transform3D(-0.2928934, 0, 0.9238794, 0, 1, 0, -0.7071066, 0, -0.38268372, -102, 0, 96)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier39" unique_id=1408811281]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier39" unique_id=841798371]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier40" type="StaticBody3D" parent="Barriers" unique_id=865252700]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 84)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier40" unique_id=702409735]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier40" unique_id=114931452]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier41" type="StaticBody3D" parent="Barriers" unique_id=1927142303]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 96)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier41" unique_id=1899044862]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier41" unique_id=415898849]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier42" type="StaticBody3D" parent="Barriers" unique_id=637507795]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 72)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier42" unique_id=206867670]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier42" unique_id=2046724318]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier43" type="StaticBody3D" parent="Barriers" unique_id=149326675]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 84)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier43" unique_id=1675882560]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier43" unique_id=1665659057]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier44" type="StaticBody3D" parent="Barriers" unique_id=1836468837]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 60)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier44" unique_id=2073172194]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier44" unique_id=1623446050]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier45" type="StaticBody3D" parent="Barriers" unique_id=1765247663]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 72)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier45" unique_id=1342557977]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier45" unique_id=1926685560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier46" type="StaticBody3D" parent="Barriers" unique_id=1741898451]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 48)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier46" unique_id=1294523114]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier46" unique_id=672558725]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier47" type="StaticBody3D" parent="Barriers" unique_id=1128327336]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 60)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier47" unique_id=1055466392]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier47" unique_id=278407270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier48" type="StaticBody3D" parent="Barriers" unique_id=1616630196]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 36)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier48" unique_id=1380880127]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier48" unique_id=2069764928]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier49" type="StaticBody3D" parent="Barriers" unique_id=1994652531]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 48)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier49" unique_id=1487204146]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier49" unique_id=1779964715]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier50" type="StaticBody3D" parent="Barriers" unique_id=1134901036]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier50" unique_id=141068774]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier50" unique_id=578025270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier51" type="StaticBody3D" parent="Barriers" unique_id=943218366]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 36)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier51" unique_id=1742685475]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier51" unique_id=238830845]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier52" type="StaticBody3D" parent="Barriers" unique_id=1733752660]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier52" unique_id=1859662045]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier52" unique_id=532817198]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier53" type="StaticBody3D" parent="Barriers" unique_id=345727575]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier53" unique_id=1995260872]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier53" unique_id=66016709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier54" type="StaticBody3D" parent="Barriers" unique_id=1961464566]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -102, 0, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier54" unique_id=621972452]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier54" unique_id=87277322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier55" type="StaticBody3D" parent="Barriers" unique_id=1541232270]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -114, 0, 12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier55" unique_id=1806705819]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier55" unique_id=36177803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier56" type="StaticBody3D" parent="Barriers" unique_id=357921550]
+transform = Transform3D(-0.15224075, 0, -0.9807853, 0, 1, 0, 0.7653669, 0, -0.19509009, -114, 0, 5.245366e-07)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier56" unique_id=135027709]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier56" unique_id=1123988069]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier57" type="StaticBody3D" parent="Barriers" unique_id=1106336609]
+transform = Transform3D(-0.43354607, 0, -0.8314693, 0, 1, 0, 0.6488468, 0, -0.55557066, -112.17311, 0, -9.184402)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier57" unique_id=547094294]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier57" unique_id=1415378690]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier58" type="StaticBody3D" parent="Barriers" unique_id=1764231999]
+transform = Transform3D(-0.6488466, 0, -0.55557024, 0, 1, 0, 0.43354544, 0, -0.83146966, -106.97056, 0, -16.970564)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier58" unique_id=1469719114]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier58" unique_id=1619643884]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier59" type="StaticBody3D" parent="Barriers" unique_id=1236079280]
+transform = Transform3D(-0.76536655, 0, -0.1950906, 0, 1, 0, 0.15224111, 0, -0.9807852, -99.1844, 0, -22.17311)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier59" unique_id=266210920]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier59" unique_id=812465798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier60" type="StaticBody3D" parent="Barriers" unique_id=1586294120]
+transform = Transform3D(0.2928934, 0, 0.92387944, 0, 1, 0, -0.7071068, 0, 0.38268363, -98.485275, 0, -8.485283)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier60" unique_id=1532610006]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier60" unique_id=1105613832]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier61" type="StaticBody3D" parent="Barriers" unique_id=1376030753]
+transform = Transform3D(0.7071066, 0, 0.38268355, 0, 1, 0, -0.29289323, 0, 0.9238795, -90, 0, -12.000002)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier61" unique_id=800611995]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier61" unique_id=1406967591]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier62" type="StaticBody3D" parent="Barriers" unique_id=1847415644]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, 0, -12.000002)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier62" unique_id=2020655554]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier62" unique_id=1501471051]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier63" type="StaticBody3D" parent="Barriers" unique_id=70821342]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -90, 0, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier63" unique_id=444242496]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier63" unique_id=976029258]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier64" type="StaticBody3D" parent="Barriers" unique_id=1329256965]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66, 0, -12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier64" unique_id=286975720]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier64" unique_id=802803309]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier65" type="StaticBody3D" parent="Barriers" unique_id=759735641]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -78, 0, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier65" unique_id=1664133191]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier65" unique_id=1369351500]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier66" type="StaticBody3D" parent="Barriers" unique_id=1794943819]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0, -12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier66" unique_id=614168863]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier66" unique_id=815208751]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier67" type="StaticBody3D" parent="Barriers" unique_id=992134746]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -66, 0, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier67" unique_id=420700875]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier67" unique_id=803473782]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier68" type="StaticBody3D" parent="Barriers" unique_id=1584796612]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, 0, -12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier68" unique_id=1996340721]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier68" unique_id=1267958361]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier69" type="StaticBody3D" parent="Barriers" unique_id=689561382]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -54, 0, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier69" unique_id=1036524826]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier69" unique_id=1131996274]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier70" type="StaticBody3D" parent="Barriers" unique_id=32719753]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier70" unique_id=220570653]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier70" unique_id=1771194259]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier71" type="StaticBody3D" parent="Barriers" unique_id=1486737870]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -42, 0, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier71" unique_id=2035937793]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier71" unique_id=2071903322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier72" type="StaticBody3D" parent="Barriers" unique_id=2128078642]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier72" unique_id=1944688954]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier72" unique_id=1211061325]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier73" type="StaticBody3D" parent="Barriers" unique_id=1978801147]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -30, 0, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier73" unique_id=733667769]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier73" unique_id=1982661697]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier74" type="StaticBody3D" parent="Barriers" unique_id=1011180798]
+transform = Transform3D(-0.76536685, 0, 0.19509025, 0, 1, 0, -0.15224087, 0, -0.9807853, -18, 0, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier74" unique_id=1058289687]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier74" unique_id=81472013]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier75" type="StaticBody3D" parent="Barriers" unique_id=1384579866]
+transform = Transform3D(-0.6488467, 0, 0.5555702, 0, 1, 0, -0.43354547, 0, -0.8314696, -8.815598, 0, -22.17311)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier75" unique_id=1537792377]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier75" unique_id=1424376966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier76" type="StaticBody3D" parent="Barriers" unique_id=1015096877]
+transform = Transform3D(-0.43354562, 0, 0.83146954, 0, 1, 0, -0.6488466, 0, -0.55557036, -1.0294375, 0, -16.970564)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier76" unique_id=851454004]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier76" unique_id=485346714]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier77" type="StaticBody3D" parent="Barriers" unique_id=1723001168]
+transform = Transform3D(-0.15224099, 0, 0.98078525, 0, 1, 0, -0.76536685, 0, -0.1950904, 4.1731095, 0, -9.184404)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier77" unique_id=1528607151]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier77" unique_id=1937629759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier78" type="StaticBody3D" parent="Barriers" unique_id=724458391]
+transform = Transform3D(0.7071068, 0, -0.38268337, 0, 1, 0, 0.29289317, 0, 0.9238796, -9.514718, 0, -8.485282)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier78" unique_id=238969562]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier78" unique_id=1554093220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="Barrier79" type="StaticBody3D" parent="Barriers" unique_id=2106681293]
+transform = Transform3D(0.2928933, 0, -0.9238795, 0, 1, 0, 0.70710677, 0, 0.38268355, -5.9999986, 0, -9.536743e-07)
+
+[node name="Mesh" type="MeshInstance3D" parent="Barriers/Barrier79" unique_id=595646794]
+mesh = SubResource("ArrayMesh_5xag5")
+
+[node name="Shape" type="CollisionShape3D" parent="Barriers/Barrier79" unique_id=363437762]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, 0.5)
+shape = SubResource("BoxShape3D_v5krs")
+
+[node name="RacePath" type="Path3D" parent="." unique_id=1589784180]
+curve = SubResource("Curve3D_dsvpc")
+
+[node name="Opponent0" type="PathFollow3D" parent="RacePath" unique_id=1601342163]
+progress = 31.0
+h_offset = -2.2
+rotation_mode = 1
+script = ExtResource("4_51363")
+speed = 30.5
+character = 0.2
+
+[node name="Car" type="StaticBody3D" parent="RacePath/Opponent0" unique_id=1462493893]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.24, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="RacePath/Opponent0/Car" unique_id=262671385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_2ea3i")
+
+[node name="Model" type="MeshInstance3D" parent="RacePath/Opponent0/Car" unique_id=902421131]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 0)
+visibility_range_end = 20.0
+mesh = ExtResource("5_2p7ge")
+
+[node name="Far" type="MeshInstance3D" parent="RacePath/Opponent0/Car" unique_id=1662913859]
+visibility_range_begin = 20.0
+mesh = SubResource("ArrayMesh_8yw4p")
+
+[node name="Opponent1" type="PathFollow3D" parent="RacePath" unique_id=705107239]
+progress = 25.0
+h_offset = 2.2
+rotation_mode = 1
+script = ExtResource("4_51363")
+speed = 29.8
+character = 0.6
+
+[node name="Car" type="StaticBody3D" parent="RacePath/Opponent1" unique_id=539865346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.24, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="RacePath/Opponent1/Car" unique_id=1354293374]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_a8215")
+
+[node name="Model" type="MeshInstance3D" parent="RacePath/Opponent1/Car" unique_id=1649471343]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 0)
+visibility_range_end = 20.0
+mesh = ExtResource("6_tbona")
+
+[node name="Far" type="MeshInstance3D" parent="RacePath/Opponent1/Car" unique_id=1377076426]
+visibility_range_begin = 20.0
+mesh = SubResource("ArrayMesh_71lh0")
+
+[node name="Opponent2" type="PathFollow3D" parent="RacePath" unique_id=971109623]
+progress = 19.0
+h_offset = -2.2
+rotation_mode = 1
+script = ExtResource("4_51363")
+speed = 29.0
+character = 0.9
+
+[node name="Car" type="StaticBody3D" parent="RacePath/Opponent2" unique_id=1533410270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.24, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="RacePath/Opponent2/Car" unique_id=909220950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_2rt1n")
+
+[node name="Model" type="MeshInstance3D" parent="RacePath/Opponent2/Car" unique_id=35770524]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 0)
+visibility_range_end = 20.0
+mesh = ExtResource("7_olt5w")
+
+[node name="Far" type="MeshInstance3D" parent="RacePath/Opponent2/Car" unique_id=212793090]
+visibility_range_begin = 20.0
+mesh = SubResource("ArrayMesh_3cka5")
+
+[node name="Decoration" type="Node3D" parent="." unique_id=2102849437]
+
+[node name="grandStandCovered0" type="MeshInstance3D" parent="Decoration" unique_id=1959312232]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, 19.2, 0, 6)
+mesh = ExtResource("8_mxcv8")
+
+[node name="grandStandCovered1" type="MeshInstance3D" parent="Decoration" unique_id=372706966]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, 19.2, 0, 18)
+mesh = ExtResource("8_mxcv8")
+
+[node name="grandStandCovered2" type="MeshInstance3D" parent="Decoration" unique_id=780274988]
+transform = Transform3D(-5.2453663e-07, 0, 12, 0, 12, 0, -12, 0, -5.2453663e-07, 19.2, 0, 30)
+mesh = ExtResource("8_mxcv8")
+
+[node name="overhead3" type="MeshInstance3D" parent="Decoration" unique_id=901133623]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, 7.56, 0, 36)
+mesh = ExtResource("9_6b36a")
+
+[node name="flagCheckers4" type="MeshInstance3D" parent="Decoration" unique_id=1039503336]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, 9, 0, 32.4)
+mesh = ExtResource("10_6qkf3")
+
+[node name="flagCheckers5" type="MeshInstance3D" parent="Decoration" unique_id=234784614]
+transform = Transform3D(12, 0, 0, 0, 12, 0, 0, 0, 12, -7.2000003, 0, 32.4)
+mesh = ExtResource("10_6qkf3")
+
+[node name="tent6" type="MeshInstance3D" parent="Decoration" unique_id=2140081730]
+transform = Transform3D(11.464038, 0, 3.5462427, 0, 12, 0, -3.5462427, 0, 11.464038, -54, 0, 42)
+mesh = ExtResource("11_x6ff5")
+
+[node name="tent7" type="MeshInstance3D" parent="Decoration" unique_id=1425294542]
+transform = Transform3D(11.464038, 0, 3.5462427, 0, 12, 0, -3.5462427, 0, 11.464038, -78, 0, 24)
+mesh = ExtResource("11_x6ff5")
+
+[node name="tent8" type="MeshInstance3D" parent="Decoration" unique_id=1269445960]
+transform = Transform3D(11.464038, 0, 3.5462427, 0, 12, 0, -3.5462427, 0, 11.464038, -60, 0, 12)
+mesh = ExtResource("11_x6ff5")
+
+[node name="treeSmall9" type="MeshInstance3D" parent="Decoration" unique_id=796433390]
+transform = Transform3D(0.42842165, 0, -11.99235, 0, 12, 0, 11.99235, 0, 0.42842165, 46.901527, 0, 93.03162)
+visibility_range_end = 100.0
+mesh = ExtResource("12_7ffcf")
+
+[node name="treeSmall10" type="MeshInstance3D" parent="Decoration" unique_id=1573626947]
+transform = Transform3D(-8.851639, 0, 8.102375, 0, 12, 0, -8.102375, 0, -8.851639, -167.89546, 0, -32.132126)
+visibility_range_end = 100.0
+mesh = ExtResource("12_7ffcf")
+
+[node name="treeLarge11" type="MeshInstance3D" parent="Decoration" unique_id=2128922866]
+transform = Transform3D(-10.544206, 0, -5.7288504, 0, 12, 0, 5.7288504, 0, -10.544206, -169.72739, 0, 13.238983)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge12" type="MeshInstance3D" parent="Decoration" unique_id=2106479701]
+transform = Transform3D(11.582315, 0, -3.1384673, 0, 12, 0, 3.1384673, 0, 11.582315, -47.196053, 0, 135.5232)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge13" type="MeshInstance3D" parent="Decoration" unique_id=441295209]
+transform = Transform3D(-8.884813, 0, 8.065983, 0, 12, 0, -8.065983, 0, -8.884813, -24.417664, 0, 59.152187)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge14" type="MeshInstance3D" parent="Decoration" unique_id=1982918424]
+transform = Transform3D(-8.983866, 0, -7.955511, 0, 12, 0, 7.955511, 0, -8.983866, 58.58235, 0, 130.44418)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge15" type="MeshInstance3D" parent="Decoration" unique_id=118571142]
+transform = Transform3D(-10.185553, 0, -6.3446445, 0, 12, 0, 6.3446445, 0, -10.185553, 52.429893, 0, -57.070732)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge16" type="MeshInstance3D" parent="Decoration" unique_id=1133857526]
+transform = Transform3D(-6.8659916, 0, 9.841654, 0, 12, 0, -9.841654, 0, -6.8659916, -158.1959, 0, -79.78311)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge17" type="MeshInstance3D" parent="Decoration" unique_id=281800971]
+transform = Transform3D(-4.9801273, 0, 10.917799, 0, 12, 0, -10.917799, 0, -4.9801273, 23.902748, 0, -72.19404)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeSmall18" type="MeshInstance3D" parent="Decoration" unique_id=71620403]
+transform = Transform3D(7.916944, 0, 9.017872, 0, 12, 0, -9.017872, 0, 7.916944, -125.87195, 0, 39.967644)
+visibility_range_end = 100.0
+mesh = ExtResource("12_7ffcf")
+
+[node name="treeSmall19" type="MeshInstance3D" parent="Decoration" unique_id=1801581772]
+transform = Transform3D(-5.6438417, 0, 10.589951, 0, 12, 0, -10.589951, 0, -5.6438417, -123.95853, 0, -42.071457)
+visibility_range_end = 100.0
+mesh = ExtResource("12_7ffcf")
+
+[node name="treeLarge20" type="MeshInstance3D" parent="Decoration" unique_id=1166628063]
+transform = Transform3D(8.596981, 0, -8.372092, 0, 12, 0, 8.372092, 0, 8.596981, -155.51141, 0, -0.65766907)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge21" type="MeshInstance3D" parent="Decoration" unique_id=1175724214]
+transform = Transform3D(-2.4746501, 0, -11.742065, 0, 12, 0, 11.742065, 0, -2.4746501, -148.44243, 0, 179.735)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge22" type="MeshInstance3D" parent="Decoration" unique_id=355005995]
+transform = Transform3D(-2.5502806, 0, -11.725872, 0, 12, 0, 11.725872, 0, -2.5502806, 45.84304, 0, 101.26825)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge23" type="MeshInstance3D" parent="Decoration" unique_id=417706794]
+transform = Transform3D(3.173459, 0, -11.572777, 0, 12, 0, 11.572777, 0, 3.173459, -79.40144, 0, 15.606606)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge24" type="MeshInstance3D" parent="Decoration" unique_id=575071152]
+transform = Transform3D(-11.996081, 0, 0.30666435, 0, 12, 0, -0.30666435, 0, -11.996081, 27.375252, 0, -32.418625)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge25" type="MeshInstance3D" parent="Decoration" unique_id=866653443]
+transform = Transform3D(-11.998525, 0, 0.18819791, 0, 12, 0, -0.18819791, 0, -11.998525, 8.89373, 0, 159.78284)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge26" type="MeshInstance3D" parent="Decoration" unique_id=1715866607]
+transform = Transform3D(2.9852061, 0, 11.62276, 0, 12, 0, -11.62276, 0, 2.9852061, 19.049675, 0, -70.1493)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeSmall27" type="MeshInstance3D" parent="Decoration" unique_id=942293401]
+transform = Transform3D(-9.755803, 0, -6.987439, 0, 12, 0, 6.987439, 0, -9.755803, -154.63739, 0, 13.291363)
+visibility_range_end = 100.0
+mesh = ExtResource("12_7ffcf")
+
+[node name="treeSmall28" type="MeshInstance3D" parent="Decoration" unique_id=924828463]
+transform = Transform3D(10.401304, 0, -5.9843855, 0, 12, 0, 5.9843855, 0, 10.401304, 20.864777, 0, 166.98517)
+visibility_range_end = 100.0
+mesh = ExtResource("12_7ffcf")
+
+[node name="treeLarge29" type="MeshInstance3D" parent="Decoration" unique_id=1250368959]
+transform = Transform3D(-10.155466, 0, 6.392691, 0, 12, 0, -6.392691, 0, -10.155466, 50.779175, 0, 161.3969)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeLarge30" type="MeshInstance3D" parent="Decoration" unique_id=1170233255]
+transform = Transform3D(-1.8173685, 0, -11.861584, 0, 12, 0, 11.861584, 0, -1.8173685, -94.41489, 0, -42.533092)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="treeSmall31" type="MeshInstance3D" parent="Decoration" unique_id=1166045006]
+transform = Transform3D(-9.726327, 0, 7.0284104, 0, 12, 0, -7.0284104, 0, -9.726327, -35.052452, 0, 45.370605)
+visibility_range_end = 100.0
+mesh = ExtResource("12_7ffcf")
+
+[node name="treeLarge32" type="MeshInstance3D" parent="Decoration" unique_id=1597183245]
+transform = Transform3D(-8.439542, 0, -8.530776, 0, 12, 0, 8.530776, 0, -8.439542, 19.284508, 0, -71.87521)
+visibility_range_end = 100.0
+mesh = ExtResource("13_h2mw8")
+
+[node name="Checkpoints" type="Path3D" parent="." unique_id=1565246776]
+curve = SubResource("Curve3D_dsvpc")
+
+[node name="Checkpoint0" type="PathFollow3D" parent="Checkpoints" unique_id=1574571439]
+progress = 36.0
+rotation_mode = 1
+
+[node name="Gate" type="Area3D" parent="Checkpoints/Checkpoint0" unique_id=1096522348]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="Shape" type="CollisionShape3D" parent="Checkpoints/Checkpoint0/Gate" unique_id=627091249]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+shape = SubResource("BoxShape3D_kql0t")
+
+[node name="Checkpoint1" type="PathFollow3D" parent="Checkpoints" unique_id=1834151820]
+progress = 144.34346
+rotation_mode = 1
+
+[node name="Gate" type="Area3D" parent="Checkpoints/Checkpoint1" unique_id=178177027]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="Shape" type="CollisionShape3D" parent="Checkpoints/Checkpoint1/Gate" unique_id=1810123381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+shape = SubResource("BoxShape3D_kql0t")
+
+[node name="Checkpoint2" type="PathFollow3D" parent="Checkpoints" unique_id=1806605055]
+progress = 252.68692
+rotation_mode = 1
+
+[node name="Gate" type="Area3D" parent="Checkpoints/Checkpoint2" unique_id=1050046732]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="Shape" type="CollisionShape3D" parent="Checkpoints/Checkpoint2/Gate" unique_id=685524922]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+shape = SubResource("BoxShape3D_kql0t")
+
+[node name="Checkpoint3" type="PathFollow3D" parent="Checkpoints" unique_id=282711626]
+progress = 361.0304
+rotation_mode = 1
+
+[node name="Gate" type="Area3D" parent="Checkpoints/Checkpoint3" unique_id=1037005192]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="Shape" type="CollisionShape3D" parent="Checkpoints/Checkpoint3/Gate" unique_id=27834722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+shape = SubResource("BoxShape3D_kql0t")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=1920612050 node_paths=PackedStringArray("model", "camera", "path", "checkpoints", "opponents", "countdown", "finish_timer", "lap_label", "time_label", "best_label", "pos_label", "speed_label", "message_label")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 0.24, 13)
+script = ExtResource("14_n21ep")
+start_distance = 13.0
+model_scale = 2.5
+model = NodePath("Model")
+camera = NodePath("../Camera")
+path = NodePath("../RacePath")
+checkpoints = NodePath("../Checkpoints")
+opponents = NodePath("../RacePath")
+countdown = NodePath("../Countdown")
+finish_timer = NodePath("../FinishTimer")
+lap_label = NodePath("../Hud/Lap")
+time_label = NodePath("../Hud/Time")
+best_label = NodePath("../Hud/Best")
+pos_label = NodePath("../Hud/Position")
+speed_label = NodePath("../Hud/Speed")
+message_label = NodePath("../Hud/Message")
+menu_scene = "res://scenes/main_menu.tscn"
+
+[node name="Shape" type="CollisionShape3D" parent="Player" unique_id=1092530444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_6o0wl")
+
+[node name="Model" type="MeshInstance3D" parent="Player" unique_id=1668738656]
+transform = Transform3D(-2.5, 0, -2.1855695e-07, 0, 2.5, 0, 2.1855695e-07, 0, -2.5, 0, 0, 0)
+mesh = ExtResource("15_c8468")
+
+[node name="Hitbox" type="Area3D" parent="Player" unique_id=1537709946]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Player/Hitbox" unique_id=1664591092]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_6o0wl")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=102119526]
+transform = Transform3D(-1, 1.8176218e-08, -8.551238e-08, 0, 0.9781476, 0.2079117, 8.742278e-08, 0.2079117, -0.9781476, -2.2, 3.44, 5)
+current = true
+fov = 70.0
+near = 0.5
+far = 320.0
+
+[node name="Countdown" type="Timer" parent="." unique_id=1445008607]
+autostart = true
+
+[node name="FinishTimer" type="Timer" parent="." unique_id=1569045281]
+wait_time = 4.0
+one_shot = true
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=116407369]
+stream = ExtResource("16_dov37")
+volume_db = -10.0
+autoplay = true
+
+[node name="Hud" type="Control" parent="." unique_id=1592601299]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Strip" type="ColorRect" parent="Hud" unique_id=332593271]
+layout_mode = 0
+offset_top = 436.0
+offset_right = 640.0
+offset_bottom = 480.0
+color = Color(0, 0, 0, 0.45)
+
+[node name="Position" type="Label" parent="Hud" unique_id=1141348934]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 260.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 24
+text = "POS 4/4"
+vertical_alignment = 1
+
+[node name="Lap" type="Label" parent="Hud" unique_id=440367237]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 42.0
+offset_right = 260.0
+offset_bottom = 82.0
+theme_override_font_sizes/font_size = 16
+text = "LAP 1/3"
+vertical_alignment = 1
+
+[node name="Time" type="Label" parent="Hud" unique_id=813776466]
+layout_mode = 0
+offset_left = 380.0
+offset_top = 10.0
+offset_right = 624.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 24
+text = "0:00.00"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Best" type="Label" parent="Hud" unique_id=247960427]
+layout_mode = 0
+offset_left = 380.0
+offset_top = 42.0
+offset_right = 624.0
+offset_bottom = 82.0
+theme_override_font_sizes/font_size = 16
+text = "BEST -:--.--"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Speed" type="Label" parent="Hud" unique_id=1787119245]
+layout_mode = 0
+offset_left = 380.0
+offset_top = 438.0
+offset_right = 624.0
+offset_bottom = 478.0
+theme_override_font_sizes/font_size = 24
+text = "0 KM/H"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Message" type="Label" parent="Hud" unique_id=451390707]
+layout_mode = 0
+offset_top = 170.0
+offset_right = 640.0
+offset_bottom = 210.0
+theme_override_font_sizes/font_size = 32
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hint" type="Label" parent="Hud" unique_id=1596302561]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 438.0
+offset_right = 416.0
+offset_bottom = 478.0
+theme_override_font_sizes/font_size = 14
+text = "Steer: arrows/stick  Gas: W/RT  Brake: S/LT  Back: Esc/B"
+vertical_alignment = 1
+
+[connection signal="area_entered" from="Player/Hitbox" to="Player" method="_on_hitbox_area_entered"]
+[connection signal="timeout" from="Countdown" to="Player" method="_on_countdown_timeout"]
+[connection signal="timeout" from="FinishTimer" to="Player" method="_on_finish_timer_timeout"]
