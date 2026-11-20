@@ -19,6 +19,7 @@ platformer_2d_scene = "res://scenes/platformer_2d.tscn"
 platformer_3d_scene = "res://scenes/platformer_3d.tscn"
 racing_scene = "res://scenes/racing.tscn"
 island_scene = "res://scenes/island.tscn"
+ball_scene = "res://scenes/ball_roll.tscn"
 feature_scene = "res://scenes/features.tscn"
 
 [node name="Backdrop" type="TextureRect" parent="." unique_id=2044799120]
@@ -45,7 +46,7 @@ vertical_alignment = 1
 [node name="Buttons" type="VBoxContainer" parent="." unique_id=1952239306]
 layout_mode = 0
 offset_left = 210.0
-offset_top = 134.0
+offset_top = 112.0
 offset_right = 430.0
 offset_bottom = 434.0
 theme_override_constants/separation = 6
@@ -79,6 +80,11 @@ text = "Racing"
 layout_mode = 2
 size_flags_vertical = 3
 text = "Island"
+
+[node name="Ball" type="Button" parent="Buttons" unique_id=1180264411]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Ball Roll"
 
 [node name="Features" type="Button" parent="Buttons" unique_id=353392737]
 layout_mode = 2
@@ -115,5 +121,6 @@ autoplay = true
 [connection signal="pressed" from="Buttons/Platformer3D" to="." method="_on_platformer_3d_pressed"]
 [connection signal="pressed" from="Buttons/Racing" to="." method="_on_racing_pressed"]
 [connection signal="pressed" from="Buttons/Island" to="." method="_on_island_pressed"]
+[connection signal="pressed" from="Buttons/Ball" to="." method="_on_ball_pressed"]
 [connection signal="pressed" from="Buttons/Features" to="." method="_on_features_pressed"]
 [connection signal="pressed" from="Buttons/Quit" to="." method="_on_quit_pressed"]

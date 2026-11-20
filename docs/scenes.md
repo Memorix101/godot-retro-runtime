@@ -25,7 +25,7 @@ something the runtime cannot handle is not exported; the message names the node.
 | Godot                         | Notes                                                         |
 |-------------------------------|---------------------------------------------------------------|
 | `Node`, `Node3D`, `Node2D`    |                                                               |
-| `MeshInstance3D`              | ArrayMesh (also an imported `.obj`) or primitive mesh; `StandardMaterial3D` or no material; albedo colour and one albedo texture; `visibility_range_begin`/`end` without margins or fading |
+| `MeshInstance3D`              | ArrayMesh (also an imported `.obj`) or primitive mesh; `StandardMaterial3D` or no material; albedo colour and one albedo texture; transparency Disabled, Alpha Scissor or Alpha (drawn after everything solid, the far ones first, as in Godot); `visibility_range_begin`/`end` without margins or fading |
 | `Camera3D`                    | perspective or orthogonal (`size`), Keep Height; an orthogonal camera not together with fog or a sky background |
 | `DirectionalLight3D`, `OmniLight3D`, `SpotLight3D` | inputs of the light bake only; they become `Node3D` nodes. Colour, energy, range, attenuation, spot angle and its attenuation; no shadows, no negative lights |
 | `Area3D`, `Area2D` + `CollisionShape3D`, `CollisionShape2D` | box and sphere shapes, rectangle and circle in 2D; emits `area_entered` / `area_exited`; `body_entered` and `body_exited` for static and character bodies |

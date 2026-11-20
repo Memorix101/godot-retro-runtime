@@ -13,6 +13,8 @@
 
 static bool      g_in_3d;
 static bool      g_in_particles;
+static float     g_eye[3];             /* where the camera is */
+static uint32_t  g_translucent_count;  /* translucent surfaces held back this frame */
 static Texture2D g_textures[MAX_TEXTURES];
 static Sound     g_sounds[MAX_SOUNDS];
 static Music     g_music;
@@ -192,6 +194,10 @@ void rr_gfx_set_camera(const RRMat34 *world, float fov_y_degrees, float z_near, 
     rlLoadIdentity();
     rlMultMatrixf(MatrixToFloat(view));
     rlEnableDepthTest();
+    g_eye[0] = m[9];
+    g_eye[1] = m[10];
+    g_eye[2] = m[11];
+    g_translucent_count = 0;
     g_in_3d = true;
 }
 
@@ -202,40 +208,106 @@ static void emit_vertex(const RRVertexPC *v)
     rlVertex3f(v->pos[0], v->pos[1], v->pos[2]);
 }
 
-void rr_gfx_draw_mesh(const RRPkgMesh *mesh, const RRMat34 *world, const uint32_t *textures)
+/* Translucent surfaces are not drawn where they come in the tree: as in Godot they wait
+ * until everything solid is there, and are then drawn from the far ones to the near ones
+ * without writing the depth, so that what is behind or inside one stays visible. The
+ * consoles' hardware sorts its translucent list by itself. */
+#define MAX_TRANSLUCENT 256
+
+typedef struct {
+    const RRPkgMesh    *mesh;
+    const RRPkgSurface *surface;
+    const uint32_t     *textures;
+    RRMat34             world;
+    float               distance; /* squared, from the camera to the middle of the mesh */
+} Translucent;
+
+static Translucent g_translucent[MAX_TRANSLUCENT];
+static uint16_t    g_translucent_order[MAX_TRANSLUCENT];
+
+static void draw_surface(const RRPkgMesh *mesh, const RRPkgSurface *surf, const RRMat34 *world,
+                         const uint32_t *textures)
 {
-    const float *m = world->m;
-    const float  matrix[16] = { m[0], m[1], m[2],  0.0f, m[3], m[4],  m[5],  0.0f,
-                                m[6], m[7], m[8],  0.0f, m[9], m[10], m[11], 1.0f };
-    uint32_t     s, i, k;
+    const float      *m = world->m;
+    const float       matrix[16] = { m[0], m[1], m[2],  0.0f, m[3], m[4],  m[5],  0.0f,
+                                     m[6], m[7], m[8],  0.0f, m[9], m[10], m[11], 1.0f };
+    const uint16_t   *strips = rr_surface_strips(mesh, surf);
+    const RRVertexPC *v = (const RRVertexPC *)rr_surface_verts(mesh, surf);
+    const uint32_t    texture = surf->texture != RR_NONE32 ? textures[surf->texture] : RR_NONE32;
+    uint32_t          i, k;
 
     rlPushMatrix();
     rlMultMatrixf(matrix);
-    for (s = 0; s < mesh->surface_count; s++) {
-        const RRPkgSurface *surf = &mesh->surfaces[s];
-        const uint16_t     *strips = rr_surface_strips(mesh, surf);
-        const RRVertexPC   *v = (const RRVertexPC *)rr_surface_verts(mesh, surf);
-
-        const uint32_t      texture = surf->texture != RR_NONE32 ? textures[surf->texture] : RR_NONE32;
-
-        /* Blend modes: raylib blends by alpha already, so all three modes draw the same
-         * here. The texture colour is multiplied with the vertex colour. */
-        rlSetTexture(texture < MAX_TEXTURES && g_textures[texture].id != 0 ? g_textures[texture].id
-                                                                          : rlGetTextureIdDefault());
-        rlBegin(RL_TRIANGLES);
-        for (i = 0; i < surf->strip_count; i++) {
-            for (k = 0; k + 2 < strips[i]; k++) {
-                /* Every second triangle of a strip has its first two vertices swapped. */
-                emit_vertex(&v[k + (k & 1)]);
-                emit_vertex(&v[k + 1 - (k & 1)]);
-                emit_vertex(&v[k + 2]);
-            }
-            v += strips[i];
+    /* raylib blends by alpha already, so all blend modes draw the same here. The texture
+     * colour is multiplied with the vertex colour. */
+    rlSetTexture(texture < MAX_TEXTURES && g_textures[texture].id != 0 ? g_textures[texture].id
+                                                                      : rlGetTextureIdDefault());
+    rlBegin(RL_TRIANGLES);
+    for (i = 0; i < surf->strip_count; i++) {
+        for (k = 0; k + 2 < strips[i]; k++) {
+            /* Every second triangle of a strip has its first two vertices swapped. */
+            emit_vertex(&v[k + (k & 1)]);
+            emit_vertex(&v[k + 1 - (k & 1)]);
+            emit_vertex(&v[k + 2]);
         }
-        rlEnd();
+        v += strips[i];
     }
+    rlEnd();
     rlSetTexture(0);
     rlPopMatrix();
+}
+
+void rr_gfx_draw_mesh(const RRPkgMesh *mesh, const RRMat34 *world, const uint32_t *textures)
+{
+    uint32_t s;
+    int      k;
+
+    for (s = 0; s < mesh->surface_count; s++) {
+        const RRPkgSurface *surf = &mesh->surfaces[s];
+
+        if (surf->blend == RR_BLEND_TRANSLUCENT && g_translucent_count < MAX_TRANSLUCENT) {
+            Translucent *t = &g_translucent[g_translucent_count++];
+            const float *m = world->m, *c = mesh->center;
+            t->mesh     = mesh;
+            t->surface  = surf;
+            t->textures = textures;
+            t->world    = *world;
+            t->distance = 0.0f;
+            for (k = 0; k < 3; k++) {
+                const float d = m[k] * c[0] + m[3 + k] * c[1] + m[6 + k] * c[2] + m[9 + k] - g_eye[k];
+                t->distance += d * d;
+            }
+        } else {
+            draw_surface(mesh, surf, world, textures);
+        }
+    }
+}
+
+/* Draws the translucent surfaces that were held back. Called when the meshes of the
+ * frame are through: before the first particle, or at the end of the 3D part. */
+static void draw_translucent(void)
+{
+    uint32_t i, k;
+
+    if (g_translucent_count == 0) {
+        return;
+    }
+    for (i = 0; i < g_translucent_count; i++) {
+        /* Sorted by insertion, the furthest first; equal ones stay in tree order. */
+        for (k = i; k > 0 && g_translucent[g_translucent_order[k - 1]].distance < g_translucent[i].distance; k--) {
+            g_translucent_order[k] = g_translucent_order[k - 1];
+        }
+        g_translucent_order[k] = (uint16_t)i;
+    }
+    rlDrawRenderBatchActive();
+    rlDisableDepthMask();
+    for (i = 0; i < g_translucent_count; i++) {
+        const Translucent *t = &g_translucent[g_translucent_order[i]];
+        draw_surface(t->mesh, t->surface, &t->world, t->textures);
+    }
+    rlDrawRenderBatchActive();
+    rlEnableDepthMask();
+    g_translucent_count = 0;
 }
 
 void rr_gfx_draw_sky(uint32_t texture, const float *xyz, const float *uv)
@@ -270,6 +342,7 @@ void rr_gfx_draw_quad_3d(uint32_t texture, const float *xyz, const float *uv, ui
     int              i;
 
     if (!g_in_particles) {
+        draw_translucent();
         /* Particles are tested against the depth buffer but do not write to it, so they
          * do not cut holes into each other. */
         rlDrawRenderBatchActive();
@@ -293,6 +366,9 @@ void rr_gfx_draw_quad_3d(uint32_t texture, const float *xyz, const float *uv, ui
 
 void rr_gfx_begin_2d(void)
 {
+    if (g_in_3d) {
+        draw_translucent();
+    }
     if (g_in_particles) {
         rlDrawRenderBatchActive();
         rlEnableDepthMask();
@@ -514,6 +590,9 @@ const char *rr_plat_locale(void)
 
 void rr_plat_vibrate(float weak, float strong)
 {
-    /* The left motor of a pad is the heavy one. It runs until it is told otherwise. */
-    SetGamepadVibration(0, strong, weak, weak > 0.0f || strong > 0.0f ? 60.0f : 0.0f);
+    /* The left motor of a pad is the heavy one. It runs until it is told otherwise.
+     * Without a pad there is nothing to shake, and raylib would only print a warning. */
+    if (IsGamepadAvailable(0)) {
+        SetGamepadVibration(0, strong, weak, weak > 0.0f || strong > 0.0f ? 60.0f : 0.0f);
+    }
 }

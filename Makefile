@@ -50,7 +50,7 @@ BUILD := build
 # The scenes of the game. The first scene the runtime loads is main_menu.
 SCENES := scenes/main_menu.tscn scenes/test_track.tscn scenes/sprites_2d.tscn \
           scenes/platformer_2d.tscn scenes/platformer_3d.tscn scenes/racing.tscn \
-          scenes/island.tscn scenes/features.tscn
+          scenes/island.tscn scenes/ball_roll.tscn scenes/features.tscn
 # Scenes that are instanced by the ones above.
 PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/*.tscn)
 
@@ -130,7 +130,8 @@ run: $(RUNTIME) $(BUILD)/pkg/pc/.exported
 #    the Quit button ends the program. In the 2D test scene the ship shoots all targets
 #    with instanced bullets, more of them than the pool holds at a time. Both platformer
 #    demos are played to their flag, and the racing demo is driven for three laps by a
-#    recorded input (tests/input/racing.txt).
+#    recorded input (tests/input/racing.txt). The ball of the ball demo is rolled over
+#    its whole course and through the goal gate.
 #
 # The game flow tests open a window for a few seconds. RR_MUTE keeps them silent.
 
@@ -235,7 +236,7 @@ test: all $(BUILD)/pkg/pc/.exported
 	    "scene: main_menu scene: test_track scene: main_menu " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_track.log; exit 1; }
 	@echo "== game flow: menu -> 2D test -> cancel -> menu -> quit"
-	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_accept" > $(T)/flow_2d.log
+	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_accept" > $(T)/flow_2d.log
 	@test "$$(tr -d '\r' < $(T)/flow_2d.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: sprites_2d scene: main_menu quit " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_2d.log; exit 1; }
@@ -245,7 +246,7 @@ test: all $(BUILD)/pkg/pc/.exported
 	    "scene: main_menu scene: sprites_2d scene: main_menu " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_pool.log; exit 1; }
 	@echo "== game flow: menu -> feature test, report on screen -> cancel -> menu"
-	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,55:ui_down,60:ui_accept,210:ui_cancel" > $(T)/flow_features.log
+	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,55:ui_down,60:ui_down,65:ui_accept,215:ui_cancel" > $(T)/flow_features.log
 	@test "$$(tr -d '\r' < $(T)/flow_features.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: features scene: features features: ok scene: main_menu " || \
 	    { echo "FAIL: unexpected output:"; cat $(T)/flow_features.log; exit 1; }
@@ -262,6 +263,14 @@ test: all $(BUILD)/pkg/pc/.exported
 	@test "$$(tr -d '\r' < $(T)/flow_island.log | tr '\n' ' ')" = \
 	    "scene: island scene: main_menu " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_island.log; exit 1; }
+	@echo "== game flow: ball demo, rolled over the whole course through the goal gate -> menu"
+	@rm -f $(T)/RR_BALL.sav
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) ball_roll --data $(BUILD)/pkg/pc --frames 2000 \
+	    --input "40:move_up:399,439:move_down:70,520:move_right:30,650:move_up:25,805:move_down:21,845:move_right:30,1095:move_down:9,1108:move_left:30,1240:move_up:110,1396:move_down:46,1455:move_left:30,1585:move_up:400" > $(T)/flow_ball.log
+	@test "$$(tr -d '\r' < $(T)/flow_ball.log | grep '^scene:' | tr '\n' ' ')" = \
+	    "scene: ball_roll scene: main_menu " || \
+	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_ball.log; exit 1; }
+	@test -s $(T)/RR_BALL.sav || { echo "FAIL: the time of the run was not saved"; exit 1; }
 	@echo "== game flow: menu -> 2D platformer, played to the flag -> menu"
 	$(FLOW) "10:ui_down,20:ui_down,30:ui_accept,30:move_right:870,115:jump:20,166:jump:20,266:jump:20,320:jump:20,424:jump:20,489:jump:20" > $(T)/flow_platformer_2d.log
 	@test "$$(tr -d '\r' < $(T)/flow_platformer_2d.log | tr '\n' ' ')" = \

@@ -58,7 +58,7 @@
 
 #define RR_MAX_COMPONENT_TYPES   64
 #define RR_MAX_COMPONENT_FIELDS  32
-#define RR_MAX_COMPONENT_SIGNALS 8
+#define RR_MAX_COMPONENT_SIGNALS 16
 
 typedef struct Node Node;
 typedef struct RRPackedScene RRPackedScene;

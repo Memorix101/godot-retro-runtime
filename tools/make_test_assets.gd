@@ -18,6 +18,7 @@ func _initialize() -> void:
 	_panorama().save_png("res://assets/sprites/sky_panorama.png")
 	_shadow().save_png("res://assets/sprites/shadow.png")
 	_ground().save_png("res://assets/sprites/ground.png")
+	_tiles().save_png("res://assets/sprites/tiles.png")
 
 	_tone(880.0, 0.12, 22050, false).save_to_wav("res://assets/sounds/beep.wav")
 	_tone(110.0, 0.4, 11025, true).save_to_wav("res://assets/sounds/engine.wav")
@@ -154,3 +155,16 @@ func _sweep(seconds: float, rate: int) -> AudioStreamWAV:
 	stream.stereo = true
 	stream.data = data
 	return stream
+
+
+## 64x64 floor tiles for the ball demo: two by two squares in two greys with a dark joint,
+## to be tinted by the mesh. A power of two, because the floors repeat it.
+func _tiles() -> Image:
+	var image := Image.create_empty(64, 64, false, Image.FORMAT_RGBA8)
+	for y in 64:
+		for x in 64:
+			var light := (x / 32 + y / 32) % 2 == 0
+			var joint := x % 32 == 0 or y % 32 == 0
+			var level := 0.55 if joint else (1.0 if light else 0.8)
+			image.set_pixel(x, y, Color(level, level, level))
+	return image

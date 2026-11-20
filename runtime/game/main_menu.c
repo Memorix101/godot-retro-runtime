@@ -9,6 +9,7 @@ typedef struct {
     const char *platformer_3d_scene; /* exported */
     const char *racing_scene;        /* exported */
     const char *island_scene;        /* exported */
+    const char *ball_scene;          /* exported */
     const char *feature_scene;       /* exported */
 } MainMenu;
 
@@ -48,6 +49,12 @@ static void main_menu_on_island(Node *self, MainMenu *menu)
     rr_change_scene(menu->island_scene);
 }
 
+static void main_menu_on_ball(Node *self, MainMenu *menu)
+{
+    (void)self;
+    rr_change_scene(menu->ball_scene);
+}
+
 static void main_menu_on_features(Node *self, MainMenu *menu)
 {
     GameState *game = game_state(self->scene);
@@ -71,6 +78,7 @@ COMPONENT_BEGIN(MainMenu, "MainMenu")
     EXPORT_SCENE(platformer_3d_scene)
     EXPORT_SCENE(racing_scene)
     EXPORT_SCENE(island_scene)
+    EXPORT_SCENE(ball_scene)
     EXPORT_SCENE(feature_scene)
     ON_SIGNAL("_on_start_pressed", main_menu_on_start)
     ON_SIGNAL("_on_test_2d_pressed", main_menu_on_test_2d)
@@ -78,6 +86,7 @@ COMPONENT_BEGIN(MainMenu, "MainMenu")
     ON_SIGNAL("_on_platformer_3d_pressed", main_menu_on_platformer_3d)
     ON_SIGNAL("_on_racing_pressed", main_menu_on_racing)
     ON_SIGNAL("_on_island_pressed", main_menu_on_island)
+    ON_SIGNAL("_on_ball_pressed", main_menu_on_ball)
     ON_SIGNAL("_on_features_pressed", main_menu_on_features)
     ON_SIGNAL("_on_quit_pressed", main_menu_on_quit)
 COMPONENT_END()

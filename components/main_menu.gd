@@ -13,6 +13,8 @@ extends Control
 @export_file("*.tscn") var racing_scene: String
 ## Scene of the terrain demo.
 @export_file("*.tscn") var island_scene: String
+## Scene of the ball demo.
+@export_file("*.tscn") var ball_scene: String
 ## The scene that checks the runtime's features and shows what it found.
 @export_file("*.tscn") var feature_scene: String
 
@@ -22,5 +24,6 @@ func _on_platformer_2d_pressed() -> void: pass
 func _on_platformer_3d_pressed() -> void: pass
 func _on_racing_pressed() -> void: pass
 func _on_island_pressed() -> void: pass
+func _on_ball_pressed() -> void: pass
 func _on_features_pressed() -> void: pass
 func _on_quit_pressed() -> void: pass

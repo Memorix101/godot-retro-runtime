@@ -15,6 +15,7 @@ described in [terrain.md](terrain.md).
 | Steer         | A/D, Left/Right, d-pad, stick | d-pad, stick |
 | Platformer: move | WASD, arrow keys, d-pad, stick | d-pad, stick |
 | Platformer: jump | Space, A         | A                    |
+| Ball: tilt    | WASD, arrow keys, d-pad, stick | d-pad, stick |
 | Racing: gas   | W, Up, A, right trigger | A, right trigger |
 | Racing: brake | S, Down, B, left trigger | B, left trigger |
 | Racing: steer | A/D, Left/Right, d-pad, stick | d-pad, stick |
@@ -46,6 +47,38 @@ licence files are in `assets/kenney/`). Only the files the demos use are in the 
   up to a bonus coin, and a small flag is a checkpoint. The player has the lives the
   autoload `Game` gives it; the HUD shows them with the time of the run and the best
   time, which is kept in a saved game.
+
+## Ball demo
+
+`scenes/ball_roll.tscn` ("Ball Roll" in the main menu) is a course of floors without
+railings that hangs in the sky, some 175 m from the start pad to the goal: bridges, a
+square with posts, slopes down and up, an S of narrow floors, a trough between two banks
+and a drop onto the last floor. A ball with the Platformer Kit's character inside is
+rolled over it; 38 coins lie on the way, two small flags are checkpoints, and the goal is
+a gate between two flags. Falling off costs a life. The scene is written by
+`tools/make_ball_roll.gd` from a list of floors, each a strip from one point to another;
+it can be edited in Godot, but running the tool again overwrites it.
+
+- The ball is a `RigidBody3D` with a sphere shape and a physics material without
+  friction; the floors are `StaticBody3D` nodes with one box shape each, flat, sloped or
+  banked. Falling, running down a slope, glancing off a post and dropping off an edge are
+  the runtime's rigid body at work. Its component (`BallRoller`,
+  `runtime/game/ball_roll.c`) only adds the push of the stick, as if the floor were leaned
+  that way, and caps the speed.
+- The camera stays behind the ball and swings round to where the ball is going, the faster
+  the ball the quicker; a ball that rolls straight back at it does not turn it, so pulling
+  back brakes. It leans with the stick, which is what makes the floor look tilted.
+- The runtime's bodies do not turn, so the component turns the ball's shell itself, by
+  the way the ball went over the ground. The shell is a translucent, unlit sphere in two
+  colours. The rider inside faces the way the ball rolls and plays its walk clip faster
+  the faster the ball is (`rr_anim_set_speed_scale`).
+- The floors share one material: a tile texture that repeats every two metres, tinted by
+  vertex colours, lit by the light bake.
+
+It takes some braking: at full speed the ball needs about 7 m to stop. The run in
+`make test` finishes in 30 seconds without hurrying. In Flycast the scene runs at 60 fps
+where it was looked at (the start, the first bridge and slope, the first checkpoint); the
+draw time there was about 2 ms.
 
 ## Racing demo
 
