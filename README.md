@@ -28,8 +28,7 @@ message that names the node.
 
 The milestones M1 (vertical slice) and M2 (a menu and a drive) are met. Since then the
 work went into covering more of Godot's nodes: 2D and 3D scenes, UI controls, physics
-bodies, animation with blending and skinning, audio buses, tile maps, translations. The
-racer of milestone M3 has not been started; the repository holds small demos instead (two
+bodies, animation with blending and skinning, audio buses, tile maps, translations. The repository holds small demos instead (two
 platformers, a race, an island).
 
 ## Quick start
@@ -38,6 +37,7 @@ On the PC, from an MSYS2 MINGW64 shell in the repository root, with Godot 4.7.2 
 `godot/`:
 
 ```
+make raylib     # once: download raylib into third_party/
 make            # build the runtime and the tools
 make packages   # export the game scenes with Godot (headless)
 make run        # start the game

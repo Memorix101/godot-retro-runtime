@@ -7,8 +7,9 @@ the command line, package it, and look into a package.
 
 - **Godot 4.7.2-stable**, unmodified. The Makefile expects the console executable at
   `godot/Godot_v4.7.2-stable_win64_console.exe`; override with `make GODOT=...`.
-- PC: MSYS2 MINGW64 with gcc, make and raylib 5.5
-  (`pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-raylib make diffutils`).
+- PC: MSYS2 MINGW64 with gcc and make (`pacman -S mingw-w64-x86_64-gcc make diffutils`),
+  and raylib 6.0 as its own release for MinGW-w64 (`raylib-6.0_win64_mingw-w64.zip`),
+  which `make raylib` downloads into `third_party/`.
 - Dreamcast: KallistiOS (the PVR backend was built against the master branch of July 2026),
   plus `mkdcdisc` for disc images. The GLdc port (`libGL`) is only needed for `GFX=gldc`.
 
@@ -17,6 +18,7 @@ the command line, package it, and look into a package.
 PC, from an MSYS2 MINGW64 shell in the repository root:
 
 ```
+make raylib     # once: download raylib into third_party/
 make            # build/pc/retro.exe and build/tools/rpkdump.exe
 make packages   # import assets, export the game scenes into build/pkg/<platform>/
 make run        # start the game (main menu)
@@ -24,8 +26,11 @@ make test       # exporter, loader and game flow tests
 make dist       # zip of the PC game in build/dist/
 ```
 
-`make` also copies the MinGW DLLs the executable needs (`libraylib.dll`, `glfw3.dll`) next
-to it, so `build/pc/retro.exe` starts outside the MSYS2 shell too.
+raylib is linked statically, so `build/pc/retro.exe` is one file that needs no DLLs beside
+it and starts outside the MSYS2 shell too. The raylib package of MSYS2 cannot be used for
+that: its static library is built against `glfw3.dll`. raylib's own release has GLFW built
+in. `make raylib` checks the download against a checksum; `make RAYLIB=<folder>` uses a
+raylib release that is somewhere else.
 
 ## Running from the editor
 
@@ -71,7 +76,7 @@ godot --headless --path . --script res://addons/retro_runtime/run_cli.gd -- \
 scene directly inside `scenes/` for the PC and writes `build/dist/<project name>-pc.zip`:
 
 ```
-<project name>/retro.exe, *.dll
+<project name>/retro.exe
 <project name>/data/<scene>.rpk
 <project name>/data/boot.txt       name of the first scene (the project's main scene)
 ```

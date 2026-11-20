@@ -1,11 +1,12 @@
-# PC build, packages and tests. Run from an MSYS2 MINGW64 shell (gcc, make, raylib):
+# PC build, packages and tests. Run from an MSYS2 MINGW64 shell (gcc, make):
 #
-#   pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-raylib make diffutils
+#   pacman -S mingw-w64-x86_64-gcc make diffutils
 #
+#   make raylib     download raylib into third_party/ (once)
 #   make            build the runtime and the tools
 #   make packages   import the assets and export the game scenes with Godot (headless)
 #   make run        start the game in the PC runtime
-#   make dist       zip the PC game (runtime, DLLs, packages) into build/dist/
+#   make dist       zip the PC game (runtime, packages) into build/dist/
 #   make test       run the exporter, loader and game flow tests
 #
 # The Dreamcast build lives in runtime/platform/dreamcast/Makefile.
@@ -16,7 +17,16 @@ CC := gcc
 endif
 CFLAGS  ?= -O2 -g
 CFLAGS  += -std=c11 -Wall -Wextra -Wdouble-promotion
-RAYLIB_LIBS ?= -lraylib -lopengl32 -lgdi32 -lwinmm
+
+# raylib is linked statically, so the runtime is one executable without DLLs. That needs
+# raylib's own release for MinGW-w64, which has GLFW built in; the MSYS2 package is built
+# against glfw3.dll. `make raylib` fetches it; RAYLIB=<folder> takes one from elsewhere.
+RAYLIB_NAME := raylib-6.0_win64_mingw-w64
+RAYLIB_URL  := https://github.com/raysan5/raylib/releases/download/6.0/$(RAYLIB_NAME).zip
+RAYLIB_SHA  := e0e22b3d3be5ca9d302fa4af524a69cd038fd7ddbf37c41b2f9af0ec8fe0c2e6
+RAYLIB      ?= third_party/$(RAYLIB_NAME)
+RAYLIB_LIB  := $(RAYLIB)/lib/libraylib.a
+RAYLIB_LIBS ?= -static $(RAYLIB_LIB) -lopengl32 -lgdi32 -lwinmm
 
 BUILD := build
 EXE   := .exe
@@ -42,25 +52,25 @@ ASSETS := $(wildcard assets/*/*.png assets/*/*.wav assets/*/*.import \
                     assets/kenney/*/*.obj assets/kenney/*/*.mtl assets/kenney/*/*/*.png)
 EXPORT_DEPS := $(ADDON) $(wildcard components/*.gd components/tests/*.gd) project.godot $(BUILD)/.imported
 
-.PHONY: all packages dist test run clean
+.PHONY: all raylib packages dist test run clean
 
 all: $(RUNTIME) $(RPKDUMP)
 
-$(RUNTIME): $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(HEADERS)
+$(RUNTIME): $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(HEADERS) $(RAYLIB_LIB)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -o $@ $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(RAYLIB_LIBS)
-	@# Copy the MinGW DLLs the executable needs next to it (and theirs in turn), so it
-	@# also starts outside the MSYS2 shell: by double click or from the packaged zip.
-	@bin="$$(dirname "$$(command -v $(CC))")"; todo="$@"; seen=""; \
-	while [ -n "$$todo" ]; do \
-	    set -- $$todo; file="$$1"; shift; todo="$$*"; \
-	    for dll in $$(objdump -p "$$file" | sed -n 's/.*DLL Name: //p'); do \
-	        case " $$seen " in *" $$dll "*) continue;; esac; \
-	        if [ -f "$$bin/$$dll" ]; then \
-	            seen="$$seen $$dll"; cp "$$bin/$$dll" "$(dir $@)"; todo="$$todo $$bin/$$dll"; \
-	        fi; \
-	    done; \
-	done; echo "DLLs next to the executable:$$seen"
+	$(CC) $(CFLAGS) -I$(RAYLIB)/include -o $@ $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(RAYLIB_LIBS)
+
+$(RAYLIB_LIB):
+	@echo "raylib is missing: $@ does not exist. Run 'make raylib' to download it," \
+	      "or pass RAYLIB=<folder of a raylib release for MinGW-w64>."; exit 1
+
+# The checksum is of lib/libraylib.a, so that a changed download is not linked unnoticed.
+raylib:
+	@mkdir -p third_party
+	curl -L --fail -o third_party/$(RAYLIB_NAME).zip $(RAYLIB_URL)
+	bsdtar -xf third_party/$(RAYLIB_NAME).zip -C third_party
+	@rm -f third_party/$(RAYLIB_NAME).zip; touch $(RAYLIB_LIB)
+	echo "$(RAYLIB_SHA) *third_party/$(RAYLIB_NAME)/lib/libraylib.a" | sha256sum -c -
 
 $(RPKDUMP): tools/rpkdump.c runtime/core/rr_package.c runtime/core/rr_dump.c \
             runtime/platform/rr_file_stdio.c $(HEADERS)

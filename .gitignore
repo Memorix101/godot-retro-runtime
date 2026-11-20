@@ -4,6 +4,9 @@
 # The Godot editor executables (download them, see docs/building.md)
 /godot
 
+# Downloaded libraries: raylib (make raylib)
+/third_party
+
 # Godot's cache and what the importer generates
 /.godot
 *.translation

@@ -1,14 +1,14 @@
 extends RefCounted
-## Builds a zip of the PC game that runs after unpacking: the runtime executable with
-## its DLLs, and the packages of all game scenes.
+## Builds a zip of the PC game that runs after unpacking: the runtime executable and the
+## packages of all game scenes.
 ##
 ##   <name>/retro.exe
-##   <name>/*.dll
 ##   <name>/data/<scene>.rpk
 ##   <name>/data/boot.txt        name of the first scene
 ##
-## The runtime itself is not built here. Build it first (`make`), which also puts the
-## DLLs next to the executable.
+## The runtime itself is not built here. Build it first (`make`). It is linked statically
+## and needs no DLLs; if a build of another kind has put DLLs next to the executable,
+## they are packed too.
 
 const Platforms := preload("platforms.gd")
 
