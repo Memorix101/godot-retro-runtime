@@ -69,11 +69,11 @@ build=["C:/msys64/usr/bin/env.exe", "PATH=/mingw64/bin:/usr/bin", "mingw32-make"
 build=["make", "-C", "{project}"]
 
 [dreamcast.windows]
-build=["wsl", "--cd", "{project}", "--", "bash", "-c", "source /opt/toolchains/dc/kos/environ.sh && make -C runtime/platform/dreamcast cdi BOOT={scene}"]
+build=["wsl", "--cd", "{project}", "--", "bash", "-c", "source /opt/toolchains/dc/kos/environ.sh && make -j8 -C runtime/platform/dreamcast cdi PADDING=0 BOOT={scene}"]
 run=["C:/emulators/flycast.exe", "{project}/build/dc/retro.cdi"]
 
 [dreamcast.linux]
-build=["bash", "-c", "source /opt/toolchains/dc/kos/environ.sh && make -C {project}/runtime/platform/dreamcast cdi BOOT={scene}"]
+build=["bash", "-c", "source /opt/toolchains/dc/kos/environ.sh && make -j8 -C {project}/runtime/platform/dreamcast cdi PADDING=0 BOOT={scene}"]
 run=["/home/me/flycast-x86_64-2.7.appimage", "{project}/build/dc/retro.cdi"]
 ```
 
@@ -116,6 +116,8 @@ Dreamcast, inside the KallistiOS environment (after `make packages` on the PC si
 source /opt/toolchains/dc/kos/environ.sh
 make -C runtime/platform/dreamcast cdi    # build/dc/retro.cdi, packages on the disc
 make -C runtime/platform/dreamcast cdi BOOT=island   # the disc starts in that scene (data/boot.txt)
+make -C runtime/platform/dreamcast cdi PADDING=0     # a 13 MB image for emulators instead of a whole
+                                         # disc of 740 MB; the play buttons should use this
 make -C runtime/platform/dreamcast FPS=1  # also print the real frame rate and the time per frame in
                                          # game logic, drawing and present to the serial output
 make -C runtime/platform/dreamcast ROMDISK=1 BUILD=../../../build/dc-test   # bare ELF for tests

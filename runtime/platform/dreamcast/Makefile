@@ -4,6 +4,7 @@
 #   make -C runtime/platform/dreamcast          builds build/dc/retro.elf
 #   make -C runtime/platform/dreamcast cdi      builds build/dc/retro.cdi (needs mkdcdisc)
 #   make -C runtime/platform/dreamcast cdi BOOT=island      the disc starts in that scene
+#   make -C runtime/platform/dreamcast cdi PADDING=0        a small image for emulators, written in a second
 #
 # The scene packages go onto the disc as /cd/data/<scene>.rpk and are read from there, so
 # only the scene that is shown takes up memory. Export them first on the PC side (make
@@ -18,6 +19,16 @@ BUILD    := $(ROOT)/build/dc
 PACKAGES ?= $(ROOT)/build/pkg/dreamcast
 TARGET   := $(BUILD)/retro.elf
 MKDCDISC ?= mkdcdisc
+
+# A disc image is padded to the size of a whole disc (740 MB), which a burned disc needs
+# and which takes a minute to write onto a Windows drive from WSL. PADDING=0 leaves the
+# padding out: 13 MB, for emulators.
+PADDING ?= 1
+ifeq ($(PADDING),0)
+CDI_FLAGS := --disable-data-track-padding
+else
+CDI_FLAGS :=
+endif
 
 # The graphics backend: pvr (dc_pvr.c, straight on the PowerVR) or gldc (dc_gldc.c, the
 # older one on the GLdc port, kept for comparison).
@@ -107,7 +118,7 @@ cdi: $(TARGET) $(RPKS)
 	cp $(RPKS) $(BUILD)/data/
 	@# BOOT=island starts the disc in that scene instead of the one compiled in.
 	@test -z "$(BOOT)" || echo "$(BOOT)" > $(BUILD)/data/boot.txt
-	$(MKDCDISC) -e $(TARGET) -d $(BUILD)/data -o $(BUILD)/retro.cdi -n "Retro Runtime" --allow-overwrite
+	$(MKDCDISC) -e $(TARGET) -d $(BUILD)/data -o $(BUILD)/retro.cdi -n "Retro Runtime" --allow-overwrite $(CDI_FLAGS)
 
 clean:
 	rm -rf $(BUILD)
