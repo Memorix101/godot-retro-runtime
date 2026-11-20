@@ -1,6 +1,8 @@
-# PC build, packages and tests. Run from an MSYS2 MINGW64 shell (gcc, make):
+# PC build, packages and tests, on Windows or Linux.
 #
-#   pacman -S mingw-w64-x86_64-gcc make diffutils
+#   Windows: from an MSYS2 MINGW64 shell (pacman -S mingw-w64-x86_64-gcc make diffutils)
+#   Linux:   gcc, make, curl and the X11/OpenGL headers
+#            (Debian/Ubuntu: apt install build-essential curl libgl-dev libx11-dev)
 #
 #   make raylib     download raylib into third_party/ (once)
 #   make            build the runtime and the tools
@@ -11,25 +13,39 @@
 #
 # The Dreamcast build lives in runtime/platform/dreamcast/Makefile.
 
-GODOT   ?= ./godot/Godot_v4.7.2-stable_win64_console.exe
 ifeq ($(origin CC),default)
 CC := gcc
 endif
 CFLAGS  ?= -O2 -g
 CFLAGS  += -std=c11 -Wall -Wextra -Wdouble-promotion
 
-# raylib is linked statically, so the runtime is one executable without DLLs. That needs
-# raylib's own release for MinGW-w64, which has GLFW built in; the MSYS2 package is built
-# against glfw3.dll. `make raylib` fetches it; RAYLIB=<folder> takes one from elsewhere.
+# raylib is linked statically, so the runtime is one executable without DLLs or shared
+# raylib. That needs raylib's own release, which has GLFW built in (the MSYS2 package is
+# built against glfw3.dll). `make raylib` fetches it; RAYLIB=<folder> takes one from
+# elsewhere. On Linux only the system's libGL and libX11 stay dynamic.
+ifeq ($(OS),Windows_NT)
+GODOT       ?= ./godot/Godot_v4.7.2-stable_win64_console.exe
+EXE         := .exe
 RAYLIB_NAME := raylib-6.0_win64_mingw-w64
-RAYLIB_URL  := https://github.com/raysan5/raylib/releases/download/6.0/$(RAYLIB_NAME).zip
+RAYLIB_ARC  := zip
 RAYLIB_SHA  := e0e22b3d3be5ca9d302fa4af524a69cd038fd7ddbf37c41b2f9af0ec8fe0c2e6
+RAYLIB_SYS  := -static -lopengl32 -lgdi32 -lwinmm
+UNPACK      := bsdtar -xf
+else
+GODOT       ?= ./godot/Godot_v4.7.2-stable_linux.x86_64
+EXE         :=
+RAYLIB_NAME := raylib-6.0_linux_amd64
+RAYLIB_ARC  := tar.gz
+RAYLIB_SHA  := 1199fb5be52a663c099ed42eae5eabba83754ca9a8d7f82e1514ae4d6623874b
+RAYLIB_SYS  := -lGL -lX11 -lm -lpthread -ldl -lrt
+UNPACK      := tar -xzf
+endif
+RAYLIB_URL  := https://github.com/raysan5/raylib/releases/download/6.0/$(RAYLIB_NAME).$(RAYLIB_ARC)
 RAYLIB      ?= third_party/$(RAYLIB_NAME)
 RAYLIB_LIB  := $(RAYLIB)/lib/libraylib.a
-RAYLIB_LIBS ?= -static $(RAYLIB_LIB) -lopengl32 -lgdi32 -lwinmm
+RAYLIB_LIBS ?= $(RAYLIB_LIB) $(RAYLIB_SYS)
 
 BUILD := build
-EXE   := .exe
 
 # The scenes of the game. The first scene the runtime loads is main_menu.
 SCENES := scenes/main_menu.tscn scenes/test_track.tscn scenes/sprites_2d.tscn \
@@ -62,14 +78,14 @@ $(RUNTIME): $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(HEADERS) $(RAYLIB_LIB)
 
 $(RAYLIB_LIB):
 	@echo "raylib is missing: $@ does not exist. Run 'make raylib' to download it," \
-	      "or pass RAYLIB=<folder of a raylib release for MinGW-w64>."; exit 1
+	      "or pass RAYLIB=<folder of a raylib 6.0 release for this system>."; exit 1
 
 # The checksum is of lib/libraylib.a, so that a changed download is not linked unnoticed.
 raylib:
 	@mkdir -p third_party
-	curl -L --fail -o third_party/$(RAYLIB_NAME).zip $(RAYLIB_URL)
-	bsdtar -xf third_party/$(RAYLIB_NAME).zip -C third_party
-	@rm -f third_party/$(RAYLIB_NAME).zip; touch $(RAYLIB_LIB)
+	curl -L --fail -o third_party/$(RAYLIB_NAME).$(RAYLIB_ARC) $(RAYLIB_URL)
+	$(UNPACK) third_party/$(RAYLIB_NAME).$(RAYLIB_ARC) -C third_party
+	@rm -f third_party/$(RAYLIB_NAME).$(RAYLIB_ARC); touch $(RAYLIB_LIB)
 	echo "$(RAYLIB_SHA) *third_party/$(RAYLIB_NAME)/lib/libraylib.a" | sha256sum -c -
 
 $(RPKDUMP): tools/rpkdump.c runtime/core/rr_package.c runtime/core/rr_dump.c \

@@ -2,7 +2,7 @@ extends RefCounted
 ## Builds a zip of the PC game that runs after unpacking: the runtime executable and the
 ## packages of all game scenes.
 ##
-##   <name>/retro.exe
+##   <name>/retro(.exe)           the runtime of the system this runs on
 ##   <name>/data/<scene>.rpk
 ##   <name>/data/boot.txt        name of the first scene
 ##
@@ -13,9 +13,13 @@ extends RefCounted
 const Platforms := preload("platforms.gd")
 
 const RUNTIME_DIR := "res://build/pc"
-const RUNTIME_EXE := "retro.exe"
 const PACKAGE_DIR := "res://build/pkg/pc"
 const OUTPUT_DIR := "res://build/dist"
+
+## The file name of the PC runtime as `make` builds it on this system. A function, not a
+## static var: the editor does not run static initializers of scripts that are no @tool.
+static func runtime_exe() -> String:
+	return "retro.exe" if OS.has_feature("windows") else "retro"
 
 
 ## Exports every scene directly inside res://scenes for the PC and writes the zip.
@@ -26,9 +30,9 @@ static func package_pc(host: Node) -> Dictionary:
 	var errors := PackedStringArray()
 	var result := {"errors": errors, "path": "", "files": PackedStringArray()}
 
-	if not FileAccess.file_exists(RUNTIME_DIR.path_join(RUNTIME_EXE)):
+	if not FileAccess.file_exists(RUNTIME_DIR.path_join(runtime_exe())):
 		errors.append("the PC runtime is not built: %s is missing. Run `make` in the project folder first."
-				% RUNTIME_DIR.path_join(RUNTIME_EXE))
+				% RUNTIME_DIR.path_join(runtime_exe()))
 		return result
 
 	var scenes := Platforms.game_scenes()
@@ -63,7 +67,7 @@ static func package_pc(host: Node) -> Dictionary:
 
 	var files: PackedStringArray = result.files
 	for file in DirAccess.get_files_at(RUNTIME_DIR):
-		if file.get_extension().to_lower() in ["exe", "dll"]:
+		if file == runtime_exe() or file.get_extension().to_lower() in ["dll", "so"]:
 			_add(zip, game_name.path_join(file), FileAccess.get_file_as_bytes(RUNTIME_DIR.path_join(file)), files)
 	var data_files: PackedStringArray = []
 	for scene in scenes:
@@ -82,6 +86,8 @@ static func package_pc(host: Node) -> Dictionary:
 	_add(zip, game_name.path_join("data/boot.txt"),
 			(main_scene.get_file().get_basename() + "\n").to_utf8_buffer(), files)
 	zip.close()
+	if errors.is_empty() and not OS.has_feature("windows"):
+		_mark_executable(zip_path, game_name.path_join(runtime_exe()), errors)
 
 	if not errors.is_empty():
 		# A zip with a file missing is worse than none.
@@ -108,3 +114,31 @@ static func _add(zip: ZIPPacker, path: String, data: PackedByteArray, files: Pac
 	zip.write_file(data)
 	zip.close_file()
 	files.append(path)
+
+
+## ZIPPacker writes no file modes, so unzip on Linux would unpack the runtime without its
+## executable bit. This marks the entry `entry` in the central directory of the closed zip
+## as made on Unix with mode 0755.
+static func _mark_executable(zip_path: String, entry: String, errors: PackedStringArray) -> void:
+	var bytes := FileAccess.get_file_as_bytes(zip_path)
+	var name := entry.to_utf8_buffer()
+	var found := false
+	var i := 0
+	while i + 46 <= bytes.size():
+		# Central directory file header: signature PK\1\2.
+		if bytes.decode_u32(i) != 0x02014b50:
+			i += 1
+			continue
+		var name_length := bytes.decode_u16(i + 28)
+		var record_length := 46 + name_length + bytes.decode_u16(i + 30) + bytes.decode_u16(i + 32)
+		if bytes.slice(i + 46, i + 46 + name_length) == name:
+			bytes[i + 5] = 3  # version made by: Unix
+			bytes.encode_u32(i + 38, 0x81ED << 16)  # external attributes: regular file, mode 0100755
+			found = true
+		i += record_length
+	var file := FileAccess.open(zip_path, FileAccess.WRITE) if found else null
+	if file == null:
+		errors.append("cannot mark '%s' in '%s' as executable" % [entry, zip_path])
+		return
+	file.store_buffer(bytes)
+	file.close()

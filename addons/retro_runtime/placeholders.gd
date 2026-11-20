@@ -8,7 +8,7 @@ extends RefCounted
 ## class for into res://components. A script that exists is never touched: default
 ## values, doc comments and narrower types are added there by hand.
 
-const RUNTIME := "res://build/pc/retro.exe"
+const Packager := preload("packager.gd")
 const OUTPUT_DIR := "res://components"
 const MARKER := "#--- "
 
@@ -19,9 +19,10 @@ const MARKER := "#--- "
 static func generate(check_only := false) -> Dictionary:
 	var errors := PackedStringArray()
 	var result := {"errors": errors, "written": PackedStringArray(), "known": 0}
-	var runtime := ProjectSettings.globalize_path(RUNTIME)
-	if not FileAccess.file_exists(RUNTIME):
-		errors.append("the PC runtime is not built: %s is missing. Run `make` in the project folder first." % RUNTIME)
+	var runtime_path := "res://build/pc".path_join(Packager.runtime_exe())
+	var runtime := ProjectSettings.globalize_path(runtime_path)
+	if not FileAccess.file_exists(runtime_path):
+		errors.append("the PC runtime is not built: %s is missing. Run `make` in the project folder first." % runtime_path)
 		return result
 	var output := []
 	var code := OS.execute(runtime, ["--placeholders"], output, true)

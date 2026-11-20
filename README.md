@@ -23,7 +23,7 @@ message that names the node.
 
 | Target    | Graphics           | State                                                    |
 |-----------|--------------------|----------------------------------------------------------|
-| PC        | raylib             | builds, runs, covered by `make test`                     |
+| PC        | raylib             | Windows and Linux: builds, runs, covered by `make test`  |
 | Dreamcast | PVR through KallistiOS | builds and runs in Flycast at 60 fps in the demos that were measured; two demos were looked at on a real console; sound has not been listened to |
 
 The milestones M1 (vertical slice) and M2 (a menu and a drive) are met. Since then the
@@ -33,8 +33,8 @@ platformers, a race, an island).
 
 ## Quick start
 
-On the PC, from an MSYS2 MINGW64 shell in the repository root, with Godot 4.7.2 in
-`godot/`:
+On the PC, from an MSYS2 MINGW64 shell (Windows) or a normal shell (Linux) in the
+repository root, with Godot 4.7.2 in `godot/`:
 
 ```
 make raylib     # once: download raylib into third_party/

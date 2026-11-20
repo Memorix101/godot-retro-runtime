@@ -7,25 +7,38 @@ extends RefCounted
 ## platform's build command if it has one, start its run command.
 ##
 ## The commands are in res://retro_local.cfg, a file of the machine it is on (compilers
-## and emulators are somewhere else on every machine). One section per platform:
+## and emulators are somewhere else on every machine). One section per platform, and
+## optionally per operating system: a key in [<platform>.<os>] (os: windows, linux,
+## macos) is taken before the same key in [<platform>], so one file can serve a machine
+## that boots both systems:
 ##
-##   [pc]
+##   [pc.windows]
 ##   build=["C:/msys64/usr/bin/env.exe", "PATH=/mingw64/bin:/usr/bin", "mingw32-make", "-C", "{project}"]
 ##
-##   [dreamcast]
+##   [pc.linux]
+##   build=["make", "-C", "{project}"]
+##
+##   [dreamcast.windows]
 ##   build=["wsl", "--cd", "{project}", "--", "bash", "-c", "... make -C runtime/platform/dreamcast cdi BOOT={scene}"]
 ##   run=["C:/emulators/flycast.exe", "{project}/build/dc/retro.cdi"]
 ##
-## A command is a program followed by its arguments; no shell reads it. `{project}` stands
+##   [dreamcast.linux]
+##   build=["bash", "-c", "source /opt/toolchains/dc/kos/environ.sh && make -C {project}/runtime/platform/dreamcast cdi BOOT={scene}"]
+##   run=["/home/me/flycast-x86_64-2.7.appimage", "{project}/build/dc/retro.cdi"]
+##
+## A command is a program followed by its arguments. On Windows no shell reads it; on
+## Linux Godot runs a `build` through /bin/sh to read its output, so `$` in it is
+## expanded there before the program sees it. `{project}` stands
 ## for the project folder and `{scene}` for the name of the scene to start with. `build`
-## may be left out. Without a file the PC runs build/pc/retro.exe as it is; every other
+## may be left out. Without a file the PC runs build/pc/retro(.exe) as it is; every other
 ## platform needs a `run`.
 
 const Platforms := preload("platforms.gd")
+const Packager := preload("packager.gd")
 
 const CONFIG_PATH := "res://retro_local.cfg"
 const PACKAGE_DIR := "res://build/pkg"
-const PC_RUN: Array = ["{project}/build/pc/retro.exe", "{scene}", "--data", "{project}/build/pkg/pc"]
+const PC_RUN: Array = ["{project}/build/pc/{exe}", "{scene}", "--data", "{project}/build/pkg/pc"]
 
 ## How much of a failed build's output goes into the error message.
 const BUILD_OUTPUT_LINES := 40
@@ -74,6 +87,7 @@ static func run(host: Node, platform: String, scene_path: String = "") -> Packed
 	var values := {
 		"project": ProjectSettings.globalize_path("res://").trim_suffix("/"),
 		"scene": start.get_file().get_basename(),
+		"exe": Packager.runtime_exe(),
 	}
 	var build := _fill(commands.build, values)
 	if not build.is_empty():
@@ -114,22 +128,32 @@ static func _commands(platform: String, errors: PackedStringArray) -> Dictionary
 		if status != OK:
 			errors.append("cannot read %s (%s)" % [CONFIG_PATH, error_string(status)])
 			return commands
+	var os_section := "%s.%s" % [platform, _os_name()]
 	for key in commands:
-		var value: Variant = config.get_value(platform, key, commands[key])
+		var section := os_section if config.has_section_key(os_section, key) else platform
+		var value: Variant = config.get_value(section, key, commands[key])
 		var valid := value is Array
 		if valid:
 			for part in value:
 				valid = valid and part is String
 		if not valid:
 			errors.append("%s: [%s] %s must be a list of strings: the program and its arguments"
-					% [CONFIG_PATH, platform, key])
+					% [CONFIG_PATH, section, key])
 			return commands
 		commands[key] = value
 	if commands.run.is_empty():
 		errors.append(("there is no command that starts the game on '%s'. Add one to %s:\n\n"
 				+ "[%s]\nrun=[\"<program>\", \"<argument>\", ...]\n\n(see addons/retro_runtime/runner.gd)")
-				% [platform, CONFIG_PATH, platform])
+				% [platform, CONFIG_PATH, os_section])
 	return commands
+
+
+## The name of the operating system as the sections of retro_local.cfg use it.
+static func _os_name() -> String:
+	for os in ["windows", "linux", "macos"]:
+		if OS.has_feature(os):
+			return os
+	return OS.get_name().to_lower()
 
 
 static func _fill(command: Array, values: Dictionary) -> PackedStringArray:
