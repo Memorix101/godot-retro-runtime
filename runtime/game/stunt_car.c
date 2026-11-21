@@ -3,11 +3,11 @@
  *
  * A car after the raycast vehicle that Godot's own VehicleBody3D is (which came from the
  * Bullet physics library): a body on four springs whose tyres each push at the place
- * where they touch the road. The node is a RigidBody3D with small sphere shapes: the
- * runtime moves it, lets it fall and keeps it out of the rails and the road, which are
- * box shapes turned every way, flat, banked, and standing on their heads in the loop.
- * The runtime's bodies do not turn, so the turning is done here: the car has its own
- * directions and its own spin, and every push below changes both.
+ * where they touch the road. The runtime's bodies do not turn, so the body of the car is
+ * not one of them: it is a box in picophysics (see below), which moves it, lets it fall
+ * and turn, and keeps it out of the rails and the road. The node is a plain node that is
+ * stood where the body is. What the wheels and the air do to the car is worked out here
+ * and handed to the body as a change of its velocity and its spin.
  *
  * - Four RayCast3D nodes, one per wheel, point out of the car's underside. A wheel whose
  *   ray finds the road within the length of its spring pushes the car away from the road
@@ -82,7 +82,7 @@ typedef struct {
     float       spring;       /* exported: push of one spring per metre it is pressed in, m/s2 */
     float       damping;      /* exported: what one damper takes per m/s, 1/s */
     float       downforce;    /* exported: press of the air per (m/s) squared, 1/m */
-    float       gravity;      /* exported: what the runtime lets this body fall with, m/s2 */
+    float       gravity;      /* exported: what the car falls with, m/s2 */
     float       fall_limit;   /* exported: below this height the car is put back */
     Node       *model;        /* exported: shows more of an angle in a slide */
     Node       *wheel_fl;     /* exported: the four RayCast3D nodes, where the wheels are */
@@ -99,6 +99,7 @@ typedef struct {
     int   act_gas, act_brake, act_left, act_right, act_reset, act_cancel;
     float forward[3], up[3];       /* the way the nose points and what is up for the car, unit length */
     float spin[3];                 /* how the car turns: axis times radians per second */
+    void *body;                    /* the car'"'"'s body in picophysics (a PPBody) */
     float speed;                   /* along the nose, metres per second */
     float steering;                /* the stick, smoothed: -1 left .. 1 right */
     float slip;                    /* how far the tail slides out: the angle of the rear wheels to their way, radians */
@@ -106,11 +107,6 @@ typedef struct {
     float loose;                   /* how far the rear tyres have let go, 0..1 */
     int   on_road;                 /* wheels that carry the car */
     float stuck;                   /* seconds it has been lying still without a wheel on the road */
-    float sent[3];                 /* the velocity the body was given last frame */
-    bool  has_sent;
-    float bumped;                  /* seconds left of straightening up after a hit */
-    bool  touching;                /* the body itself lies against the road or a rail */
-    float leaning;                 /* seconds it has been pushed sideways without a break */
     float model_scale;
     float cam_forward[3], cam_up[3]; /* the directions of the camera, which follow more slowly */
     float cam_back, cam_height;    /* where the camera is, in those directions */
@@ -173,18 +169,6 @@ static void square(float *v, const float *axis)
     normalize(v);
 }
 
-/* Turns `v` by `angle` around `axis` (unit length). */
-static void turn_around(float *v, const float *axis, float angle)
-{
-    const float s = sinf(angle), c = cosf(angle), along = dot(axis, v) * (1.0f - c);
-    float       side[3];
-    int         k;
-    cross(axis, v, side);
-    for (k = 0; k < 3; k++) {
-        v[k] = v[k] * c + side[k] * s + axis[k] * along;
-    }
-}
-
 /* A push on the car at a place that is `arm` away from its middle: it changes the
  * velocity, and the spin around each of the car's own axes by how easy that axis turns.
  * `push` is a change of velocity for a car of mass 1. */
@@ -200,6 +184,262 @@ static void kick(StuntCar *c, float *v, const float *right, const float *arm, co
     for (k = 0; k < 3; k++) {
         v[k]       += push[k];
         c->spin[k] += right[k] * pitch + c->up[k] * yaw + c->forward[k] * roll;
+    }
+}
+
+/* --- the body of the car: picophysics --------------------------------------------------
+ * The runtime's bodies do not turn, so the car's body is one of picophysics', a small
+ * physics engine in one header (runtime/third_party/picophysics): a box that falls, turns,
+ * and is kept out of a world of triangles, with friction where it touches. The triangles
+ * are made here from the box shapes of the scene's static bodies in the group "track",
+ * the same boxes the wheels' rays of the runtime are cast at. picophysics looks at every
+ * triangle it has for every body, so it is only ever given the ones near the car.
+ *
+ * The header is compiled here, as its one implementation, with the warnings off that this
+ * project asks for and it does not heed. */
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
+#pragma GCC diagnostic ignored "-Wold-style-definition"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
+#ifndef M_PI
+#define M_PI 3.14159265358979323846 /* plain C11 has none */
+#endif
+#define PICOPHYSICS_MAX_OBJECTS   4
+#define PICOPHYSICS_MAX_TRIANGLES 256
+#define PICOPHYSICS_IMPLEMENTATION
+#include "../third_party/picophysics/picophysics.h"
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
+/* Every triangle of the track, with the box around it. */
+#define MAX_TRACK_TRIANGLES 3072
+/* Triangles within this many metres of the car are handed to picophysics, and they are
+ * picked again when the car has moved this far from where they were picked. */
+#define NEAR_REACH 6.5f
+#define NEAR_STALE 2.0f
+/* The box that is the car's body, metres. It sits around the node, well above the road. */
+#define BODY_WIDTH  1.5f
+#define BODY_HEIGHT 0.5f
+#define BODY_LENGTH 2.8f
+
+typedef struct {
+    float v[3][3];
+    float lo[3], hi[3];
+} TrackTriangle;
+
+static TrackTriangle g_track[MAX_TRACK_TRIANGLES];
+static int           g_track_count;
+static bool          g_track_full; /* the warning about that was printed */
+static float         g_near_at[3];
+static bool          g_near_valid;
+
+/* One side of a box as two triangles that face `out`. picophysics' triangles stop only
+ * what comes from the side their corners go round counter-clockwise. */
+static void track_side(const float *a, const float *b, const float *c, const float *d, const float *out)
+{
+    const float *quad[4] = { a, b, c, d };
+    float        e1[3], e2[3], n[3];
+    int          t, i, k;
+
+    for (k = 0; k < 3; k++) {
+        e1[k] = b[k] - a[k];
+        e2[k] = c[k] - a[k];
+    }
+    n[0] = e1[1] * e2[2] - e1[2] * e2[1];
+    n[1] = e1[2] * e2[0] - e1[0] * e2[2];
+    n[2] = e1[0] * e2[1] - e1[1] * e2[0];
+    if (n[0] * out[0] + n[1] * out[1] + n[2] * out[2] < 0.0f) {
+        quad[1] = d;
+        quad[3] = b;
+    }
+    for (t = 0; t < 2; t++) {
+        TrackTriangle *tri;
+        const float   *corner[3];
+        if (g_track_count >= MAX_TRACK_TRIANGLES) {
+            if (!g_track_full) {
+                printf("stunt: more than %d triangles of track, the rest is not solid for the car's body\n",
+                       MAX_TRACK_TRIANGLES);
+                g_track_full = true;
+            }
+            return;
+        }
+        tri       = &g_track[g_track_count++];
+        corner[0] = quad[0];
+        corner[1] = quad[1 + t];
+        corner[2] = quad[2 + t];
+        for (i = 0; i < 3; i++) {
+            for (k = 0; k < 3; k++) {
+                tri->v[i][k] = corner[i][k];
+                tri->lo[k]   = i == 0 || corner[i][k] < tri->lo[k] ? corner[i][k] : tri->lo[k];
+                tri->hi[k]   = i == 0 || corner[i][k] > tri->hi[k] ? corner[i][k] : tri->hi[k];
+            }
+        }
+    }
+}
+
+/* The sides of one box shape that the car's body can meet: the top of a piece of road,
+ * and of anything that stands on the road (a rail, a wall) the top and the four sides. */
+static void track_box(const Node *shape)
+{
+    const RRPkgShapeNode *data = (const RRPkgShapeNode *)shape->data;
+    const float          *m = shape->world.m;
+    const bool            floor = strncmp(shape->name, "Floor", 5) == 0;
+    float                 corner[8][3], out[3];
+    int                   i, k;
+
+    if (data->kind != RR_SHAPE_BOX || data->disabled) {
+        return;
+    }
+    /* Corner i: bit 0 is +X, bit 1 is +Y, bit 2 is +Z of the box. */
+    for (i = 0; i < 8; i++) {
+        for (k = 0; k < 3; k++) {
+            corner[i][k] = m[9 + k] + m[k] * ((i & 1) ? data->size[0] : -data->size[0]) +
+                           m[3 + k] * ((i & 2) ? data->size[1] : -data->size[1]) +
+                           m[6 + k] * ((i & 4) ? data->size[2] : -data->size[2]);
+        }
+    }
+    for (k = 0; k < 3; k++) {
+        out[k] = m[3 + k];
+    }
+    track_side(corner[2], corner[3], corner[7], corner[6], out); /* top */
+    if (floor) {
+        return;
+    }
+    for (k = 0; k < 3; k++) {
+        out[k] = m[k];
+    }
+    track_side(corner[1], corner[3], corner[7], corner[5], out); /* +X */
+    for (k = 0; k < 3; k++) {
+        out[k] = -m[k];
+    }
+    track_side(corner[0], corner[2], corner[6], corner[4], out); /* -X */
+    if (strncmp(shape->name, "Rail", 4) == 0) {
+        return; /* the ends of a rail come in from the side: nothing meets them */
+    }
+    for (k = 0; k < 3; k++) {
+        out[k] = m[6 + k];
+    }
+    track_side(corner[4], corner[5], corner[7], corner[6], out); /* +Z */
+    for (k = 0; k < 3; k++) {
+        out[k] = -m[6 + k];
+    }
+    track_side(corner[0], corner[1], corner[3], corner[2], out); /* -Z */
+}
+
+/* Makes the triangles of everything in the group "track". */
+static void track_collect(RRScene *scene)
+{
+    Node *body = NULL, *shape;
+
+    g_track_count = 0;
+    g_track_full  = false;
+    g_near_valid  = false;
+    while ((body = rr_scene_find_tagged(scene, "track", body)) != NULL) {
+        for (shape = rr_node_child(body, NULL); shape != NULL; shape = rr_node_child(body, shape)) {
+            if (shape->type == RR_NODE_SHAPE) {
+                track_box(shape);
+            }
+        }
+    }
+}
+
+/* Hands picophysics the triangles near `pos`, if the ones it has are from too far away. */
+static void track_near(const float *pos)
+{
+    int i, k;
+
+    if (g_near_valid) {
+        const float d[3] = { pos[0] - g_near_at[0], pos[1] - g_near_at[1], pos[2] - g_near_at[2] };
+        if (d[0] * d[0] + d[1] * d[1] + d[2] * d[2] < NEAR_STALE * NEAR_STALE) {
+            return;
+        }
+    }
+    tri_count = 0; /* picophysics has no call that drops its triangles and keeps its bodies */
+    for (i = 0; i < g_track_count && tri_count < PICOPHYSICS_MAX_TRIANGLES; i++) {
+        const TrackTriangle *t = &g_track[i];
+        PPVec3               v[3];
+        PPTriangle          *made;
+        bool                 far = false;
+        for (k = 0; k < 3; k++) {
+            far = far || t->lo[k] > pos[k] + NEAR_REACH || t->hi[k] < pos[k] - NEAR_REACH;
+        }
+        if (far) {
+            continue;
+        }
+        for (k = 0; k < 3; k++) {
+            pp_vec3_set(&v[k], t->v[k][0], t->v[k][1], t->v[k][2]);
+        }
+        made           = pp_physics_create_triangle(&v[0], &v[1], &v[2], 2);
+        made->friction = 0.08f;
+        made->bounce   = 0.0f;
+    }
+    for (k = 0; k < 3; k++) {
+        g_near_at[k] = pos[k];
+    }
+    g_near_valid = true;
+}
+
+/* Seconds since the body last met something that is not the road under it: a rail or a
+ * wall. picophysics tells of every contact; the ones that push along the car's up are the
+ * road (or the roof on it) and do not count. */
+static float g_hit_ago = 100.0f;
+static float g_body_up[3];
+
+static bool body_contact(const void *lhs, const void *rhs, BodyKind k0, BodyKind k1, const PPCollision *hit,
+                         const void *user)
+{
+    const float along = hit->n.xyz[0] * g_body_up[0] + hit->n.xyz[1] * g_body_up[1] + hit->n.xyz[2] * g_body_up[2];
+    (void)lhs;
+    (void)rhs;
+    (void)k0;
+    (void)k1;
+    (void)user;
+    if (along < 0.7f && along > -0.7f) {
+        g_hit_ago = 0.0f;
+    }
+    return true; /* and picophysics is to stop the body there */
+}
+
+/* The rotation that stands a body with its X along `right`, its Y along `up` and its Z
+ * against `forward`. */
+static void quat_of(const float *right, const float *up, const float *forward, PPQuaternion *q)
+{
+    const float m00 = right[0], m11 = up[1], m22 = -forward[2];
+    const float trace = m00 + m11 + m22;
+    /* Columns of the matrix are right, up, back: m[row][column]. */
+    const float m01 = up[0], m02 = -forward[0], m10 = right[1], m12 = -forward[1], m20 = right[2], m21 = up[2];
+
+    if (trace > 0.0f) {
+        const float s = sqrtf(trace + 1.0f) * 2.0f;
+        q->w = 0.25f * s;
+        q->x = (m21 - m12) / s;
+        q->y = (m02 - m20) / s;
+        q->z = (m10 - m01) / s;
+    } else if (m00 > m11 && m00 > m22) {
+        const float s = sqrtf(1.0f + m00 - m11 - m22) * 2.0f;
+        q->w = (m21 - m12) / s;
+        q->x = 0.25f * s;
+        q->y = (m01 + m10) / s;
+        q->z = (m02 + m20) / s;
+    } else if (m11 > m22) {
+        const float s = sqrtf(1.0f + m11 - m00 - m22) * 2.0f;
+        q->w = (m02 - m20) / s;
+        q->x = (m01 + m10) / s;
+        q->y = 0.25f * s;
+        q->z = (m12 + m21) / s;
+    } else {
+        const float s = sqrtf(1.0f + m22 - m00 - m11) * 2.0f;
+        q->w = (m10 - m01) / s;
+        q->x = (m02 + m20) / s;
+        q->y = (m12 + m21) / s;
+        q->z = 0.25f * s;
     }
 }
 
@@ -270,6 +510,30 @@ static void stunt_car_ready(Node *self, StuntCar *c)
     if (rr_save_read(SAVE_NAME, &save, sizeof(save)) && save.magic == SAVE_MAGIC) {
         c->best = save.best;
     }
+    {
+        /* The world of picophysics is one for the whole program: it is emptied and made
+         * again for this scene. The body is a box about as large as the car, of mass 1, so
+         * that a push on it is a change of its velocity. */
+        PPVec3  at, down;
+        PPBody *body;
+        float   right[3];
+
+        pp_physics_clear();
+        pp_physics_collision_map_add(1, 2, NULL, body_contact); /* the body is kind 1, the track kind 2 */
+        g_hit_ago = 100.0f;
+        track_collect(self->scene);
+        pp_vec3_set(&down, 0.0f, -c->gravity, 0.0f);
+        pp_physics_set_gravity(&down);
+        pp_vec3_set(&at, m[9], m[10], m[11]);
+        body = pp_physics_create_box(BODY_WIDTH, BODY_HEIGHT, BODY_LENGTH, &at, 1.0f, 1);
+        pp_body_set_bounce(body, 0.0f);
+        pp_body_set_friction(body, 0.08f);
+        pp_body_set_damping(body, 0.1f);
+        pp_body_set_angular_damping(body, 0.05f);
+        cross(c->forward, c->up, right);
+        quat_of(right, c->up, c->forward, &body->rot);
+        c->body = body;
+    }
     show_time(c);
     show_info(c);
 }
@@ -326,30 +590,59 @@ static void place_camera(StuntCar *c, const float *pos, const float *v, float dt
     }
 }
 
-/* Puts the car back at the last checkpoint, standing still. The clock runs on. */
-static void put_back(StuntCar *c, float *pos, float *v)
+/* Takes from the body where the car is, how it stands, how it moves and how it turns, and
+ * stands the node the same way: X to its right, Y up, -Z forward. */
+static void body_read(StuntCar *c, Node *self, float *v, float *right)
 {
-    int k;
+    PPBody *body = (PPBody *)c->body;
+    PPVec3  x, y, z;
+    int     k;
+
+    pp_body_get_right(body, &x);
+    pp_body_get_up(body, &y);
+    pp_body_get_forward(body, &z); /* what picophysics calls forward is the body's +Z, the car's back */
     for (k = 0; k < 3; k++) {
-        pos[k]        = c->home[k];
-        c->forward[k] = c->cam_forward[k] = c->home_forward[k];
-        c->up[k] = c->cam_up[k] = c->home_up[k];
-        v[k] = c->spin[k] = 0.0f;
+        right[k]             = x.xyz[k];
+        c->up[k]             = y.xyz[k];
+        c->forward[k]        = -z.xyz[k];
+        v[k]                 = body->vel.xyz[k];
+        c->spin[k]           = body->a_vel.xyz[k];
+        self->local.m[k]     = x.xyz[k];
+        self->local.m[3 + k] = y.xyz[k];
+        self->local.m[6 + k] = z.xyz[k];
+        self->local.m[9 + k] = body->pos.xyz[k];
+    }
+}
+
+/* Puts the car back at the last checkpoint, standing still. The clock runs on. */
+static void put_back(StuntCar *c)
+{
+    PPBody *body = (PPBody *)c->body;
+    float   right[3];
+    int     k;
+
+    cross(c->home_forward, c->home_up, right);
+    quat_of(right, c->home_up, c->home_forward, &body->rot);
+    pp_vec3_set(&body->pos, c->home[0], c->home[1], c->home[2]);
+    pp_vec3_init(&body->vel);
+    pp_vec3_init(&body->a_vel);
+    for (k = 0; k < 3; k++) {
+        c->cam_forward[k] = c->home_forward[k];
+        c->cam_up[k]      = c->home_up[k];
     }
     c->speed = c->slip = c->steering = c->stuck = c->loose = 0.0f;
-    c->bumped   = 0.0f;
-    c->touching = false;
-    c->has_sent = false;
-    c->drifting = false;
+    c->drifting  = false;
+    g_near_valid = false;
 }
 
 static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
 {
     /* A long frame must not blow up the springs. */
     const float dt = frame_dt < 1.0f / 30.0f ? frame_dt : 1.0f / 30.0f;
+    PPBody     *body = (PPBody *)c->body;
     Node       *wheels[WHEELS];
     float      *pos = &self->local.m[9];
-    float       v[3], right[3], gas, braking, steer_to, blend, angle;
+    float       v[3], right[3], gas, braking, steer_to, blend;
     /* The wheels that carry the car: where each touches the road, seen from the world and
      * from the middle of the car, what is up for the road there, and its load. */
     float       point[WHEELS][3], arm[WHEELS][3], normal[WHEELS][3], load[WHEELS];
@@ -360,10 +653,13 @@ static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
         rr_change_scene(c->menu_scene);
         return;
     }
-    rr_rigid_body_get_linear_velocity(self, v);
-    if (pos[1] < c->fall_limit || c->stuck > 1.3f || (rr_action_pressed(c->act_reset) && c->done <= 0.0f)) {
-        put_back(c, pos, v);
+    if (body == NULL) {
+        return;
     }
+    if (pos[1] < c->fall_limit || c->stuck > 1.3f || (rr_action_pressed(c->act_reset) && c->done <= 0.0f)) {
+        put_back(c);
+    }
+    body_read(c, self, v, right);
 
     gas      = rr_action_strength(c->act_gas);
     braking  = rr_action_strength(c->act_brake);
@@ -390,61 +686,6 @@ static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
     c->steering += (steer_to - c->steering) * blend;
 
     cross(c->forward, c->up, right);
-
-    /* What the body lost since the velocity it was given, other than towards or away from
-     * the road, it lost against a rail or a wall. The runtime took the speed into the wall
-     * away and nothing else; the rest of what a hit does is done here. The scraping rubs
-     * off speed along the wall, the harder the hit the more. And the wall meets the car at
-     * its nose (at its tail when it goes backwards), not at its middle, so its push also
-     * turns the car: away from the wall, which is what lines it up with a rail it runs
-     * along. Nothing throws the car back. */
-    if (c->has_sent) {
-        float hit[3], strength, away;
-        for (k = 0; k < 3; k++) {
-            hit[k] = v[k] - c->sent[k];
-            if (k == 1) {
-                hit[k] += c->gravity * (frame_dt < 0.05f ? frame_dt : 0.05f); /* falling is no hit */
-            }
-        }
-        /* Any push at all means that the body itself lies against something. */
-        c->touching = dot(hit, hit) > 0.01f;
-        away = dot(hit, c->up);
-        for (k = 0; k < 3; k++) {
-            hit[k] -= c->up[k] * away;
-        }
-        strength = sqrtf(dot(hit, hit));
-        /* A push this small is the body touching the road, or the car leaning on a rail.
-         * Only leaning goes on for a while, and then the rail turns the car too. */
-        c->leaning = strength > 0.08f ? c->leaning + frame_dt : 0.0f;
-        if (strength > 0.6f || c->leaning > 0.25f) {
-            const float end = dot(c->sent, c->forward) >= 0.0f ? 0.55f : -0.55f;
-            float       way[3], arm[3], turn[3], moving, rub, yaw;
-            for (k = 0; k < 3; k++) {
-                way[k] = v[k] - c->up[k] * dot(v, c->up);
-                arm[k] = c->forward[k] * end;
-            }
-            moving = sqrtf(dot(way, way));
-
-            rub    = 0.35f * strength < moving ? 0.35f * strength : moving;
-            cross(arm, hit, turn);
-            yaw = dot(turn, c->up) / INERTIA_YAW;
-            yaw = yaw > 3.0f ? 3.0f : (yaw < -3.0f ? -3.0f : yaw);
-            for (k = 0; k < 3; k++) {
-                if (moving > 0.01f) {
-                    v[k] -= way[k] / moving * rub;
-                }
-                c->spin[k] += c->up[k] * yaw;
-            }
-            if (strength > 1.0f) {
-                c->bumped   = 0.4f;
-                c->drifting = false;
-                rr_input_vibrate(0.3f, strength < 15.0f ? strength / 15.0f : 1.0f, 0.15f);
-            }
-        }
-    }
-    if (c->bumped > 0.0f) {
-        c->bumped -= dt;
-    }
 
     /* The wheels, after the raycast vehicle that Godot's VehicleBody3D is too. Each wheel
      * is where its ray node is below the car, in the car's own directions: X to the right,
@@ -598,6 +839,14 @@ static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
             }
             kick(c, v, right, lever, push);
         }
+        if (g_hit_ago < 0.4f && along > 5.0f) {
+            /* Right after it met a rail the nose comes round to where the car is going,
+             * so that it runs along the rail and does not go on pushing into it. */
+            lift = (-9.0f * going - dot(c->spin, c->up)) * (12.0f * dt < 1.0f ? 12.0f * dt : 1.0f);
+            for (k = 0; k < 3; k++) {
+                c->spin[k] += c->up[k] * lift;
+            }
+        }
         /* A car on its wheels does not go on turning by itself for long. */
         lift = dot(c->spin, c->up) * (YAW_CALM * dt < 1.0f ? YAW_CALM * dt : 1.0f);
         for (k = 0; k < 3; k++) {
@@ -615,7 +864,7 @@ static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
          * straight again the tyres catch. */
         c->slip = going;
         lift = sqrtf(dot(v, v)); /* the speed over the road, whichever way the nose points */
-        if (c->bumped <= 0.0f && along > 0.0f &&
+        if (along > 0.0f &&
             ((lift > DRIFT_SPEED && braking > 0.0f && fabsf(c->steering) > 0.3f) ||
              (lift > DRIFT_SPEED * 0.6f && c->loose > 0.5f && (fabsf(c->steering) > 0.25f || fabsf(going) > 0.12f)))) {
             c->loose += (1.0f - c->loose) * (8.0f * dt < 1.0f ? 8.0f * dt : 1.0f);
@@ -659,10 +908,7 @@ static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
             }
         }
         for (k = 0; k < 3; k++) {
-            c->spin[k] -= c->spin[k] * (c->touching ? 7.0f : 0.4f) * dt;
-            if (c->touching) {
-                v[k] -= v[k] * 2.5f * dt;
-            }
+            c->spin[k] -= c->spin[k] * 0.4f * dt;
         }
         c->speed    = dot(v, c->forward);
         c->slip    -= c->slip * blend;
@@ -675,25 +921,16 @@ static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
      * A moment of that and it is put back. */
     c->stuck = c->on_road < 3 && dot(v, v) < 4.0f ? c->stuck + frame_dt : 0.0f;
 
-    angle = sqrtf(dot(c->spin, c->spin));
-    if (angle > 0.0001f) {
-        const float axis[3] = { c->spin[0] / angle, c->spin[1] / angle, c->spin[2] / angle };
-        turn_around(c->forward, axis, angle * dt);
-        turn_around(c->up, axis, angle * dt);
-    }
-    normalize(c->forward);
-    square(c->up, c->forward);
-    cross(c->forward, c->up, right);
-    rr_rigid_body_set_linear_velocity(self, v);
-    memcpy(c->sent, v, sizeof(c->sent));
-    c->has_sent = true;
-
-    /* The node stands as the car does: X to its right, Y up, -Z forward. */
-    for (k = 0; k < 3; k++) {
-        self->local.m[k]     = right[k];
-        self->local.m[3 + k] = c->up[k];
-        self->local.m[6 + k] = -c->forward[k];
-    }
+    /* What the wheels and the air did goes to the body, and picophysics takes it from
+     * there for this frame: gravity, the move, the turn, and whatever the body meets on
+     * its way, a rail, a wall, or the road when the car comes down on its side or roof. */
+    pp_vec3_set(&body->vel, v[0], v[1], v[2]);
+    pp_vec3_set(&body->a_vel, c->spin[0], c->spin[1], c->spin[2]);
+    track_near(pos);
+    memcpy(g_body_up, c->up, sizeof(g_body_up));
+    g_hit_ago += dt;
+    pp_physics_step(dt, 6, 3);
+    body_read(c, self, v, right);
     pose_model(c);
     place_camera(c, pos, v, dt);
 

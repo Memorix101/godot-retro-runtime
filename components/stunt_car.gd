@@ -1,17 +1,18 @@
 # Declaration only. The logic lives in runtime/game/stunt_car.c.
 #
-# Give this body a CollisionShape3D with a small sphere (smaller than the car rides high,
-# so that it only meets the rails, and the road when the car lies on it) and a physics
-# material without friction or bounce: the grip is worked out by the component. Below it
-# go four RayCast3D nodes where the wheels are, each pointing down by more than the
-# length of the suspension. The road and its rails are StaticBody3D nodes with box shapes,
-# turned any way, also upside down in a loop.
+# A plain node: the car's body is made by the component in picophysics, a small physics
+# engine (runtime/third_party/picophysics), as a box around this node. Below the node go
+# four RayCast3D nodes where the wheels are, each pointing down by more than the length
+# of the suspension. The road and its rails are StaticBody3D nodes with box shapes, turned
+# any way, also upside down in a loop. They must be in the group "track", and a shape
+# whose name begins with "Floor" is a piece of road (the body meets only its top); every
+# other shape is something that stands on the road, a rail or a wall.
 # Gates are Area3D nodes in the groups "checkpoint" and "goal", two metres above the road;
 # connect `area_entered` of this node's hitbox area to `_on_hitbox_area_entered`. A run
 # counts at the goal when it went through every checkpoint.
 # This node and the camera must have the same parent.
 class_name StuntCar
-extends RigidBody3D
+extends Node3D
 
 ## Metres per second the car gains per second with the gas down.
 @export var engine: float = 14.0
@@ -41,9 +42,7 @@ extends RigidBody3D
 ## How hard the air presses the car onto the road, per metre per second squared. This is
 ## what holds it in a loop.
 @export var downforce: float = 0.012
-## What the runtime lets this body fall with, metres per second squared: the project's
-## gravity times the gravity scale of this body. The component needs it to tell a hit
-## from falling.
+## What the car falls with, metres per second squared.
 @export var gravity: float = 24.5
 ## Below this height the car is put back at the last checkpoint.
 @export var fall_limit: float = -60.0

@@ -101,13 +101,18 @@ Godot, but running the tool again overwrites it.
   between every two cross sections, turned every way, upside down in the loop. Rails are
   boxes too; where a rail begins it comes in from the side over 12 m, so that it is no
   blunt edge across the way.
-- The car (`StuntCar`, `runtime/game/stunt_car.c`) is a `RigidBody3D` with four small
-  spheres near its corners, which the runtime keeps out of the rails. The runtime's
-  bodies do not turn, so the component keeps the car's directions and its spin itself.
-  Four `RayCast3D` nodes are the wheels: each one that finds the road within the length
-  of its spring pushes the car away from it there, with a damper. That carries the car,
-  lays it the way the road lies, lets it dip and lean, tips it over the edge of the road
-  when two wheels reach into the air, and lets it tumble when it falls.
+- The car (`StuntCar`, `runtime/game/stunt_car.c`) is a plain node. The runtime's bodies
+  do not turn, so the body of the car is a box in picophysics, a small physics engine in
+  one header by Kazade, made for the N64 and the Dreamcast (`runtime/third_party/picophysics`,
+  public domain; one line of it was changed, see the README there). picophysics moves
+  the body, lets it fall and turn, and keeps it out of a world of triangles, which the
+  component makes from the box shapes of the static bodies in the group "track": the top
+  of every piece of road, and top and sides of the rails. The engine looks at every
+  triangle it has for every body, so it is only given the ones within 6.5 m of the car.
+  Four `RayCast3D` nodes of the runtime are the wheels: each one that finds the road
+  within the length of its spring pushes the car away from it there, with a damper. That
+  carries the car, lays it the way the road lies, lets it dip and lean, tips it over the
+  edge of the road when two wheels reach into the air, and lets it tumble when it falls.
 - The driving follows the raycast vehicle that Godot's own `VehicleBody3D` is: each tyre
   pushes at the place where it touches the road. Sideways it pushes against sliding
   across the way its wheel points; along that way the rear tyres push with the engine
@@ -130,21 +135,23 @@ Godot, but running the tool again overwrites it.
 - The air presses a fast car onto the road, which with its speed is what holds it in the
   loop. The loop is turned a little against the road into it, so that a car that drives
   straight on is carried over to the loop's other end and comes out straight.
-- A rail takes the speed into it, the scraping costs some more, and because the car is
-  hit at its nose the push also turns it along the rail. A car that lies still without
-  standing on its wheels is put back.
+- At a rail the body is stopped and turned by picophysics, where the box meets it. Right
+  after that the nose is brought round to where the car is going, so that it runs along
+  the rail and does not go on pushing into it. A car that lies still without standing on
+  its wheels is put back.
 - The camera looks where the car is going, not where its nose points, and goes through
   the loop with it.
 
-What was driven with this driving model: with the gas alone the car goes down the slope
-and through the loop to the first checkpoint, without turning by itself on the way (this
-is in `make test`). Steering was looked at in three short runs: full lock at a crawl,
-full lock at top speed, and the brake in a turn, which starts a drift. The rest of the
-course (banked turn, jump, hill, S, finish) was driven by scripts only with earlier
-versions of the driving model, never in one run without a fall, and not again with this
-one. How it feels with a pad in the hand only a person can say. In Flycast the scene
-runs at 60 fps from the start to the first checkpoint (game logic about 3.5 ms a frame,
-drawing about 3 ms); the rest was not measured there.
+What was driven with the body in picophysics: with the gas alone the car goes down the
+slope and through the loop to the first checkpoint, without turning by itself on the way
+(this is in `make test`), then scrapes round the banked turn along its outer rail at
+about 80 km/h, leaves the road after it, tumbles as it falls and is put back. A drift on
+the square at 100 km/h came out the same as before the change of body. Not driven with it:
+the jump, the hill, the S and the finish, and a landing on the roof. Those were driven by
+scripts only with earlier versions of the car, never in one run without a fall. How it
+feels with a pad in the hand only a person can say. In Flycast the scene runs at 60 fps
+from the start into the banked turn (game logic about 4 ms a frame, of which picophysics
+is some 0.3 ms; drawing about 3 ms); the rest was not measured there.
 
 ## Racing demo
 

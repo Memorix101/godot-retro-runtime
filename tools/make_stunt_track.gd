@@ -9,7 +9,9 @@ extends SceneTree
 ## The road is laid like a pen draws a line: _run() moves on by a length and turns on the
 ## way (to the side, up or down, banking), and leaves a cross section every few metres.
 ## Between two cross sections lies one box of collision, and the road one sees is a
-## ribbon through all of them. The car is a RigidBody3D with a sphere shape; how it
+## ribbon through all of them. The static bodies are in the group "track", and their
+## shapes are named for what they are ("Floor...", "Rail...", "Wall"): the car's component
+## makes the triangles for the car's body from them. The car is a plain node; how it
 ## drives is in its component (runtime/game/stunt_car.c).
 
 const OUTPUT := "res://scenes/stunt_track.tscn"
@@ -25,10 +27,8 @@ const STEP := 3.0
 const STEP_ANGLE := deg_to_rad(6.0)
 ## Cross sections per StaticBody3D and mesh, so the runtime can skip what is far away.
 const CHUNK := 10
-## How high the car's node rides above the road, the radius of its collision sphere (which
-## is smaller, so that it only meets the rails), and the scale of the kit's car.
+## How high the car's node rides above the road, and the scale of the kit's car.
 const RIDE_HEIGHT := 0.7
-const BODY_RADIUS := 0.35
 ## Length of a wheel's spring that carries nothing. The car sinks into it by 0.1 m.
 const SPRING_LENGTH := 0.8
 const CAR_SCALE := 2.0
@@ -95,10 +95,11 @@ func _plaza() -> void:
 	var size := Vector3(PLAZA_WIDTH, THICK, PLAZA_LENGTH)
 	var middle := Vector3(0, -0.03, PLAZA_BACK - PLAZA_LENGTH * 0.5)
 	var body := _add(_track, StaticBody3D.new(), "Plaza") as StaticBody3D
+	body.add_to_group("track", true)
 	body.position = middle
 	var box := BoxShape3D.new()
 	box.size = size
-	var shape := _add(body, CollisionShape3D.new(), "Shape") as CollisionShape3D
+	var shape := _add(body, CollisionShape3D.new(), "Floor") as CollisionShape3D
 	shape.shape = box
 	shape.position = Vector3(0, -THICK * 0.5, 0)
 	var paint := StandardMaterial3D.new()
@@ -178,10 +179,11 @@ func _course() -> Transform3D:
 	_run(45.0, 0.0, 0.0, 0.0, true)
 	# A wall at the very end stops a car that does not brake.
 	var wall := _add(_track, StaticBody3D.new(), "EndWall") as StaticBody3D
+	wall.add_to_group("track", true)
 	wall.transform = _here().translated_local(Vector3(0, 1.0, 0))
 	var wall_box := BoxShape3D.new()
 	wall_box.size = Vector3(WIDTH, 2.0, 0.6)
-	(_add(wall, CollisionShape3D.new(), "Shape") as CollisionShape3D).shape = wall_box
+	(_add(wall, CollisionShape3D.new(), "Wall") as CollisionShape3D).shape = wall_box
 	var wall_mesh := BoxMesh.new()
 	wall_mesh.size = wall_box.size
 	var paint := StandardMaterial3D.new()
@@ -264,6 +266,7 @@ func _build() -> void:
 		for first in range(0, run.size() - 1, CHUNK):
 			var last := mini(first + CHUNK, run.size() - 1)
 			var body := _add(_track, StaticBody3D.new(), "Road%d" % count) as StaticBody3D
+			body.add_to_group("track", true)
 			# The body sits at its first cross section, so the mesh has a middle near its
 			# content and the runtime can tell whether it is in view.
 			var origin: Vector3 = (run[first][0] as Transform3D).origin
@@ -436,26 +439,11 @@ func _environment() -> void:
 
 
 func _player(start: Transform3D) -> void:
-	var slippery := PhysicsMaterial.new()
-	# The car's own grip is worked out by its component; the body only keeps it out of
-	# the road and the rails.
-	slippery.friction = 0.0
-	slippery.bounce = 0.0
-	var sphere := SphereShape3D.new()
-	sphere.radius = BODY_RADIUS
-
-	var car := _add(_root, RigidBody3D.new(), "Car") as RigidBody3D
+	# The car is a plain node: its body is one of picophysics', which the component makes
+	# and moves the node by (see runtime/game/stunt_car.c).
+	var car := _add(_root, Node3D.new(), "Car") as Node3D
 	car.set_script(load("res://components/stunt_car.gd"))
 	car.transform = start.translated_local(Vector3(0, RIDE_HEIGHT, 0))
-	car.physics_material_override = slippery
-	car.gravity_scale = 2.5
-	car.lock_rotation = true
-	# Four spheres near the corners of the car, above the road: they stop it at the rails,
-	# and it lies on them when it lands on its side or its roof.
-	for place: Array in [["ShapeFL", -0.55, -0.95], ["ShapeFR", 0.55, -0.95], ["ShapeRL", -0.55, 0.85], ["ShapeRR", 0.55, 0.85]]:
-		var shape := _add(car, CollisionShape3D.new(), place[0]) as CollisionShape3D
-		shape.shape = sphere
-		shape.position = Vector3(place[1], 0, place[2])
 
 	var model := _add(car, MeshInstance3D.new(), "Model") as MeshInstance3D
 	model.mesh = load(KIT % "raceCarRed")
@@ -509,7 +497,7 @@ func _player(start: Transform3D) -> void:
 	car.spring = 61.0
 	car.damping = 5.5
 	car.downforce = 0.012
-	car.gravity = 9.8 * car.gravity_scale
+	car.gravity = 24.5
 	car.model = model
 	car.fall_limit = -60.0
 	car.wheel_fl = wheels[0]
