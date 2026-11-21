@@ -9,9 +9,7 @@ extends SceneTree
 ## The road is laid like a pen draws a line: _run() moves on by a length and turns on the
 ## way (to the side, up or down, banking), and leaves a cross section every few metres.
 ## Between two cross sections lies one box of collision, and the road one sees is a
-## ribbon through all of them. The static bodies are in the group "track", and their
-## shapes are named for what they are ("Floor...", "Rail...", "Wall"): the car's component
-## makes the triangles for the car's body from them. The car is a plain node; how it
+## ribbon through all of them. The car is a RigidBody3D with a box shape; how it
 ## drives is in its component (runtime/game/stunt_car.c).
 
 const OUTPUT := "res://scenes/stunt_track.tscn"
@@ -93,8 +91,8 @@ func _init() -> void:
 
 
 ## Three crates beside the start, two on the square and one on top of them, for the car
-## to ram. Each is a node in the group "crate" with the kit's crate as its mesh, brought
-## to CRATE_SIZE; the car's component gives each a body (see runtime/game/stunt_car.c).
+## to ram. Each is a RigidBody3D with a box shape and the kit's crate as its mesh, brought
+## to CRATE_SIZE: the runtime's physics does the rest.
 func _crates() -> void:
 	var mesh: Mesh = load("res://assets/kenney/platformer-kit/crate.obj")
 	var box := mesh.get_aabb()
@@ -103,9 +101,14 @@ func _crates() -> void:
 	var places: Array[Vector3] = [Vector3(-7.5, floor_y, -22.0), Vector3(-7.5, floor_y, -23.3),
 			Vector3(-7.5, floor_y + CRATE_SIZE, -22.65)]
 	for i in places.size():
-		var crate := _add(_root, Node3D.new(), "Crate%d" % i) as Node3D
-		crate.add_to_group("crate", true)
+		var crate := _add(_root, RigidBody3D.new(), "Crate%d" % i) as RigidBody3D
 		crate.position = places[i]
+		crate.mass = 0.12  # the car weighs 1
+		crate.gravity_scale = 2.5  # as the car
+		crate.angular_damp = 0.5
+		var crate_box := BoxShape3D.new()
+		crate_box.size = Vector3.ONE * CRATE_SIZE
+		(_add(crate, CollisionShape3D.new(), "Shape") as CollisionShape3D).shape = crate_box
 		var model := _add(crate, MeshInstance3D.new(), "Mesh") as MeshInstance3D
 		model.mesh = mesh
 		# The middle of the crate's mesh goes to the node, where the middle of its body is.
@@ -118,7 +121,6 @@ func _plaza() -> void:
 	var size := Vector3(PLAZA_WIDTH, THICK, PLAZA_LENGTH)
 	var middle := Vector3(0, -0.03, PLAZA_BACK - PLAZA_LENGTH * 0.5)
 	var body := _add(_track, StaticBody3D.new(), "Plaza") as StaticBody3D
-	body.add_to_group("track", true)
 	body.position = middle
 	var box := BoxShape3D.new()
 	box.size = size
@@ -202,7 +204,6 @@ func _course() -> Transform3D:
 	_run(45.0, 0.0, 0.0, 0.0, true)
 	# A wall at the very end stops a car that does not brake.
 	var wall := _add(_track, StaticBody3D.new(), "EndWall") as StaticBody3D
-	wall.add_to_group("track", true)
 	wall.transform = _here().translated_local(Vector3(0, 1.0, 0))
 	var wall_box := BoxShape3D.new()
 	wall_box.size = Vector3(WIDTH, 2.0, 0.6)
@@ -247,11 +248,11 @@ func _run(length: float, yaw := 0.0, pitch := 0.0, roll_to := 0.0, rails := fals
 	_length += length
 
 
-## A loop of this radius that ends `shift` metres to the right of where it begins.
-## A car that drives straight on keeps what it has of speed along the axis of the loop,
-## and only the rest of its speed goes round. So the loop is turned a little against the
-## road that leads into it, by just so much that this car is carried over by `shift` on
-## its way round: it comes out as straight as it went in, without steering.
+## A loop of this radius that ends `shift` metres to the right of where it begins. The
+## tyres of a car hold its way along its nose, so a car that drives straight on goes to
+## the side by the same part of every metre it drives. The loop does the same, and it is
+## turned against the road that leads into it by that angle: the car stays in the middle
+## of the road all the way round and comes out as straight as it went in, without steering.
 func _loop(radius: float, shift: float) -> void:
 	var skew := atan(shift / (TAU * radius))
 	_yaw += skew
@@ -289,7 +290,6 @@ func _build() -> void:
 		for first in range(0, run.size() - 1, CHUNK):
 			var last := mini(first + CHUNK, run.size() - 1)
 			var body := _add(_track, StaticBody3D.new(), "Road%d" % count) as StaticBody3D
-			body.add_to_group("track", true)
 			# The body sits at its first cross section, so the mesh has a middle near its
 			# content and the runtime can tell whether it is in view.
 			var origin: Vector3 = (run[first][0] as Transform3D).origin
@@ -462,11 +462,26 @@ func _environment() -> void:
 
 
 func _player(start: Transform3D) -> void:
-	# The car is a plain node: its body is one of picophysics', which the component makes
-	# and moves the node by (see runtime/game/stunt_car.c).
-	var car := _add(_root, Node3D.new(), "Car") as Node3D
+	# The car is a RigidBody3D with a box as large as the car, well above the road: the
+	# wheels carry it (see the component, runtime/game/stunt_car.c), and the box only
+	# meets rails, walls, crates, and the road when the car comes down on its side or
+	# roof. Its material has next to no friction, so that it scrapes along a rail; the
+	# grip of the tyres is the component's business. It reports its contacts, which is
+	# how the component knows of a rail.
+	var slippery := PhysicsMaterial.new()
+	slippery.friction = 0.012
+	slippery.bounce = 0.0
+	var car := _add(_root, RigidBody3D.new(), "Car") as RigidBody3D
 	car.set_script(load("res://components/stunt_car.gd"))
 	car.transform = start.translated_local(Vector3(0, RIDE_HEIGHT, 0))
+	car.mass = 1.0
+	car.physics_material_override = slippery
+	car.gravity_scale = 2.5
+	car.contact_monitor = true
+	car.max_contacts_reported = 4
+	var body_box := BoxShape3D.new()
+	body_box.size = Vector3(1.5, 0.5, 2.8)
+	(_add(car, CollisionShape3D.new(), "Shape") as CollisionShape3D).shape = body_box
 
 	var model := _add(car, MeshInstance3D.new(), "Model") as MeshInstance3D
 	model.mesh = load(KIT % "raceCarRed")
@@ -520,10 +535,8 @@ func _player(start: Transform3D) -> void:
 	car.spring = 61.0
 	car.damping = 5.5
 	car.downforce = 0.012
-	car.gravity = 24.5
 	car.model = model
 	car.fall_limit = -60.0
-	car.crate_size = CRATE_SIZE
 	car.wheel_fl = wheels[0]
 	car.wheel_fr = wheels[1]
 	car.wheel_rl = wheels[2]

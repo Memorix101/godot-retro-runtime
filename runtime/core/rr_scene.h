@@ -130,9 +130,16 @@ typedef struct {
 } RRCharState;
 
 /* State of one RigidBody node. */
+#define RR_MAX_CONTACTS 8
 typedef struct {
     uint16_t node;
-    float    velocity[3]; /* world units per second */
+    float    velocity[3]; /* RigidBody2D: world units per second */
+    /* RigidBody3D (rr_physics.c): */
+    void    *body;        /* its body in the physics engine, NULL if it has none */
+    RRMat34  placed;      /* where the engine put the node last; anything else is a move from outside */
+    bool     synced;      /* the body has been put where the node is */
+    uint8_t  contact_max, contact_count; /* contacts it reports, and how many the last step had */
+    float    contact_normals[RR_MAX_CONTACTS][3]; /* out of what was touched, world space */
 } RRRigidState;
 
 /* A mesh that bones deform: the copy of its mesh asset that holds it as it is posed. */
@@ -471,13 +478,31 @@ bool rr_body_is_on_floor(const Node *body);
 bool rr_body_is_on_wall(const Node *body);
 bool rr_body_is_on_ceiling(const Node *body);
 
-/* RigidBody nodes (2D and 3D): bodies that fall, bounce and rub against static bodies and
- * tile maps by themselves, with the gravity of the project and their physics material.
- * They do not turn and do not push each other. Velocities and impulses are three floats
- * in world units (Z is 0 for a 2D body). */
+/* RigidBody nodes, after Godot's: bodies that move by themselves, with the gravity of the
+ * project and their physics material. Velocities and impulses are three floats in world
+ * units (Z is 0 for a 2D body).
+ *
+ * A RigidBody3D is moved by a physics engine (picophysics): it falls, turns, rubs,
+ * bounces, is kept out of the static bodies and pushes other rigid bodies. Its shapes are
+ * boxes and spheres. Game code may move its node; the body follows. The angular velocity
+ * is an axis in the world times radians per second. rr_rigid_body_apply_impulse_at is
+ * Godot's apply_impulse(impulse, position): `position` is where the push is, as an offset
+ * from the body's origin in the world's directions, and a push away from the middle also
+ * turns the body. A body with contact_monitor on and max_contacts_reported above 0 is
+ * told what it touched in the last step: how many contacts, and for each the direction
+ * out of what was touched, as get_contact_local_normal of Godot's PhysicsDirectBodyState3D.
+ *
+ * A RigidBody2D falls, bounces and rubs against static bodies and tile maps; it does not
+ * turn and does not push other bodies, and the angular and contact functions do nothing
+ * for it. */
 void rr_rigid_body_get_linear_velocity(const Node *body, float *out);
 void rr_rigid_body_set_linear_velocity(Node *body, const float *velocity);
+void rr_rigid_body_get_angular_velocity(const Node *body, float *out);
+void rr_rigid_body_set_angular_velocity(Node *body, const float *velocity);
 void rr_rigid_body_apply_impulse(Node *body, const float *impulse);
+void rr_rigid_body_apply_impulse_at(Node *body, const float *impulse, const float *position);
+int  rr_rigid_body_get_contact_count(const Node *body);
+void rr_rigid_body_get_contact_normal(const Node *body, int index, float *out);
 
 /* Input actions from the Input Map. Look the id up once (in the ready handler); the
  * queries accept the -1 of an unknown action and report it as not pressed. */

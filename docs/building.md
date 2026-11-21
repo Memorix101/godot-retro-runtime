@@ -234,8 +234,8 @@ runtime/platform/       pc/ (raylib), dreamcast/ (KallistiOS: dc_system.c, and d
                         and psp_gu.c), wii/ (libogc, for the Wii and the
                         GameCube: wii_system.c and wii_gx.c)
 runtime/game/           game components
-runtime/third_party/    code of others that is part of the runtime: picophysics (the body
-                        of the stunt car)
+runtime/third_party/    code of others that is part of the runtime: picophysics, the
+                        physics engine behind RigidBody3D (runtime/core/rr_physics.c)
 tools/                  rpkdump (C), make_test_assets.gd, make_platformer_2d.gd,
                         make_racing.gd (builds scenes/racing.tscn from track pieces),
                         make_island.gd (builds scenes/island.tscn, the terrain demo),

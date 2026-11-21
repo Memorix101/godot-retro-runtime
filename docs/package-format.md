@@ -1,4 +1,4 @@
-# Package format (version 27)
+# Package format (version 28)
 
 A package (`.rpk`) holds one exported scene, baked for exactly one platform. It is the only
 contract between the Godot addon (`addons/retro_runtime/exporter.gd`) and the runtime
@@ -29,7 +29,7 @@ is the file name of the `.tscn` without its extension.
 | 0      | char[4] | `magic`      | `"RPKG"`                                        |
 | 4      | u8      | `platform`   | 1 PC, 2 Dreamcast, 3 PSP, 4 Wii and GameCube    |
 | 5      | u8      | `big_endian` | 0 little-endian, 1 big-endian                   |
-| 6      | u16     | `version`    | format version, currently 27                     |
+| 6      | u16     | `version`    | format version, currently 28                     |
 | 8      | u32     | `file_size`  | size of the whole file in bytes                 |
 | 12     | table   | `strings`    | string table; count is its size in bytes        |
 | 20     | table   | `nodes`      | node table                                      |
@@ -116,8 +116,8 @@ origin.
 | 12    | `AudioStreamPlayer` | audio (40 bytes)                  |
 | 13    | `AnimationPlayer`   | animation player (12 bytes)       |
 | 14    | `CPUParticles3D`, `CPUParticles2D` | particles (84 bytes) |
-| 15    | `StaticBody3D`, `StaticBody2D` | body (52 bytes) |
-| 16    | `CharacterBody3D`, `CharacterBody2D` | body (52 bytes) |
+| 15    | `StaticBody3D`, `StaticBody2D` | body (72 bytes) |
+| 16    | `CharacterBody3D`, `CharacterBody2D` | body (72 bytes) |
 | 17    | `AnimatedSprite2D`  | animated sprite (28 bytes)        |
 | 18    | `Camera2D`          | 2D camera (68 bytes)              |
 | 19    | `Timer`             | timer (8 bytes)                   |
@@ -132,7 +132,7 @@ origin.
 | 28    | `AudioStreamPlayer2D`, `AudioStreamPlayer3D` | audio (40 bytes) |
 | 29    | `Sprite3D`          | 3D sprite (48 bytes)              |
 | 30    | `Label3D`           | 3D label (28 bytes)               |
-| 31    | `RigidBody3D`, `RigidBody2D` | body (52 bytes)          |
+| 31    | `RigidBody3D`, `RigidBody2D` | body (72 bytes)          |
 | 32    | `HSlider`, `VSlider` | slider (72 bytes)                |
 | 33    | `Parallax2D`        | parallax (60 bytes)               |
 | 34    | `Panel`, `PanelContainer`, `HSeparator`, `VSeparator` | panel (40 bytes) |
@@ -199,11 +199,15 @@ quad faces: 0 X, 1 Y, 2 Z), `u8 pad`.
 origin), `u8 billboard`, `u8 pad`.
 
 Body (static, character and rigid): `u32 layer`, `u32 mask`, `u8 two_d`, `u8[3] pad`,
-`float bounce`, `float friction` (of the physics material; 0 and 1 without one), and for
+`float bounce`, `float friction` (of the physics material; 0 and 1 without one), for
 rigid bodies `float[3] gravity` (the acceleration, with the body's gravity scale),
-`float mass`, `float linear_damp`, `float[3] velocity` (at the start). The last four are 0
-(mass 1) for the other bodies. `two_d` tells where the floor is: below the body is -Y in
-3D and +Y in 2D.
+`float mass`, `float linear_damp`, `float[3] velocity` (at the start), and for a
+`RigidBody3D`, which turns, `float angular_damp`, `float[3] angular_velocity` (at the
+start: axis times radians per second, in the directions of the world), `u8 lock_angular`
+(bit 0, 1, 2: the body does not turn around the world's X, Y, Z; `lock_rotation` is all
+three), `u8 contacts` (how many contacts it reports per step, from `contact_monitor` and
+`max_contacts_reported`; 0 for none), `u8[2] pad`. What a kind of body does not have is 0
+(mass 1). `two_d` tells where the floor is: below the body is -Y in 3D and +Y in 2D.
 
 Shape kinds: 1 box (`size` = half extents), 2 sphere (radius in `size[0]`), 3 capsule
 (radius in `size[0]`, half the length of its line along Y in `size[1]`; only for

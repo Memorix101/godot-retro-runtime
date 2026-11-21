@@ -57,7 +57,7 @@ PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/
 CORE_SRC := $(wildcard runtime/core/*.c)
 GAME_SRC := $(wildcard runtime/game/*.c)
 PC_SRC   := runtime/main.c runtime/platform/rr_file_stdio.c runtime/platform/pc/pc_raylib.c
-HEADERS  := $(wildcard runtime/core/*.h runtime/game/*.h)
+HEADERS  := $(wildcard runtime/core/*.h runtime/game/*.h runtime/third_party/*/*.h)
 
 RUNTIME := $(BUILD)/pc/retro$(EXE)
 RPKDUMP := $(BUILD)/tools/rpkdump$(EXE)

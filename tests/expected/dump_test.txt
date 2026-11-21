@@ -1,4 +1,4 @@
-package version 27 platform pc little-endian
+package version 28 platform pc little-endian
 clear color 336699ff
 nodes 69
 [0] DumpTest (Node3D)
@@ -151,7 +151,7 @@ nodes 69
     layer 1 mask 3 bounce 0.000 friction 1.000
     [46] Shape (CollisionShape)
       origin (0.000 1.000 0.000) basis (1.000 0.000 0.000) (0.000 1.000 0.000) (0.000 0.000 1.000)
-      box half extents (0.500 1.000 1.500)
+      capsule radius 0.400 half length 0.500
   [47] Floor2D (StaticBody)
     origin (40.000 60.000 0.000) basis (1.000 0.000 0.000) (0.000 1.000 0.000) (0.000 0.000 1.000)
     layer 1 mask 1 2d bounce 0.000 friction 1.000
@@ -172,10 +172,10 @@ nodes 69
     text "Exit" font asset 11 color ffffffff pixel 0.0100 offset (0.0 0.0) align begin center billboard
   [53] Crate (RigidBody)
     origin (6.000 3.000 0.000) basis (1.000 0.000 0.000) (0.000 1.000 0.000) (0.000 0.000 1.000)
-    layer 1 mask 1 bounce 0.400 friction 0.600 mass 2.000 damp 0.100 gravity (0.000 -4.900 0.000) velocity (1.000 0.000 0.000)
+    layer 1 mask 1 bounce 0.400 friction 0.600 mass 2.000 damp 0.100 gravity (0.000 -4.900 0.000) velocity (1.000 0.000 0.000) angular damp 0.500 lock 1 contacts 3 spin (0.000 2.000 0.000)
     [54] Shape (CollisionShape)
       origin (0.000 0.000 0.000) basis (1.000 0.000 0.000) (0.000 1.000 0.000) (0.000 0.000 1.000)
-      capsule radius 0.400 half length 0.500
+      box half extents (0.500 1.000 1.500)
   [55] Horn (AudioStreamPlayer (spatial))
     origin (3.000 0.000 -2.000) basis (1.000 0.000 0.000) (0.000 1.000 0.000) (0.000 0.000 1.000)
     sound asset 19 volume 1.000 pitch 1.500 bus SFX 3d inverse-square unit 4.000 max distance 50.000 max gain 1.413 pan 1.000

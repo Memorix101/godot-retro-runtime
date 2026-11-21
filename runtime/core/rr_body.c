@@ -11,6 +11,8 @@
  * unit thick, so the third axis never gets in the way. */
 #include <math.h>
 
+#include <string.h>
+
 #include "rr_internal.h"
 
 /* Boxes that touch or overlap by less than this on the axes across the movement do not
@@ -658,9 +660,11 @@ bool rr_body_solids_are_boxes(const RRScene *scene)
 }
 
 /* --- RigidBody ------------------------------------------------------------------------
- * A body that falls, bounces and rubs by itself. It does not turn: there is no angular
+ * A RigidBody2D is moved here: it falls, bounces and rubs by itself. It does not turn:
+ * there is no angular
  * velocity, and bodies do not push each other; they collide with static bodies and tile
- * maps only. */
+ * maps only. A RigidBody3D is a body of the physics engine (rr_physics.c), which turns it
+ * and lets bodies push each other; the functions here pass on to it. */
 
 static RRRigidState *rigid_state(const Node *body)
 {
@@ -683,8 +687,26 @@ void rr_rigid_body_init(RRScene *scene, Node *body)
 {
     RRRigidState *state = &scene->rigids[scene->rigid_count++];
 
+    memset(state, 0, sizeof(*state));
     state->node = (uint16_t)(body - scene->nodes);
-    rr_rigid_body_reset(body);
+    /* A RigidBody3D gets its body when the whole scene is there (rr_rigid_bodies_ready):
+     * its shapes are its children, which are made after it. */
+    if (((const RRPkgBodyNode *)body->data)->two_d) {
+        rr_rigid_body_reset(body);
+    }
+}
+
+void rr_rigid_bodies_ready(RRScene *scene)
+{
+    uint32_t i;
+
+    rr_physics_begin(scene);
+    for (i = 0; i < scene->rigid_count; i++) {
+        Node *body = &scene->nodes[scene->rigids[i].node];
+        if (!((const RRPkgBodyNode *)body->data)->two_d) {
+            rr_physics_body_init(scene, body, &scene->rigids[i]);
+        }
+    }
 }
 
 void rr_rigid_body_reset(Node *body)
@@ -693,6 +715,10 @@ void rr_rigid_body_reset(Node *body)
     RRRigidState        *state = rigid_state(body);
     int                  a;
 
+    if (!data->two_d) {
+        rr_physics_body_reset(body, state);
+        return;
+    }
     for (a = 0; a < 3; a++) {
         state->velocity[a] = data->velocity[a];
     }
@@ -707,13 +733,14 @@ void rr_rigid_bodies_update(RRScene *scene, float dt)
     if (dt > 1.0f / 20.0f) {
         dt = 1.0f / 20.0f;
     }
+    /* The 2D bodies are moved here, without turning. */
     for (i = 0; i < scene->rigid_count; i++) {
         RRRigidState        *state = &scene->rigids[i];
         Node                *body = &scene->nodes[state->node];
         const RRPkgBodyNode *data = (const RRPkgBodyNode *)body->data;
         const float          keep = 1.0f - data->linear_damp * dt;
 
-        if (body->flags & RR_NODE_FLAG_FREE) {
+        if (!data->two_d || (body->flags & RR_NODE_FLAG_FREE)) {
             continue;
         }
         for (a = 0; a < 3; a++) {
@@ -721,12 +748,25 @@ void rr_rigid_bodies_update(RRScene *scene, float dt)
         }
         move_and_collide(body, state->velocity, dt, false);
     }
+    /* The 3D bodies are the physics engine's. */
+    rr_physics_step(scene, dt);
+}
+
+/* True for a body that the physics engine moves: a RigidBody3D. */
+static bool in_engine(const Node *body, const RRRigidState *state)
+{
+    return state != NULL && !((const RRPkgBodyNode *)body->data)->two_d;
 }
 
 void rr_rigid_body_get_linear_velocity(const Node *body, float *out)
 {
     const RRRigidState *state = rigid_state(body);
     int                 a;
+
+    if (in_engine(body, state)) {
+        rr_physics_get_velocity(state, out, NULL);
+        return;
+    }
     for (a = 0; a < 3; a++) {
         out[a] = state != NULL ? state->velocity[a] : 0.0f;
     }
@@ -736,18 +776,68 @@ void rr_rigid_body_set_linear_velocity(Node *body, const float *velocity)
 {
     RRRigidState *state = rigid_state(body);
     int           a;
+
+    if (in_engine(body, state)) {
+        rr_physics_set_velocity(state, velocity, NULL);
+        return;
+    }
     for (a = 0; state != NULL && a < 3; a++) {
         state->velocity[a] = velocity[a];
     }
 }
 
+void rr_rigid_body_get_angular_velocity(const Node *body, float *out)
+{
+    const RRRigidState *state = rigid_state(body);
+
+    out[0] = out[1] = out[2] = 0.0f;
+    if (in_engine(body, state)) {
+        rr_physics_get_velocity(state, NULL, out);
+    }
+}
+
+void rr_rigid_body_set_angular_velocity(Node *body, const float *velocity)
+{
+    RRRigidState *state = rigid_state(body);
+
+    if (in_engine(body, state)) {
+        rr_physics_set_velocity(state, NULL, velocity);
+    }
+}
+
 void rr_rigid_body_apply_impulse(Node *body, const float *impulse)
+{
+    rr_rigid_body_apply_impulse_at(body, impulse, NULL);
+}
+
+void rr_rigid_body_apply_impulse_at(Node *body, const float *impulse, const float *position)
 {
     RRRigidState *state = rigid_state(body);
     const float   mass = state != NULL ? ((const RRPkgBodyNode *)body->data)->mass : 1.0f;
     int           a;
+
+    if (in_engine(body, state)) {
+        rr_physics_apply_impulse(state, impulse, position);
+        return;
+    }
     for (a = 0; state != NULL && a < 3; a++) {
         state->velocity[a] += impulse[a] / (mass > 0.0f ? mass : 1.0f);
+    }
+}
+
+int rr_rigid_body_get_contact_count(const Node *body)
+{
+    const RRRigidState *state = rigid_state(body);
+    return state != NULL ? state->contact_count : 0;
+}
+
+void rr_rigid_body_get_contact_normal(const Node *body, int index, float *out)
+{
+    const RRRigidState *state = rigid_state(body);
+    int                 a;
+
+    for (a = 0; a < 3; a++) {
+        out[a] = state != NULL && index >= 0 && index < state->contact_count ? state->contact_normals[index][a] : 0.0f;
     }
 }
 

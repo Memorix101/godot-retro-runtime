@@ -2158,9 +2158,14 @@ static void pp_solve_velocities(const PPCollision *manifold, float t)
         r = 0.0f;
     }
 
-    if (manifold->separation > 0.0f) {
-        // Don't bounce off a gap; restitution only applies on real contact.
-        r = 0.0f;
+    if (manifold->separation > 0.0f && r > 0.0f) {
+        // Changed for Retro Runtime (see README.md next to this file). A speculative
+        // contact is one that will be made within this step. The original dropped the
+        // bounce here ("don't bounce off a gap") and braked the body to land on the
+        // surface, where the next step found it at rest: a body that came in fast never
+        // bounced. A body that bounces at all now bounces from where it is, at most one
+        // step's way before the surface.
+        allowed = 0.0f;
     }
 
     // Target: vel_along_normal should end at >= -allowed. The required impulse

@@ -344,6 +344,11 @@ static void dump_node_data(const RRPackage *pkg, const RRPkgNode *n, uint32_t de
             dump_vec3(out, b->gravity);
             fputs(" velocity ", out);
             dump_vec3(out, b->velocity);
+            if (!b->two_d) {
+                fprintf(out, " angular damp %.3f lock %u contacts %u spin ", tidy(b->angular_damp),
+                        (unsigned)b->lock_angular, (unsigned)b->contacts);
+                dump_vec3(out, b->angular_velocity);
+            }
         }
         fputc('\n', out);
         break;

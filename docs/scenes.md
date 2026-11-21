@@ -38,7 +38,8 @@ something the runtime cannot handle is not exported; the message names the node.
 | `Parallax2D`                  | scroll scale and offset, limits, repeat size and times, autoscroll, follow viewport, ignore camera scroll; sprites, tile maps and particles below it are repeated; not inside another Parallax2D |
 | `CanvasLayer`                 | holds the HUD: what is inside is drawn over everything outside, wherever it is in the tree; with a `Camera2D` in the scene, controls must be inside one |
 | `TileMapLayer`                | square tiles from one atlas (`TileSetAtlasSource`); tiles flipped and turned in the editor; animated tiles (frame durations, speed; mode Default); one physics layer whose rectangles become solid boxes, one-way or not; no other alternative tiles |
-| `RigidBody3D`, `RigidBody2D`  | falls, bounces and rubs against static bodies and tile maps (gravity, mass, physics material, linear damp, start velocity); does not turn, bodies do not push each other |
+| `RigidBody3D`                 | moved by a physics engine (picophysics): falls, turns, rubs, bounces, is kept out of static bodies (boxes, spheres, height maps) and pushes other rigid bodies; box and sphere shapes, up to 8, not rotated against the body; mass, physics material, gravity scale, linear and angular damp, start velocities, `lock_rotation` and the three angular axis locks, layers and masks, `contact_monitor` with `max_contacts_reported` up to 8 (asked from C); up to 64 in a scene; see "Collision" |
+| `RigidBody2D`                 | falls, bounces and rubs against static bodies and tile maps (gravity, mass, physics material, linear damp, start velocity); does not turn, bodies do not push each other |
 | `Timer`                       | wait time, one-shot, autostart; emits `timeout`               |
 | `RayCast3D`, `RayCast2D`      | hits box and sphere shapes of bodies and areas, height maps, and tile maps; mask, areas/bodies, exclude parent; no `hit_from_inside` |
 | `ShapeCast3D`, `ShapeCast2D`  | moves a box, sphere or capsule (rectangle, circle, capsule) along its line and reports the first thing it touches: one result, with collider, point, normal and the safe and unsafe fraction (`rr_raycast_*`, `rr_shapecast_get_safe_fraction`, `rr_shapecast_get_unsafe_fraction`); no margin |
@@ -250,7 +251,26 @@ and `rr_body_is_on_floor` and its siblings tell what it touched. It works in two
   A body that leaves the floor without jumping is put back down if the floor is within
   0.1 m (Godot's floor snap), which keeps it on the ground when it walks downhill.
 
-A `RigidBody` is moved the second way by the runtime itself, with gravity, bounce and
-friction. Rigid bodies do not turn and do not collide with each other or with character
-bodies.
+A `RigidBody3D` is a body of a physics engine: picophysics, a small one in a single
+header, made for the N64 and the Dreamcast (`runtime/third_party/picophysics`, public
+domain). It is set up from the node the way Godot reads it: the box and sphere shapes
+below it, its mass, physics material, gravity scale, damping, start velocities, locked
+axes, layer and mask. The engine moves and turns it, and after every step the node is
+stood where its body is; a node that game code or an animation moved takes its body
+along. Rigid bodies push each other. The static bodies they meet are given to the engine
+as triangles (the sides of boxes, the cells of height maps) and as bodies that do not
+move (spheres), each frame only what is near a rigid body and as it stands in that frame,
+so a static body that something moves is solid where it is. Layers and masks work as in
+Godot. From C: `rr_rigid_body_get/set_linear_velocity`, `..._angular_velocity`,
+`rr_rigid_body_apply_impulse`, `rr_rigid_body_apply_impulse_at`, and for a body that
+monitors its contacts `rr_rigid_body_get_contact_count` and `..._get_contact_normal`.
+
+Where it differs from Godot: two frictions are multiplied (Godot takes the smaller), the
+bounce of a pair is the larger of the two, a resting body may tremble a little, and a
+body that comes in fast may bounce a step's way before the surface. A rigid body does
+not meet character bodies, capsules or tile maps, and areas do not report it. No joints,
+no sleeping, no continuous collision detection beyond what the engine does by itself.
+
+A `RigidBody2D` is moved the second way by the runtime itself, with gravity, bounce and
+friction. It does not turn and does not collide with other bodies.
 

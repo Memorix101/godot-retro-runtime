@@ -1,18 +1,20 @@
 # Declaration only. The logic lives in runtime/game/stunt_car.c.
 #
-# A plain node: the car's body is made by the component in picophysics, a small physics
-# engine (runtime/third_party/picophysics), as a box around this node. Below the node go
-# four RayCast3D nodes where the wheels are, each pointing down by more than the length
-# of the suspension. The road and its rails are StaticBody3D nodes with box shapes, turned
-# any way, also upside down in a loop. They must be in the group "track", and a shape
-# whose name begins with "Floor" is a piece of road (the body meets only its top); every
-# other shape is something that stands on the road, a rail or a wall.
+# A RigidBody3D with a CollisionShape3D that is a box about as large as the car, placed so
+# that it is well above the road: the wheels carry the car, and the box only meets what
+# the car runs into. Give it a physics material with next to no friction (the grip of the
+# tyres is worked out by the component), turn on contact_monitor with max_contacts_reported
+# above 0 (that is how the component knows of a rail), and set its gravity_scale to taste.
+# The component works for a body of mass 1.
+# Below the node go four RayCast3D nodes where the wheels are, each pointing down by more
+# than the length of the suspension. The road and its rails are StaticBody3D nodes with
+# box shapes, turned any way, also upside down in a loop.
 # Gates are Area3D nodes in the groups "checkpoint" and "goal", two metres above the road;
 # connect `area_entered` of this node's hitbox area to `_on_hitbox_area_entered`. A run
 # counts at the goal when it went through every checkpoint.
-# This node and the camera must have the same parent.
+# This node and the camera must be children of the scene's root.
 class_name StuntCar
-extends Node3D
+extends RigidBody3D
 
 ## Metres per second the car gains per second with the gas down.
 @export var engine: float = 14.0
@@ -42,14 +44,8 @@ extends Node3D
 ## How hard the air presses the car onto the road, per metre per second squared. This is
 ## what holds it in a loop.
 @export var downforce: float = 0.012
-## What the car falls with, metres per second squared.
-@export var gravity: float = 24.5
 ## Below this height the car is put back at the last checkpoint.
 @export var fall_limit: float = -60.0
-## Edge of the crates, metres: every node in the group "crate" gets a light box of this
-## size as its body, which the car can ram. Such a node must be a child of the scene's
-## root (or of nodes that do not move), with its mesh as a child.
-@export var crate_size: float = 1.2
 ## The model of the car. It may have a scale.
 @export var model: Node3D
 ## The four RayCast3D nodes, one where each wheel is: front left, front right, rear left,

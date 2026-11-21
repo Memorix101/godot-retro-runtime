@@ -15,7 +15,7 @@ _Static_assert(sizeof(RRPkgRichTextNode) == 44, "rich text layout");
 _Static_assert(sizeof(RRPkgAnimationPlayerNode) == 12, "animation player layout");
 _Static_assert(sizeof(RRPkgAreaNode) == 12, "area layout");
 _Static_assert(sizeof(RRPkgShapeNode) == 24, "shape layout");
-_Static_assert(sizeof(RRPkgBodyNode) == 52, "body layout");
+_Static_assert(sizeof(RRPkgBodyNode) == 72, "body layout");
 _Static_assert(sizeof(RRPkgAnimatedSpriteNode) == 28, "animated sprite layout");
 _Static_assert(sizeof(RRPkgCamera2DNode) == 68, "2D camera layout");
 _Static_assert(sizeof(RRPkgSpriteFrame) == 24, "sprite frame layout");

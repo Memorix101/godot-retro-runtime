@@ -6,7 +6,7 @@
 
 #include "rr_types.h"
 
-#define RR_PKG_VERSION 27
+#define RR_PKG_VERSION 28
 #define RR_MAX_Z_LEVELS 16 /* different draw levels (z_index, CanvasLayer) in one scene */
 #define RR_MAX_BUSES   16 /* audio buses of a project */
 #define RR_NONE16      0xFFFFu
@@ -213,6 +213,12 @@ typedef struct {
     float    mass;
     float    linear_damp; /* part of the velocity that is lost per second */
     float    velocity[3]; /* at the start */
+    /* RigidBody3D only (0 for the others): */
+    float    angular_damp;        /* part of the spin that is lost per second */
+    float    angular_velocity[3]; /* at the start: axis times radians per second, in the world */
+    uint8_t  lock_angular;        /* bit 0, 1, 2: it does not turn around the world's X, Y, Z */
+    uint8_t  contacts;            /* contacts it reports per step (contact monitor), 0: none */
+    uint8_t  pad2[2];
 } RRPkgBodyNode;
 
 typedef struct {

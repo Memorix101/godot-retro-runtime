@@ -44,7 +44,8 @@ endif
 SRC := $(patsubst $(ROOT)/runtime/%,%,$(wildcard $(ROOT)/runtime/core/*.c $(ROOT)/runtime/game/*.c)) \
        main.c platform/rr_file_stdio.c platform/dreamcast/dc_system.c platform/dreamcast/dc_$(GFX).c
 OBJS := $(patsubst %.c,$(BUILD)/obj/%.o,$(SRC))
-HEADERS := $(wildcard $(ROOT)/runtime/core/*.h $(ROOT)/runtime/game/*.h $(ROOT)/runtime/platform/dreamcast/*.h)
+HEADERS := $(wildcard $(ROOT)/runtime/core/*.h $(ROOT)/runtime/game/*.h $(ROOT)/runtime/platform/dreamcast/*.h \
+                    $(ROOT)/runtime/third_party/*/*.h)
 # The packages, and the music files that are streamed next to them.
 RPKS := $(wildcard $(PACKAGES)/*.rpk $(PACKAGES)/*.wav)
 

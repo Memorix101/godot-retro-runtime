@@ -529,6 +529,7 @@ bool rr_scene_create(RRScene *scene, const RRPackage *pkg)
     }
 
     rr_trigger_init(scene);
+    rr_rigid_bodies_ready(scene);
 
     /* The instances of the pools wait outside the tree until rr_instantiate. */
     for (i = 0; i < h->pools.count; i++) {

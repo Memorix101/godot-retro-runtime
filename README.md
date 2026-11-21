@@ -76,7 +76,7 @@ assets/                 test images and sounds, and the Kenney assets of the dem
 runtime/core/           portable C: package loader, scene, components, rendering, UI, ...
 runtime/platform/       pc/ (raylib), dreamcast/ (KallistiOS), psp/ (PSP SDK), wii/ (libogc)
 runtime/game/           the components of the demos and tests
-runtime/third_party/    code of others: picophysics, a small physics engine (stunt car)
+runtime/third_party/    code of others: picophysics, the physics engine behind RigidBody3D
 tools/                  rpkdump (C), and scripts that build the demo and test scenes
 tests/                  expected output and recorded input of the tests
 docs/                   the documents listed above

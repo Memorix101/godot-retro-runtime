@@ -69,7 +69,7 @@ it can be edited in Godot, but running the tool again overwrites it.
 - The camera stays behind the ball and swings round to where the ball is going, the faster
   the ball the quicker; a ball that rolls straight back at it does not turn it, so pulling
   back brakes. It leans with the stick, which is what makes the floor look tilted.
-- The runtime's bodies do not turn, so the component turns the ball's shell itself, by
+- The ball's rotation is locked (`lock_rotation`), and the component turns its shell, by
   the way the ball went over the ground. The shell is a translucent, unlit sphere in two
   colours. The rider inside faces the way the ball rolls and plays its walk clip faster
   the faster the ball is (`rr_anim_set_speed_scale`).
@@ -101,18 +101,18 @@ Godot, but running the tool again overwrites it.
   between every two cross sections, turned every way, upside down in the loop. Rails are
   boxes too; where a rail begins it comes in from the side over 12 m, so that it is no
   blunt edge across the way.
-- The car (`StuntCar`, `runtime/game/stunt_car.c`) is a plain node. The runtime's bodies
-  do not turn, so the body of the car is a box in picophysics, a small physics engine in
-  one header by Kazade, made for the N64 and the Dreamcast (`runtime/third_party/picophysics`,
-  public domain; one line of it was changed, see the README there). picophysics moves
-  the body, lets it fall and turn, and keeps it out of a world of triangles, which the
-  component makes from the box shapes of the static bodies in the group "track": the top
-  of every piece of road, and top and sides of the rails. The engine looks at every
-  triangle it has for every body, so it is only given the ones within 6.5 m of the car.
-  Four `RayCast3D` nodes of the runtime are the wheels: each one that finds the road
-  within the length of its spring pushes the car away from it there, with a damper. That
-  carries the car, lays it the way the road lies, lets it dip and lean, tips it over the
-  edge of the road when two wheels reach into the air, and lets it tumble when it falls.
+- The car (`StuntCar`, `runtime/game/stunt_car.c`) is a `RigidBody3D` with a
+  `CollisionShape3D` that is a box about as large as the car, as one would set it up in
+  Godot: mass 1, a physics material with next to no friction, gravity scale 2.5, and
+  contact monitoring. The runtime's physics (see [scenes.md](scenes.md#collision)) moves
+  it, lets it fall and turn, and keeps it out of the road, the rails and the crates. The
+  box sits well above the road, so it only meets what the car runs into, and the road
+  when the car comes down on its side or roof. Four `RayCast3D` nodes are the wheels: each
+  one that finds the road within the length of its spring pushes the car away from it
+  there, with a damper. That carries the car, lays it the way the road lies, lets it dip
+  and lean, tips it over the edge of the road when two wheels reach into the air, and
+  lets it tumble when it falls. What the wheels do is given to the body every frame as
+  its new velocity and spin.
 - The driving follows the raycast vehicle that Godot's own `VehicleBody3D` is: each tyre
   pushes at the place where it touches the road. Sideways it pushes against sliding
   across the way its wheel points; along that way the rear tyres push with the engine
@@ -135,31 +135,29 @@ Godot, but running the tool again overwrites it.
 - The air presses a fast car onto the road, which with its speed is what holds it in the
   loop. The loop is turned a little against the road into it, so that a car that drives
   straight on is carried over to the loop's other end and comes out straight.
-- Beside the start stand three crates, two on the square and one on top of them. Every
-  node in the group "crate" gets a light box in picophysics as its body (a crate weighs
-  an eighth of the car), which the car can ram and which falls, tumbles and comes to
-  rest by the engine alone. A crate that falls off the square is gone until the scene is
-  loaded again.
-- At a rail the body is stopped and turned by picophysics, where the box meets it. Right
-  after that the nose is brought round to where the car is going, so that it runs along
-  the rail and does not go on pushing into it. A car that lies still without standing on
-  its wheels is put back.
+- Beside the start stand three crates, two on the square and one on top of them: each a
+  `RigidBody3D` with a box shape and the Platformer Kit's crate as its mesh, an eighth
+  of the car's mass. No code of the game knows of them; the car rams them, and they
+  fall, tumble and come to rest by the runtime's physics.
+- The car is told of its contacts (`rr_rigid_body_get_contact_count`). Right after one
+  that pushes it sideways, a rail or a wall, the nose is brought round to where the car
+  is going, so that it runs along the rail and does not go on pushing into it. A car
+  that lies still without standing on its wheels is put back.
 - The camera looks where the car is going, not where its nose points, and goes through
   the loop with it.
 
-What was driven with the body in picophysics: with the gas alone the car goes down the
-slope and through the loop to the first checkpoint, without turning by itself on the way
-(this is in `make test`), then scrapes round the banked turn along its outer rail at
-about 80 km/h, leaves the road after it, tumbles as it falls and is put back. A drift on
-the square at 100 km/h came out the same as before the change of body. The crates stood
-still for three seconds (they crept a centimetre) and flew apart when the car drove into
-them at 50 km/h, which cost the car hardly any speed. Not driven with the new body:
-the jump, the hill, the S and the finish, and a landing on the roof. Those were driven by
-scripts only with earlier versions of the car, never in one run without a fall. How it
-feels with a pad in the hand only a person can say. In Flycast the scene runs at 60 fps
-from the start into the banked turn (game logic about 4 ms a frame, of which picophysics
-is some 0.3 to 0.5 ms with the three crates standing; drawing about 3 ms). The rest was
-not measured there, and the crates were not rammed there.
+What was driven with the car as a `RigidBody3D` of the runtime: with the gas alone it goes
+down the slope and through the loop to the first checkpoint, never more than a metre from
+the middle of the road in the loop and without turning by itself (this is in `make
+test`). The crates stood still, and flew apart when the car drove into them. Not driven
+again since the car became a rigid body of the runtime: the banked turn along its rail,
+the drift on the square, the jump, the hill, the S and the finish; those were driven by
+scripts with earlier versions of the car, never in one run without a fall. How it feels
+with a pad in the hand only a person can say. In Flycast the scene runs at 60 fps from
+the start past the first checkpoint: the game logic takes 5 to 8 ms a frame (it was
+about 4 ms while the car's component fed the physics engine a hand-picked set of
+triangles; the runtime now works out every frame what of all static bodies is near a
+rigid body), drawing about 3 ms. The crates were not rammed there.
 
 ## Racing demo
 

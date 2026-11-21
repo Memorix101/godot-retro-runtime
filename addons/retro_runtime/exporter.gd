@@ -11,7 +11,7 @@ extends RefCounted
 ## Anything the runtime cannot handle is an error that names the node. Errors are
 ## collected in `errors`, and no file is written if there is at least one.
 
-const FORMAT_VERSION := 27
+const FORMAT_VERSION := 28
 const MAX_Z_LEVELS := 16
 const HEADER_SIZE := 136
 const MAX_BUSES := 16
@@ -869,11 +869,15 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 	elif rigid:
 		material = node.physics_material_override
 		# platforms.gd freezes rigid bodies for the export and notes what the scene had.
-		if node.get_meta(&"retro_frozen", node.freeze) or node.custom_integrator or node.contact_monitor:
-			_fail(node, "freeze, a custom integrator and contact monitoring are not supported")
+		if node.get_meta(&"retro_frozen", node.freeze) or node.custom_integrator:
+			_fail(node, "freeze and a custom integrator are not supported")
+		if not is_3d and node.contact_monitor:
+			_fail(node, "contact monitoring is not supported for 2D bodies")
 		# The enum values are the same in 2D and 3D.
 		if node.linear_damp_mode != RigidBody3D.DAMP_MODE_COMBINE:
 			_fail(node, "linear damp mode must be Combine")
+		if is_3d:
+			_check_rigid_3d(node)
 	else:
 		material = node.physics_material_override
 		var moving := false
@@ -915,6 +919,59 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 	out.put_float(velocity.x)
 	out.put_float(velocity.y)
 	out.put_float(velocity.z)
+
+	# What only a RigidBody3D has: it turns.
+	var angular_damp := 0.0
+	var angular_velocity := Vector3.ZERO
+	var lock := 0
+	var contacts := 0
+	if node is RigidBody3D:
+		angular_damp = ProjectSettings.get_setting("physics/3d/default_angular_damp") + node.angular_damp
+		angular_velocity = node.angular_velocity
+		if node.lock_rotation or node.axis_lock_angular_x:
+			lock |= 1
+		if node.lock_rotation or node.axis_lock_angular_y:
+			lock |= 2
+		if node.lock_rotation or node.axis_lock_angular_z:
+			lock |= 4
+		if node.contact_monitor:
+			contacts = clampi(node.max_contacts_reported, 0, 8)
+	out.put_float(angular_damp)
+	out.put_float(angular_velocity.x)
+	out.put_float(angular_velocity.y)
+	out.put_float(angular_velocity.z)
+	out.put_u8(lock)
+	out.put_u8(contacts)
+	out.put_u16(0)
+
+
+## What the runtime's 3D rigid bodies (picophysics) cannot do, said at export time.
+func _check_rigid_3d(node: RigidBody3D) -> void:
+	if node.angular_damp_mode != RigidBody3D.DAMP_MODE_COMBINE:
+		_fail(node, "angular damp mode must be Combine")
+	if node.axis_lock_linear_x or node.axis_lock_linear_y or node.axis_lock_linear_z:
+		_fail(node, "locking the movement along an axis is not supported (only the rotation)")
+	if node.center_of_mass_mode != RigidBody3D.CENTER_OF_MASS_MODE_AUTO or node.inertia != Vector3.ZERO:
+		_fail(node, "a custom centre of mass or inertia is not supported")
+	if node.constant_force != Vector3.ZERO or node.constant_torque != Vector3.ZERO:
+		_fail(node, "constant forces are not supported")
+	if node.contact_monitor and node.max_contacts_reported > 8:
+		_fail(node, "at most 8 contacts can be reported (max_contacts_reported)")
+	if not node.scale.is_equal_approx(Vector3.ONE):
+		_fail(node, "a rigid body must not be scaled (scale its shapes and meshes)")
+	var shapes := 0
+	for child in node.get_children():
+		if not (child is CollisionShape3D) or child.disabled:
+			continue
+		shapes += 1
+		if not (child.shape is BoxShape3D or child.shape is SphereShape3D):
+			_fail(child, "a RigidBody3D takes box and sphere shapes only")
+		if not child.transform.basis.is_equal_approx(Basis.IDENTITY):
+			_fail(child, "the shape of a RigidBody3D must not be rotated or scaled (move it, or turn the body)")
+	if shapes == 0:
+		_fail(node, "a RigidBody3D needs a CollisionShape3D with a box or a sphere")
+	elif shapes > 8:
+		_fail(node, "a RigidBody3D takes at most 8 shapes")
 
 
 ## CollisionShape3D and CollisionShape2D. A 2D shape becomes a box that is half a unit

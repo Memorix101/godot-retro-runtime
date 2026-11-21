@@ -33,8 +33,19 @@ void rr_tweens_update(RRScene *scene, float dt);
 
 /* rr_body.c */
 void rr_rigid_body_init(RRScene *scene, Node *body); /* during scene creation */
+void rr_rigid_bodies_ready(RRScene *scene);          /* once all nodes of the scene are there */
 void rr_rigid_body_reset(Node *body);
 void rr_rigid_bodies_update(RRScene *scene, float dt);
+
+/* rr_physics.c: the RigidBody3D nodes, which a physics engine moves */
+void rr_physics_begin(const RRScene *scene); /* when a scene is made: empties the engine's world */
+void rr_physics_body_init(RRScene *scene, Node *node, RRRigidState *state);
+void rr_physics_body_reset(Node *node, RRRigidState *state);
+void rr_physics_step(RRScene *scene, float dt);
+void rr_physics_get_velocity(const RRRigidState *state, float *linear, float *angular); /* either may be NULL */
+void rr_physics_set_velocity(RRRigidState *state, const float *linear, const float *angular);
+/* `offset`: where the push is, from the middle of the body, in the world; NULL for the middle. */
+void rr_physics_apply_impulse(RRRigidState *state, const float *impulse, const float *offset);
 bool rr_body_solids_are_boxes(const RRScene *scene); /* needs the world transforms */
 /* True if a box, sphere or capsule overlaps a solid: `normal` then points from the solid
  * towards it, and `depth` is how far the two overlap along it. */
