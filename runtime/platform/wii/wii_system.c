@@ -710,3 +710,22 @@ const char *rr_plat_locale(void)
     return language < sizeof(names) / sizeof(names[0]) ? names[language] : NULL;
 #endif
 }
+
+/* Box2D counts the memory it has taken in a 64-bit atomic number. This CPU has no
+ * instruction for that and devkitPPC comes without libatomic, so the compiler calls
+ * these two functions. The engine is only called from the main thread: plain code does. */
+unsigned long long __atomic_fetch_add_8(volatile void *at, unsigned long long add, int order)
+{
+    volatile unsigned long long *number = (volatile unsigned long long *)at;
+    const unsigned long long     before = *number;
+
+    (void)order;
+    *number = before + add;
+    return before;
+}
+
+unsigned long long __atomic_load_8(const volatile void *at, int order)
+{
+    (void)order;
+    return *(const volatile unsigned long long *)at;
+}

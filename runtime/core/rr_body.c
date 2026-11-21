@@ -420,8 +420,6 @@ typedef struct {
     Node    *body;
     float   *velocity;
     float    up[3];
-    bool     character;       /* slides and stands; else bounces and rubs */
-    float    bounce, friction, rest_speed;
     float    fall;            /* how far this move takes the body down */
     RRVolume shapes[MAX_BODY_SHAPES];
     int      shape_count;
@@ -436,15 +434,14 @@ static bool lets_through(const Mover *m, const RRVolume *solid, const Contact *c
 }
 
 /* Takes the body out of one solid and changes its velocity for the contact. */
-static void resolve(Mover *m, const Contact *c, float solid_bounce, float solid_friction,
-                    uint16_t solid_shape)
+static void resolve(Mover *m, const Contact *c, uint16_t solid_shape)
 {
     const float n_up = dot3(c->n, m->up);
     const float vn = dot3(m->velocity, c->n);
     float       push[3], local[3];
     int         s, k;
 
-    if (m->character && n_up > FLOOR_COS) {
+    if (n_up > FLOOR_COS) {
         /* A floor carries the body straight up, so it does not creep down a slope. */
         const float v_up = dot3(m->velocity, m->up);
         for (k = 0; k < 3; k++) {
@@ -459,33 +456,10 @@ static void resolve(Mover *m, const Contact *c, float solid_bounce, float solid_
         for (k = 0; k < 3; k++) {
             push[k] = c->n[k] * c->depth;
         }
-        if (m->character) {
-            m->body->flags |= n_up < -FLOOR_COS ? RR_NODE_FLAG_ON_CEILING : RR_NODE_FLAG_ON_WALL;
-            if (vn < 0.0f) {
-                for (k = 0; k < 3; k++) {
-                    m->velocity[k] -= c->n[k] * vn;
-                }
-            }
-        } else if (vn < 0.0f) {
-            /* Godot's rules for two materials: the bounces add up, the smaller friction
-             * counts. A body that only presses on a floor does not bounce. */
-            float bounce = m->bounce + solid_bounce, friction = m->friction, speed = 0.0f, tangent[3];
-            bounce   = -vn < m->rest_speed ? 0.0f : (bounce > 1.0f ? 1.0f : bounce);
-            friction = solid_friction < friction ? solid_friction : friction;
+        m->body->flags |= n_up < -FLOOR_COS ? RR_NODE_FLAG_ON_CEILING : RR_NODE_FLAG_ON_WALL;
+        if (vn < 0.0f) {
             for (k = 0; k < 3; k++) {
-                m->velocity[k] -= c->n[k] * vn * (1.0f + bounce);
-            }
-            for (k = 0; k < 3; k++) {
-                tangent[k] = m->velocity[k] - c->n[k] * dot3(m->velocity, c->n);
-            }
-            speed = sqrtf(dot3(tangent, tangent));
-            if (speed > 0.00001f) {
-                /* What the contact took away along its normal, times the friction. */
-                const float loss = friction * -vn * (1.0f + bounce);
-                const float keep = loss >= speed ? 0.0f : (speed - loss) / speed;
-                for (k = 0; k < 3; k++) {
-                    m->velocity[k] -= tangent[k] * (1.0f - keep);
-                }
+                m->velocity[k] -= c->n[k] * vn;
             }
         }
     }
@@ -498,7 +472,7 @@ static void resolve(Mover *m, const Contact *c, float solid_bounce, float solid_
     }
 }
 
-static void move_and_collide(Node *body, float *velocity, float dt, bool character)
+static void move_and_collide(Node *body, float *velocity, float dt)
 {
     const RRScene       *scene = body->scene;
     const RRPkgBodyNode *data = (const RRPkgBodyNode *)body->data;
@@ -512,14 +486,9 @@ static void move_and_collide(Node *body, float *velocity, float dt, bool charact
 
     m.body        = body;
     m.velocity    = velocity;
-    m.character   = character;
-    m.bounce      = data->bounce;
-    m.friction    = data->friction;
     m.up[0]       = 0.0f;
     m.up[1]       = data->two_d ? -1.0f : 1.0f;
     m.up[2]       = 0.0f;
-    /* Slower than twice what gravity adds in a frame is resting, not bouncing. */
-    m.rest_speed  = 2.0f * dt * sqrtf(dot3(data->gravity, data->gravity)) + 0.0001f;
     m.shape_count = 0;
     m.fall        = -dot3(velocity, m.up) * dt;
     m.fall        = m.fall > 0.0f ? m.fall : 0.0f;
@@ -581,7 +550,7 @@ static void move_and_collide(Node *body, float *velocity, float dt, bool charact
                 }
                 for (s = 0; s < m.shape_count; s++) {
                     if (volume_contact(&m.shapes[s], solid, &c) && !lets_through(&m, solid, &c)) {
-                        resolve(&m, &c, other->bounce, other->friction, shape);
+                        resolve(&m, &c, shape);
                         any = true;
                     }
                 }
@@ -609,7 +578,7 @@ static void move_and_collide(Node *body, float *velocity, float dt, bool charact
                 rr_volume_make(&solid, &at, &box);
                 for (s = 0; s < m.shape_count; s++) {
                     if (volume_contact(&m.shapes[s], &solid, &c) && !lets_through(&m, &solid, &c)) {
-                        resolve(&m, &c, 0.0f, 1.0f, RR_NONE16);
+                        resolve(&m, &c, RR_NONE16);
                         any = true;
                     }
                 }
@@ -660,11 +629,9 @@ bool rr_body_solids_are_boxes(const RRScene *scene)
 }
 
 /* --- RigidBody ------------------------------------------------------------------------
- * A RigidBody2D is moved here: it falls, bounces and rubs by itself. It does not turn:
- * there is no angular
- * velocity, and bodies do not push each other; they collide with static bodies and tile
- * maps only. A RigidBody3D is a body of the physics engine (rr_physics.c), which turns it
- * and lets bodies push each other; the functions here pass on to it. */
+ * Rigid bodies are bodies of a physics engine: a RigidBody3D of picophysics (rr_physics.c),
+ * a RigidBody2D of Box2D (rr_physics2d.c). The functions here pass on to the one or the
+ * other. */
 
 static RRRigidState *rigid_state(const Node *body)
 {
@@ -683,17 +650,19 @@ static RRRigidState *rigid_state(const Node *body)
     return NULL;
 }
 
+static bool is_2d(const Node *body)
+{
+    return ((const RRPkgBodyNode *)body->data)->two_d != 0;
+}
+
 void rr_rigid_body_init(RRScene *scene, Node *body)
 {
     RRRigidState *state = &scene->rigids[scene->rigid_count++];
 
+    /* The body in the engine is made when the whole scene is there
+     * (rr_rigid_bodies_ready): its shapes are its children, which are made after it. */
     memset(state, 0, sizeof(*state));
     state->node = (uint16_t)(body - scene->nodes);
-    /* A RigidBody3D gets its body when the whole scene is there (rr_rigid_bodies_ready):
-     * its shapes are its children, which are made after it. */
-    if (((const RRPkgBodyNode *)body->data)->two_d) {
-        rr_rigid_body_reset(body);
-    }
 }
 
 void rr_rigid_bodies_ready(RRScene *scene)
@@ -701,9 +670,12 @@ void rr_rigid_bodies_ready(RRScene *scene)
     uint32_t i;
 
     rr_physics_begin(scene);
+    rr_physics2d_begin(scene);
     for (i = 0; i < scene->rigid_count; i++) {
         Node *body = &scene->nodes[scene->rigids[i].node];
-        if (!((const RRPkgBodyNode *)body->data)->two_d) {
+        if (is_2d(body)) {
+            rr_physics2d_body_init(scene, body, &scene->rigids[i]);
+        } else {
             rr_physics_body_init(scene, body, &scene->rigids[i]);
         }
     }
@@ -711,78 +683,54 @@ void rr_rigid_bodies_ready(RRScene *scene)
 
 void rr_rigid_body_reset(Node *body)
 {
-    const RRPkgBodyNode *data = (const RRPkgBodyNode *)body->data;
-    RRRigidState        *state = rigid_state(body);
-    int                  a;
+    RRRigidState *state = rigid_state(body);
 
-    if (!data->two_d) {
-        rr_physics_body_reset(body, state);
+    if (state == NULL) {
         return;
     }
-    for (a = 0; a < 3; a++) {
-        state->velocity[a] = data->velocity[a];
+    if (is_2d(body)) {
+        rr_physics2d_body_reset(body, state);
+    } else {
+        rr_physics_body_reset(body, state);
     }
 }
 
 void rr_rigid_bodies_update(RRScene *scene, float dt)
 {
-    uint32_t i;
-    int      a;
-
     /* A long frame must not carry a body through a wall. */
     if (dt > 1.0f / 20.0f) {
         dt = 1.0f / 20.0f;
     }
-    /* The 2D bodies are moved here, without turning. */
-    for (i = 0; i < scene->rigid_count; i++) {
-        RRRigidState        *state = &scene->rigids[i];
-        Node                *body = &scene->nodes[state->node];
-        const RRPkgBodyNode *data = (const RRPkgBodyNode *)body->data;
-        const float          keep = 1.0f - data->linear_damp * dt;
-
-        if (!data->two_d || (body->flags & RR_NODE_FLAG_FREE)) {
-            continue;
-        }
-        for (a = 0; a < 3; a++) {
-            state->velocity[a] = (state->velocity[a] + data->gravity[a] * dt) * (keep > 0.0f ? keep : 0.0f);
-        }
-        move_and_collide(body, state->velocity, dt, false);
-    }
-    /* The 3D bodies are the physics engine's. */
     rr_physics_step(scene, dt);
-}
-
-/* True for a body that the physics engine moves: a RigidBody3D. */
-static bool in_engine(const Node *body, const RRRigidState *state)
-{
-    return state != NULL && !((const RRPkgBodyNode *)body->data)->two_d;
+    rr_physics2d_step(scene, dt);
 }
 
 void rr_rigid_body_get_linear_velocity(const Node *body, float *out)
 {
     const RRRigidState *state = rigid_state(body);
-    int                 a;
 
-    if (in_engine(body, state)) {
-        rr_physics_get_velocity(state, out, NULL);
+    out[0] = out[1] = out[2] = 0.0f;
+    if (state == NULL) {
         return;
     }
-    for (a = 0; a < 3; a++) {
-        out[a] = state != NULL ? state->velocity[a] : 0.0f;
+    if (is_2d(body)) {
+        rr_physics2d_get_velocity(state, out, NULL);
+    } else {
+        rr_physics_get_velocity(state, out, NULL);
     }
 }
 
 void rr_rigid_body_set_linear_velocity(Node *body, const float *velocity)
 {
     RRRigidState *state = rigid_state(body);
-    int           a;
 
-    if (in_engine(body, state)) {
-        rr_physics_set_velocity(state, velocity, NULL);
+    if (state == NULL) {
         return;
     }
-    for (a = 0; state != NULL && a < 3; a++) {
-        state->velocity[a] = velocity[a];
+    if (is_2d(body)) {
+        rr_physics2d_set_velocity(state, velocity, NULL);
+    } else {
+        rr_physics_set_velocity(state, velocity, NULL);
     }
 }
 
@@ -791,7 +739,12 @@ void rr_rigid_body_get_angular_velocity(const Node *body, float *out)
     const RRRigidState *state = rigid_state(body);
 
     out[0] = out[1] = out[2] = 0.0f;
-    if (in_engine(body, state)) {
+    if (state == NULL) {
+        return;
+    }
+    if (is_2d(body)) {
+        rr_physics2d_get_velocity(state, NULL, out);
+    } else {
         rr_physics_get_velocity(state, NULL, out);
     }
 }
@@ -800,7 +753,12 @@ void rr_rigid_body_set_angular_velocity(Node *body, const float *velocity)
 {
     RRRigidState *state = rigid_state(body);
 
-    if (in_engine(body, state)) {
+    if (state == NULL) {
+        return;
+    }
+    if (is_2d(body)) {
+        rr_physics2d_set_velocity(state, NULL, velocity);
+    } else {
         rr_physics_set_velocity(state, NULL, velocity);
     }
 }
@@ -813,15 +771,14 @@ void rr_rigid_body_apply_impulse(Node *body, const float *impulse)
 void rr_rigid_body_apply_impulse_at(Node *body, const float *impulse, const float *position)
 {
     RRRigidState *state = rigid_state(body);
-    const float   mass = state != NULL ? ((const RRPkgBodyNode *)body->data)->mass : 1.0f;
-    int           a;
 
-    if (in_engine(body, state)) {
-        rr_physics_apply_impulse(state, impulse, position);
+    if (state == NULL) {
         return;
     }
-    for (a = 0; state != NULL && a < 3; a++) {
-        state->velocity[a] += impulse[a] / (mass > 0.0f ? mass : 1.0f);
+    if (is_2d(body)) {
+        rr_physics2d_apply_impulse(state, impulse, position);
+    } else {
+        rr_physics_apply_impulse(state, impulse, position);
     }
 }
 
@@ -860,7 +817,7 @@ static void move_and_slide(Node *body, float *velocity, float dt)
         const bool  was_on_floor = (flags_before & RR_NODE_FLAG_ON_FLOOR) != 0;
         const float up = data->two_d ? -1.0f : 1.0f;
 
-        move_and_collide(body, velocity, dt, true);
+        move_and_collide(body, velocity, dt);
         if (was_on_floor && !(body->flags & RR_NODE_FLAG_ON_FLOOR) && velocity[1] * up <= 0.0f && dt > 0.0f) {
             /* Godot's floor snap: a body that walked off the ground without jumping is
              * put back down if the ground is within reach (floor_snap_length, 0.1). This
@@ -869,7 +826,7 @@ static void move_and_slide(Node *body, float *velocity, float dt)
             const uint8_t flags = body->flags;
             float         down[3] = { 0.0f, -up * FLOOR_SNAP / dt, 0.0f };
 
-            move_and_collide(body, down, dt, true);
+            move_and_collide(body, down, dt);
             if (body->flags & RR_NODE_FLAG_ON_FLOOR) {
                 velocity[1] = 0.0f;
             } else {

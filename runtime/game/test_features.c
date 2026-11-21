@@ -799,3 +799,102 @@ COMPONENT_BEGIN(SkinTest, "SkinTest")
     EXPORT_NODE(tube)
     ON_UPDATE(skin_test_update)
 COMPONENT_END()
+
+/* --- Rigid2DTest: RigidBody2D nodes in scenes/tests/rigid2d_test.tscn ------------------ */
+
+typedef struct {
+    Node *box;                         /* exported: dropped at an angle */
+    Node *stack_a, *stack_b, *stack_c; /* exported: become a stack */
+    Node *ball;                        /* exported: bounces */
+    Node *ghost;                       /* exported: its mask misses the floor */
+    Node *riser;                       /* exported: up through the one-way ledge */
+    Node *slider;                      /* exported: gets a push */
+    Node *tile_box, *tile_riser;       /* exported: on the tiles */
+
+    int   frame, failed;
+    bool  ball_fell, ball_rose;
+    float pushed; /* the slider's speed right after the push */
+} Rigid2DTest;
+
+static void rigid2d_check(Rigid2DTest *t, bool ok, const char *what)
+{
+    if (!ok) {
+        printf("rigid2d: FAILED: %s\n", what);
+        t->failed++;
+    }
+}
+
+static bool rigid2d_at(const Node *node, float x, float y)
+{
+    return fabsf(node->local.m[9] - x) < 2.0f && fabsf(node->local.m[10] - y) < 1.5f;
+}
+
+/* The same as tools/rigid2d_reference.gd does in Godot. */
+static void rigid2d_test_update(Node *self, Rigid2DTest *t, float dt)
+{
+    float v[3];
+
+    (void)self;
+    (void)dt;
+    rr_rigid_body_get_linear_velocity(t->ball, v);
+    t->ball_fell = t->ball_fell || v[1] > 100.0f;
+    t->ball_rose = t->ball_rose || (t->ball_fell && v[1] < -50.0f);
+    if (t->frame == 30) {
+        const float push[3] = { -40.0f, 0.0f, 0.0f };
+        rr_rigid_body_apply_impulse(t->slider, push);
+        rr_rigid_body_get_linear_velocity(t->slider, v);
+        t->pushed = v[0];
+    }
+    if (t->frame == 300) {
+        const float *box = t->box->local.m;
+        /* How far the box is from lying on one of its four sides, in degrees. */
+        const float  turned = fmodf(fabsf(atan2f(box[1], box[0])) * 57.29578f + 45.0f, 90.0f) - 45.0f;
+        float        normal[3] = { 0.0f, 0.0f, 0.0f };
+
+        if (rr_rigid_body_get_contact_count(t->box) > 0) {
+            rr_rigid_body_get_contact_normal(t->box, 0, normal);
+        }
+        rigid2d_check(t, rigid2d_at(t->box, box[9], 374.0f) && fabsf(turned) < 2.0f,
+                      "a box dropped at an angle comes to lie flat on the floor");
+        rigid2d_check(t, normal[1] < -0.9f, "a body that monitors its contacts is told of the floor below it");
+        rigid2d_check(t,
+                      rigid2d_at(t->stack_a, 200.0f, 374.0f) && rigid2d_at(t->stack_b, 200.0f, 342.0f) &&
+                          rigid2d_at(t->stack_c, 200.0f, 310.0f),
+                      "three boxes stack");
+        rigid2d_check(t, t->ball_rose && rigid2d_at(t->ball, 300.0f, 374.0f), "a ball bounces and comes to rest");
+        rigid2d_check(t, t->ghost->local.m[10] > 600.0f, "a body whose mask misses the floor falls through it");
+        rigid2d_check(t, rigid2d_at(t->riser, 480.0f, 279.0f), "up through a one-way shape and down onto it");
+        rigid2d_check(t, fabsf(t->pushed + 20.0f) < 0.5f, "an impulse of 40 gives a mass of 2 a speed of 20");
+        rigid2d_check(t,
+                      t->slider->local.m[9] < 550.0f && t->slider->local.m[9] > 450.0f &&
+                          t->slider->local.m[1] == 0.0f,
+                      "a pushed body slides without friction and, locked, does not turn");
+        rigid2d_check(t, rigid2d_at(t->tile_box, 835.0f, 352.0f), "a body lands on solid tiles");
+        rigid2d_check(t, rigid2d_at(t->tile_riser, 763.0f, 244.0f), "up through one-way tiles and down onto them");
+        printf("rigid2d: box %.0f turned %.0f stack %.0f %.0f %.0f ball %.0f ghost %s riser %.0f slider %.0f tiles "
+               "%.0f %.0f\n",
+               (double)box[10], (double)turned, (double)t->stack_a->local.m[10], (double)t->stack_b->local.m[10],
+               (double)t->stack_c->local.m[10], (double)t->ball->local.m[10],
+               t->ghost->local.m[10] > 600.0f ? "fell" : "held", (double)t->riser->local.m[10],
+               (double)t->slider->local.m[9], (double)t->tile_box->local.m[10], (double)t->tile_riser->local.m[10]);
+        if (t->failed == 0) {
+            printf("rigid2d: ok\n");
+        }
+        fflush(stdout);
+    }
+    t->frame++;
+}
+
+COMPONENT_BEGIN(Rigid2DTest, "Rigid2DTest")
+    EXPORT_NODE(box)
+    EXPORT_NODE(stack_a)
+    EXPORT_NODE(stack_b)
+    EXPORT_NODE(stack_c)
+    EXPORT_NODE(ball)
+    EXPORT_NODE(ghost)
+    EXPORT_NODE(riser)
+    EXPORT_NODE(slider)
+    EXPORT_NODE(tile_box)
+    EXPORT_NODE(tile_riser)
+    ON_UPDATE(rigid2d_test_update)
+COMPONENT_END()

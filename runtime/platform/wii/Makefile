@@ -47,7 +47,7 @@ ELF2DOL := $(DEVKITPRO)/tools/bin/elf2dol
 SRC := $(patsubst $(ROOT)/runtime/%,%,$(wildcard $(ROOT)/runtime/core/*.c $(ROOT)/runtime/game/*.c)) \
        main.c platform/wii/wii_system.c platform/wii/wii_gx.c
 OBJS := $(patsubst %.c,$(BUILD)/obj/%.o,$(SRC))
-HEADERS := $(wildcard $(ROOT)/runtime/core/*.h $(ROOT)/runtime/game/*.h $(ROOT)/runtime/platform/wii/*.h)
+HEADERS := $(wildcard $(ROOT)/runtime/core/*.h $(ROOT)/runtime/game/*.h $(ROOT)/runtime/platform/wii/*.h $(ROOT)/runtime/third_party/*/*.h)
 # The packages, and the music files that are streamed next to them.
 RPKS := $(wildcard $(PACKAGES)/*.rpk $(PACKAGES)/*.wav)
 
@@ -91,12 +91,22 @@ $(shell mkdir -p $(BUILD))
 $(file >$(FLAGS_FILE),$(CFLAGS))
 endif
 
-$(BUILD)/obj/%.o: $(ROOT)/runtime/%.c $(HEADERS) $(FLAGS_FILE)
+# Box2D, the engine behind RigidBody2D: it is C17 and has its own warnings, so it has a
+# rule of its own. Its SIMD paths are off, and it runs on the one thread of the runtime.
+BOX2D      := $(ROOT)/runtime/third_party/box2d
+BOX2D_OBJS := $(patsubst $(BOX2D)/src/%.c,$(BUILD)/box2d/%.o,$(wildcard $(BOX2D)/src/*.c))
+BOX2D_DEPS := $(wildcard $(BOX2D)/src/*.h $(BOX2D)/src/*.inl $(BOX2D)/include/box2d/*.h)
+
+$(BUILD)/box2d/%.o: $(BOX2D)/src/%.c $(BOX2D_DEPS)
+	@mkdir -p $(dir $@)
+	$(CC) $(MACHDEP) -isystem $(DEVKITPRO)/libogc/include -std=gnu17 -O2 -w -Wno-incompatible-pointer-types -DNDEBUG -DBOX2D_DISABLE_SIMD -I$(BOX2D)/include -I$(BOX2D)/src -c $< -o $@
+
+$(BUILD)/obj/%.o: $(ROOT)/runtime/%.c $(HEADERS) $(BOX2D_DEPS) $(FLAGS_FILE)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(OBJS)
-	$(CC) $(MACHDEP) -o $@ $(OBJS) -L$(LIBDIR) $(LIBS)
+$(TARGET): $(OBJS) $(BOX2D_OBJS)
+	$(CC) $(MACHDEP) -o $@ $(OBJS) $(BOX2D_OBJS) -L$(LIBDIR) $(LIBS)
 
 $(BUILD)/retro.dol: $(TARGET)
 	$(ELF2DOL) $< $@

@@ -89,7 +89,17 @@ $(shell mkdir -p $(BUILD))
 $(file >$(FLAGS_FILE),$(CFLAGS))
 endif
 
-$(BUILD)/obj/%.o: $(ROOT)/runtime/%.c $(HEADERS) $(FLAGS_FILE)
+# Box2D, the engine behind RigidBody2D: it is C17 and has its own warnings, so it has a
+# rule of its own. Its SIMD paths are off, and it runs on the one thread of the runtime.
+BOX2D      := $(ROOT)/runtime/third_party/box2d
+BOX2D_OBJS := $(patsubst $(BOX2D)/src/%.c,$(BUILD)/box2d/%.o,$(wildcard $(BOX2D)/src/*.c))
+BOX2D_DEPS := $(wildcard $(BOX2D)/src/*.h $(BOX2D)/src/*.inl $(BOX2D)/include/box2d/*.h)
+
+$(BUILD)/box2d/%.o: $(BOX2D)/src/%.c $(BOX2D_DEPS)
+	@mkdir -p $(dir $@)
+	kos-cc $(KOS_CFLAGS) -std=gnu17 -O2 -w -Wno-incompatible-pointer-types -DNDEBUG -DBOX2D_DISABLE_SIMD -I$(BOX2D)/include -I$(BOX2D)/src -c $< -o $@
+
+$(BUILD)/obj/%.o: $(ROOT)/runtime/%.c $(HEADERS) $(BOX2D_DEPS) $(FLAGS_FILE)
 	@mkdir -p $(dir $@)
 	kos-cc $(CFLAGS) -c $< -o $@
 
@@ -108,8 +118,8 @@ $(BUILD)/romdisk.o: $(RPKS)
 	@# leftover is harmless, so this must not fail the build.
 	-rm -f $(BUILD)/romdisk_tmp.c $(BUILD)/romdisk_tmp.o
 
-$(TARGET): $(OBJS) $(ROMDISK_OBJ)
-	kos-cc -o $@ $(OBJS) $(ROMDISK_OBJ) $(GFX_LIBS) -lwav -lm
+$(TARGET): $(OBJS) $(BOX2D_OBJS) $(ROMDISK_OBJ)
+	kos-cc -o $@ $(OBJS) $(BOX2D_OBJS) $(ROMDISK_OBJ) $(GFX_LIBS) -lwav -lm
 
 cdi: $(TARGET) $(RPKS)
 	@test -z "$(ROMDISK)" || { echo "a disc image needs the packages on the disc: build without ROMDISK=1"; exit 1; }

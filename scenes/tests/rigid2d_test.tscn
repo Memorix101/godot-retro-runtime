@@ -1,0 +1,207 @@
+[gd_scene format=4]
+
+[ext_resource type="Script" path="res://components/tests/rigid2d_test.gd" id="1_22dqb"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/tilemap_packed.png" id="2_xcgqw"]
+[ext_resource type="Texture2D" path="res://assets/kenney/pixel-platformer/characters/tile_0000.png" id="3_8cjh2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cnj2v"]
+size = Vector2(600, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0tlt3"]
+size = Vector2(80, 10)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_us5hu"]
+texture = ExtResource("2_xcgqw")
+texture_region_size = Vector2i(18, 18)
+2:0/0 = 0
+2:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+6:7/0 = 0
+6:7/0/physics_layer_0/polygon_0/points = PackedVector2Array(-9, -9, 9, -9, 9, 9, -9, 9)
+6:7/0/physics_layer_0/polygon_0/one_way = true
+
+[sub_resource type="TileSet" id="TileSet_y3cih"]
+tile_size = Vector2i(18, 18)
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_us5hu")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3ue84"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gmc4g"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n61gw"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hnfdm"]
+size = Vector2(32, 32)
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_crevq"]
+bounce = 0.6
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_y0iq8"]
+radius = 16.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fohp6"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0w7bt"]
+size = Vector2(32, 32)
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_k8cqw"]
+friction = 0.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dwloj"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cfrot"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lxrki"]
+size = Vector2(16, 16)
+
+[node name="Rigid2DTest" type="Node2D" unique_id=1253369297 node_paths=PackedStringArray("box", "stack_a", "stack_b", "stack_c", "ball", "ghost", "riser", "slider", "tile_box", "tile_riser")]
+texture_filter = 1
+script = ExtResource("1_22dqb")
+box = NodePath("Box")
+stack_a = NodePath("StackA")
+stack_b = NodePath("StackB")
+stack_c = NodePath("StackC")
+ball = NodePath("Ball")
+ghost = NodePath("Ghost")
+riser = NodePath("Riser")
+slider = NodePath("Slider")
+tile_box = NodePath("TileBox")
+tile_riser = NodePath("TileRiser")
+
+[node name="Floor" type="StaticBody2D" parent="." unique_id=1477990174]
+position = Vector2(300, 400)
+
+[node name="Shape" type="CollisionShape2D" parent="Floor" unique_id=534747769]
+shape = SubResource("RectangleShape2D_cnj2v")
+
+[node name="Look" type="ColorRect" parent="Floor" unique_id=124562347]
+offset_left = -300.0
+offset_top = -10.0
+offset_right = 300.0
+offset_bottom = 10.0
+color = Color(0.4, 0.5, 0.4, 1)
+
+[node name="Ledge" type="StaticBody2D" parent="." unique_id=2022484798]
+position = Vector2(480, 300)
+
+[node name="Shape" type="CollisionShape2D" parent="Ledge" unique_id=1658748898]
+shape = SubResource("RectangleShape2D_0tlt3")
+one_way_collision = true
+
+[node name="Look" type="ColorRect" parent="Ledge" unique_id=472138979]
+offset_left = -40.0
+offset_top = -5.0
+offset_right = 40.0
+offset_bottom = 5.0
+color = Color(0.9, 0.7, 0.2, 1)
+
+[node name="Tiles" type="TileMapLayer" parent="." unique_id=933431914]
+position = Vector2(700, 0)
+tile_map_data = PackedByteArray("AAAAABQAAAACAAAAAAABABQAAAACAAAAAAACABQAAAACAAAAAAADABQAAAACAAAAAAAEABQAAAACAAAAAAAFABQAAAACAAAAAAAGABQAAAACAAAAAAAHABQAAAACAAAAAAAIABQAAAACAAAAAAAJABQAAAACAAAAAAACAA4AAAAGAAcAAAADAA4AAAAGAAcAAAAEAA4AAAAGAAcAAAAFAA4AAAAGAAcAAAA=")
+tile_set = SubResource("TileSet_y3cih")
+
+[node name="Box" type="RigidBody2D" parent="." unique_id=1678449512]
+position = Vector2(100, 200)
+rotation = 0.3
+contact_monitor = true
+max_contacts_reported = 4
+
+[node name="Shape" type="CollisionShape2D" parent="Box" unique_id=1835735192]
+shape = SubResource("RectangleShape2D_3ue84")
+
+[node name="Look" type="Sprite2D" parent="Box" unique_id=2069534460]
+texture = ExtResource("3_8cjh2")
+
+[node name="StackA" type="RigidBody2D" parent="." unique_id=1017313454]
+position = Vector2(200, 370)
+
+[node name="Shape" type="CollisionShape2D" parent="StackA" unique_id=684918243]
+shape = SubResource("RectangleShape2D_gmc4g")
+
+[node name="Look" type="Sprite2D" parent="StackA" unique_id=31054934]
+texture = ExtResource("3_8cjh2")
+
+[node name="StackB" type="RigidBody2D" parent="." unique_id=1360120164]
+position = Vector2(200, 330)
+
+[node name="Shape" type="CollisionShape2D" parent="StackB" unique_id=858367693]
+shape = SubResource("RectangleShape2D_n61gw")
+
+[node name="Look" type="Sprite2D" parent="StackB" unique_id=111854762]
+texture = ExtResource("3_8cjh2")
+
+[node name="StackC" type="RigidBody2D" parent="." unique_id=1283909048]
+position = Vector2(200, 290)
+
+[node name="Shape" type="CollisionShape2D" parent="StackC" unique_id=1855337006]
+shape = SubResource("RectangleShape2D_hnfdm")
+
+[node name="Look" type="Sprite2D" parent="StackC" unique_id=746533067]
+texture = ExtResource("3_8cjh2")
+
+[node name="Ball" type="RigidBody2D" parent="." unique_id=82653388]
+position = Vector2(300, 100)
+physics_material_override = SubResource("PhysicsMaterial_crevq")
+
+[node name="Shape" type="CollisionShape2D" parent="Ball" unique_id=541136318]
+shape = SubResource("CircleShape2D_y0iq8")
+
+[node name="Look" type="Sprite2D" parent="Ball" unique_id=1940836616]
+texture = ExtResource("3_8cjh2")
+
+[node name="Ghost" type="RigidBody2D" parent="." unique_id=1637963117]
+position = Vector2(380, 200)
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="Ghost" unique_id=466556230]
+shape = SubResource("RectangleShape2D_fohp6")
+
+[node name="Look" type="Sprite2D" parent="Ghost" unique_id=571219523]
+texture = ExtResource("3_8cjh2")
+
+[node name="Riser" type="RigidBody2D" parent="." unique_id=432482481]
+position = Vector2(480, 360)
+linear_velocity = Vector2(0, -600)
+
+[node name="Shape" type="CollisionShape2D" parent="Riser" unique_id=2757413]
+shape = SubResource("RectangleShape2D_0w7bt")
+
+[node name="Look" type="Sprite2D" parent="Riser" unique_id=1325794087]
+texture = ExtResource("3_8cjh2")
+
+[node name="Slider" type="RigidBody2D" parent="." unique_id=1222776386]
+position = Vector2(560, 374)
+mass = 2.0
+physics_material_override = SubResource("PhysicsMaterial_k8cqw")
+lock_rotation = true
+
+[node name="Shape" type="CollisionShape2D" parent="Slider" unique_id=941455308]
+shape = SubResource("RectangleShape2D_dwloj")
+
+[node name="Look" type="Sprite2D" parent="Slider" unique_id=1167407208]
+texture = ExtResource("3_8cjh2")
+
+[node name="TileBox" type="RigidBody2D" parent="." unique_id=834642936]
+position = Vector2(835, 200)
+
+[node name="Shape" type="CollisionShape2D" parent="TileBox" unique_id=323713518]
+shape = SubResource("RectangleShape2D_cfrot")
+
+[node name="Look" type="Sprite2D" parent="TileBox" unique_id=1417718400]
+texture = ExtResource("3_8cjh2")
+
+[node name="TileRiser" type="RigidBody2D" parent="." unique_id=2083723752]
+position = Vector2(763, 330)
+linear_velocity = Vector2(0, -500)
+
+[node name="Shape" type="CollisionShape2D" parent="TileRiser" unique_id=1591046078]
+shape = SubResource("RectangleShape2D_lxrki")
+
+[node name="Look" type="Sprite2D" parent="TileRiser" unique_id=1556815661]
+texture = ExtResource("3_8cjh2")

@@ -72,9 +72,26 @@ EXPORT_DEPS := $(ADDON) $(wildcard components/*.gd components/tests/*.gd) projec
 
 all: $(RUNTIME) $(RPKDUMP)
 
-$(RUNTIME): $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(HEADERS) $(RAYLIB_LIB)
+# Box2D, the engine behind RigidBody2D, is built once into a library of its own: it is C17,
+# has its own warnings, and does not change. Its SIMD paths are off, as on the consoles,
+# so that the PC shows what the consoles do.
+BOX2D      := runtime/third_party/box2d
+BOX2D_SRC  := $(wildcard $(BOX2D)/src/*.c)
+BOX2D_OBJ  := $(patsubst $(BOX2D)/src/%.c,$(BUILD)/pc/box2d/%.o,$(BOX2D_SRC))
+BOX2D_LIB  := $(BUILD)/pc/libbox2d.a
+BOX2D_DEPS := $(wildcard $(BOX2D)/src/*.h $(BOX2D)/src/*.inl $(BOX2D)/include/box2d/*.h)
+
+$(BUILD)/pc/box2d/%.o: $(BOX2D)/src/%.c $(BOX2D_DEPS)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -I$(RAYLIB)/include -o $@ $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(RAYLIB_LIBS)
+	$(CC) -std=c17 -O2 -w -DNDEBUG -DBOX2D_DISABLE_SIMD -I$(BOX2D)/include -I$(BOX2D)/src -c -o $@ $<
+
+$(BOX2D_LIB): $(BOX2D_OBJ)
+	@rm -f $@
+	ar rcs $@ $(BOX2D_OBJ)
+
+$(RUNTIME): $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(HEADERS) $(RAYLIB_LIB) $(BOX2D_LIB) $(BOX2D_DEPS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -I$(RAYLIB)/include -o $@ $(CORE_SRC) $(GAME_SRC) $(PC_SRC) $(BOX2D_LIB) $(RAYLIB_LIBS)
 
 $(RAYLIB_LIB):
 	@echo "raylib is missing: $@ does not exist. Run 'make raylib' to download it," \
@@ -212,6 +229,14 @@ test: all $(BUILD)/pkg/pc/.exported
 	@grep -q "^grid: walker at " $(T)/grid.log && \
 	    test "$$(grep '^grid:' $(T)/grid.log | tr -d '\r')" = "$$(grep '^grid:' $(T)/grid_godot.log | tr -d '\r')" || \
 	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/grid.log $(T)/grid_godot.log; exit 1; }
+	@echo "== RigidBody2D: bodies fall, turn, stack, bounce and pass one-way platforms, and rest where Godot's rest"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/rigid2d_test.tscn
+	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/rigid2d_reference.gd > $(T)/rigid2d_godot.log
+	RR_MUTE=1 $(RUNTIME) rigid2d_test --data $(T)/pc --frames 305 > $(T)/rigid2d.log
+	@grep -q "^rigid2d: ok" $(T)/rigid2d.log && \
+	    test "$$(grep '^rigid2d: box' $(T)/rigid2d.log | tr -d '\r' | sed 's/-0 /0 /g')" = \
+	         "$$(grep '^rigid2d: box' $(T)/rigid2d_godot.log | tr -d '\r' | sed 's/-0 /0 /g')" || \
+	    { echo "FAIL: the runtime fails its checks or disagrees with Godot:"; cat $(T)/rigid2d.log $(T)/rigid2d_godot.log; exit 1; }
 	@echo "== ShapeCast: a sphere, box, capsule and circle touch where Godot's physics says"
 	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/cast_test.tscn
 	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/cast_reference.gd > $(T)/cast_godot.log

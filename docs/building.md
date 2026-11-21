@@ -15,6 +15,9 @@ the command line, package it, and look into a package.
   `apt install build-essential curl libgl-dev libx11-dev`), and raylib 6.0 as its own
   release for Linux (`raylib-6.0_linux_amd64.tar.gz`).
 - `make raylib` downloads the raylib release of the system into `third_party/`.
+- The two physics engines are in the repository (`runtime/third_party/`) and need nothing
+  installed. Box2D is 44 files of C17; every platform's Makefile compiles it once, with
+  its own flags, into the build folder (on the PC into `build/pc/libbox2d.a`).
 - Dreamcast: KallistiOS (the PVR backend was built against the master branch of July 2026),
   plus `mkdcdisc` for disc images, and the kos-port `libwav` (music streaming;
   `make install` in `kos-ports/libwav`). The GLdc port (`libGL`) is only needed for
@@ -235,7 +238,9 @@ runtime/platform/       pc/ (raylib), dreamcast/ (KallistiOS: dc_system.c, and d
                         GameCube: wii_system.c and wii_gx.c)
 runtime/game/           game components
 runtime/third_party/    code of others that is part of the runtime: picophysics, the
-                        physics engine behind RigidBody3D (runtime/core/rr_physics.c)
+                        physics engine behind RigidBody3D (runtime/core/rr_physics.c),
+                        and Box2D, the one behind RigidBody2D (rr_physics2d.c); each
+                        folder has a README that says where the code is from
 tools/                  rpkdump (C), make_test_assets.gd, make_platformer_2d.gd,
                         make_racing.gd (builds scenes/racing.tscn from track pieces),
                         make_island.gd (builds scenes/island.tscn, the terrain demo),

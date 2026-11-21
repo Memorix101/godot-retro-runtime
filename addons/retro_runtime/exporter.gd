@@ -871,13 +871,13 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 		# platforms.gd freezes rigid bodies for the export and notes what the scene had.
 		if node.get_meta(&"retro_frozen", node.freeze) or node.custom_integrator:
 			_fail(node, "freeze and a custom integrator are not supported")
-		if not is_3d and node.contact_monitor:
-			_fail(node, "contact monitoring is not supported for 2D bodies")
 		# The enum values are the same in 2D and 3D.
 		if node.linear_damp_mode != RigidBody3D.DAMP_MODE_COMBINE:
 			_fail(node, "linear damp mode must be Combine")
 		if is_3d:
 			_check_rigid_3d(node)
+		else:
+			_check_rigid_2d(node)
 	else:
 		material = node.physics_material_override
 		var moving := false
@@ -920,7 +920,7 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 	out.put_float(velocity.y)
 	out.put_float(velocity.z)
 
-	# What only a RigidBody3D has: it turns.
+	# How a rigid body turns, and what it reports of its contacts.
 	var angular_damp := 0.0
 	var angular_velocity := Vector3.ZERO
 	var lock := 0
@@ -934,8 +934,14 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 			lock |= 2
 		if node.lock_rotation or node.axis_lock_angular_z:
 			lock |= 4
-		if node.contact_monitor:
-			contacts = clampi(node.max_contacts_reported, 0, 8)
+	elif node is RigidBody2D:
+		# A 2D body turns around Z only.
+		angular_damp = ProjectSettings.get_setting("physics/2d/default_angular_damp") + node.angular_damp
+		angular_velocity = Vector3(0, 0, node.angular_velocity)
+		if node.lock_rotation:
+			lock = 4
+	if rigid and node.contact_monitor:
+		contacts = clampi(node.max_contacts_reported, 0, 8)
 	out.put_float(angular_damp)
 	out.put_float(angular_velocity.x)
 	out.put_float(angular_velocity.y)
@@ -972,6 +978,26 @@ func _check_rigid_3d(node: RigidBody3D) -> void:
 		_fail(node, "a RigidBody3D needs a CollisionShape3D with a box or a sphere")
 	elif shapes > 8:
 		_fail(node, "a RigidBody3D takes at most 8 shapes")
+
+
+## What the runtime's 2D rigid bodies (Box2D) cannot do, said at export time.
+func _check_rigid_2d(node: RigidBody2D) -> void:
+	if node.angular_damp_mode != RigidBody2D.DAMP_MODE_COMBINE:
+		_fail(node, "angular damp mode must be Combine")
+	if node.center_of_mass_mode != RigidBody2D.CENTER_OF_MASS_MODE_AUTO or node.inertia != 0.0:
+		_fail(node, "a custom centre of mass or inertia is not supported")
+	if node.constant_force != Vector2.ZERO or node.constant_torque != 0.0:
+		_fail(node, "constant forces are not supported")
+	if node.contact_monitor and node.max_contacts_reported > 8:
+		_fail(node, "at most 8 contacts can be reported (max_contacts_reported)")
+	if not node.scale.is_equal_approx(Vector2.ONE):
+		_fail(node, "a rigid body must not be scaled (scale its shapes and sprites)")
+	var shapes := 0
+	for child in node.get_children():
+		if child is CollisionShape2D and not child.disabled:
+			shapes += 1
+	if shapes == 0:
+		_fail(node, "a RigidBody2D needs a CollisionShape2D with a rectangle, a circle or a capsule")
 
 
 ## CollisionShape3D and CollisionShape2D. A 2D shape becomes a box that is half a unit
@@ -1041,9 +1067,10 @@ func _shape_data(node: Node, out: StreamPeerBuffer) -> void:
 	var one_way: bool = node is CollisionShape2D and node.one_way_collision
 	if one_way and (owner_type != NODE_STATIC_BODY or kind != SHAPE_BOX or not _is_axis_aligned(node)):
 		_fail(node, "one-way collision needs a RectangleShape2D below a StaticBody2D that is not rotated")
-	if moving and not _is_axis_aligned(node):
-		# What a body runs into may be rotated; the body itself may not.
-		_fail(node, "the shape of a CharacterBody or RigidBody must not be rotated, and neither may its parents")
+	if moving and not _is_axis_aligned(node) and not (node.get_parent() is RigidBody2D):
+		# What a body runs into may be rotated; the body itself may not, but for a
+		# RigidBody2D, which turns anyway.
+		_fail(node, "the shape of a CharacterBody or RigidBody3D must not be rotated, and neither may its parents")
 	out.put_u32(kind)
 	out.put_float(size.x)
 	out.put_float(size.y)

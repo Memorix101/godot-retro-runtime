@@ -46,6 +46,17 @@ void rr_physics_get_velocity(const RRRigidState *state, float *linear, float *an
 void rr_physics_set_velocity(RRRigidState *state, const float *linear, const float *angular);
 /* `offset`: where the push is, from the middle of the body, in the world; NULL for the middle. */
 void rr_physics_apply_impulse(RRRigidState *state, const float *impulse, const float *offset);
+/* Stands a node where `world` says, whatever its parents are. */
+void rr_node_set_world(Node *node, const RRMat34 *world);
+
+/* rr_physics2d.c: the RigidBody2D nodes, which Box2D moves. As the functions above. */
+void rr_physics2d_begin(const RRScene *scene);
+void rr_physics2d_body_init(RRScene *scene, Node *node, RRRigidState *state);
+void rr_physics2d_body_reset(Node *node, RRRigidState *state);
+void rr_physics2d_step(RRScene *scene, float dt);
+void rr_physics2d_get_velocity(const RRRigidState *state, float *linear, float *angular);
+void rr_physics2d_set_velocity(RRRigidState *state, const float *linear, const float *angular);
+void rr_physics2d_apply_impulse(RRRigidState *state, const float *impulse, const float *offset);
 bool rr_body_solids_are_boxes(const RRScene *scene); /* needs the world transforms */
 /* True if a box, sphere or capsule overlaps a solid: `normal` then points from the solid
  * towards it, and `depth` is how far the two overlap along it. */

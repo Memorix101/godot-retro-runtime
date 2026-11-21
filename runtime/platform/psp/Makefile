@@ -25,7 +25,7 @@ endif
 SRC := $(patsubst $(ROOT)/runtime/%,%,$(wildcard $(ROOT)/runtime/core/*.c $(ROOT)/runtime/game/*.c)) \
        main.c platform/psp/psp_system.c platform/psp/psp_gu.c
 OBJS := $(patsubst %.c,$(BUILD)/obj/%.o,$(SRC))
-HEADERS := $(wildcard $(ROOT)/runtime/core/*.h $(ROOT)/runtime/game/*.h $(ROOT)/runtime/platform/psp/*.h)
+HEADERS := $(wildcard $(ROOT)/runtime/core/*.h $(ROOT)/runtime/game/*.h $(ROOT)/runtime/platform/psp/*.h $(ROOT)/runtime/third_party/*/*.h)
 # The packages, and the music files that are streamed next to them.
 RPKS := $(wildcard $(PACKAGES)/*.rpk $(PACKAGES)/*.wav)
 
@@ -39,7 +39,8 @@ CFLAGS := -O2 -G0 -std=gnu11 -Wall -Wextra -Wdouble-promotion \
 # starts from the memory stick.
 LDFLAGS := -L$(PSPDEV)/psp/lib -L$(PSPSDK)/lib -specs=$(PSPSDK)/lib/prxspecs \
            -Wl,-q,-T$(PSPSDK)/lib/linkfile.prx -Wl,-zmax-page-size=128
-LIBS    := -lpspgu -lpspvram -lpspaudio -lpsputility -lm \
+# libatomic: Box2D counts its memory in a 64-bit atomic, which this CPU has no instruction for.
+LIBS    := -lpspgu -lpspvram -lpspaudio -lpsputility -lm -latomic \
            -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspnet -lpspnet_apctl
 
 # Test builds: INPUT_SCRIPT='60:ui_accept,90:accelerate:2000' compiles scripted input in
@@ -78,12 +79,22 @@ $(shell mkdir -p $(BUILD))
 $(file >$(FLAGS_FILE),$(CFLAGS))
 endif
 
-$(BUILD)/obj/%.o: $(ROOT)/runtime/%.c $(HEADERS) $(FLAGS_FILE)
+# Box2D, the engine behind RigidBody2D: it is C17 and has its own warnings, so it has a
+# rule of its own. Its SIMD paths are off, and it runs on the one thread of the runtime.
+BOX2D      := $(ROOT)/runtime/third_party/box2d
+BOX2D_OBJS := $(patsubst $(BOX2D)/src/%.c,$(BUILD)/box2d/%.o,$(wildcard $(BOX2D)/src/*.c))
+BOX2D_DEPS := $(wildcard $(BOX2D)/src/*.h $(BOX2D)/src/*.inl $(BOX2D)/include/box2d/*.h)
+
+$(BUILD)/box2d/%.o: $(BOX2D)/src/%.c $(BOX2D_DEPS)
+	@mkdir -p $(dir $@)
+	psp-gcc -G0 -I$(PSPDEV)/psp/include -I$(PSPSDK)/include -D_PSP_FW_VERSION=600 -std=gnu17 -O2 -w -Wno-incompatible-pointer-types -DNDEBUG -DBOX2D_DISABLE_SIMD -I$(BOX2D)/include -I$(BOX2D)/src -c $< -o $@
+
+$(BUILD)/obj/%.o: $(ROOT)/runtime/%.c $(HEADERS) $(BOX2D_DEPS) $(FLAGS_FILE)
 	@mkdir -p $(dir $@)
 	psp-gcc $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(OBJS)
-	psp-gcc $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(PSPSDK)/lib/prxexports.o $(LIBS)
+$(TARGET): $(OBJS) $(BOX2D_OBJS)
+	psp-gcc $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(BOX2D_OBJS) $(PSPSDK)/lib/prxexports.o $(LIBS)
 	psp-fixup-imports $@
 
 $(BUILD)/retro.prx: $(TARGET)

@@ -133,9 +133,13 @@ typedef struct {
 #define RR_MAX_CONTACTS 8
 typedef struct {
     uint16_t node;
-    float    velocity[3]; /* RigidBody2D: world units per second */
     /* RigidBody3D (rr_physics.c): */
     void    *body;        /* its body in the physics engine, NULL if it has none */
+    /* RigidBody2D (rr_physics2d.c): */
+    uint64_t body2d;      /* its body in the 2D physics engine, if has_body2d */
+    bool     has_body2d;
+    bool     off;         /* the body is out of the engine's world, as its node is out of the tree */
+    /* both: */
     RRMat34  placed;      /* where the engine put the node last; anything else is a move from outside */
     bool     synced;      /* the body has been put where the node is */
     uint8_t  contact_max, contact_count; /* contacts it reports, and how many the last step had */
@@ -492,9 +496,11 @@ bool rr_body_is_on_ceiling(const Node *body);
  * told what it touched in the last step: how many contacts, and for each the direction
  * out of what was touched, as get_contact_local_normal of Godot's PhysicsDirectBodyState3D.
  *
- * A RigidBody2D falls, bounces and rubs against static bodies and tile maps; it does not
- * turn and does not push other bodies, and the angular and contact functions do nothing
- * for it. */
+ * A RigidBody2D is moved by another physics engine (Box2D) in the same way. Its shapes
+ * are rectangles, circles and capsules; it meets static bodies, tile maps (one-way tiles
+ * and shapes as in Godot) and other rigid bodies. It turns around Z only: of an angular
+ * velocity the third float counts, in radians per second, clockwise on the screen as in
+ * Godot. Velocities are pixels per second. */
 void rr_rigid_body_get_linear_velocity(const Node *body, float *out);
 void rr_rigid_body_set_linear_velocity(Node *body, const float *velocity);
 void rr_rigid_body_get_angular_velocity(const Node *body, float *out);

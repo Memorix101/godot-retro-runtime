@@ -213,7 +213,7 @@ static void body_world(PPBody *body, RRMat34 *out)
 }
 
 /* Stands a node where `world` says, whatever its parents are. */
-static void node_set_world(Node *node, const RRMat34 *world)
+void rr_node_set_world(Node *node, const RRMat34 *world)
 {
     const float *p, *w = world->m;
     float        c[9], det, inv, d[3];
@@ -604,7 +604,7 @@ void rr_physics_step(RRScene *scene, float dt)
             continue;
         }
         body_world(body, &world);
-        node_set_world(node, &world);
+        rr_node_set_world(node, &world);
         state->placed = node->local;
     }
 }

@@ -39,7 +39,7 @@ something the runtime cannot handle is not exported; the message names the node.
 | `CanvasLayer`                 | holds the HUD: what is inside is drawn over everything outside, wherever it is in the tree; with a `Camera2D` in the scene, controls must be inside one |
 | `TileMapLayer`                | square tiles from one atlas (`TileSetAtlasSource`); tiles flipped and turned in the editor; animated tiles (frame durations, speed; mode Default); one physics layer whose rectangles become solid boxes, one-way or not; no other alternative tiles |
 | `RigidBody3D`                 | moved by a physics engine (picophysics): falls, turns, rubs, bounces, is kept out of static bodies (boxes, spheres, height maps) and pushes other rigid bodies; box and sphere shapes, up to 8, not rotated against the body; mass, physics material, gravity scale, linear and angular damp, start velocities, `lock_rotation` and the three angular axis locks, layers and masks, `contact_monitor` with `max_contacts_reported` up to 8 (asked from C); up to 64 in a scene; see "Collision" |
-| `RigidBody2D`                 | falls, bounces and rubs against static bodies and tile maps (gravity, mass, physics material, linear damp, start velocity); does not turn, bodies do not push each other |
+| `RigidBody2D`                 | moved by a physics engine (Box2D): falls, turns, rubs, bounces, stacks, is kept out of static bodies and tile maps (one-way shapes and tiles as in Godot) and pushes other rigid bodies; rectangle, circle and capsule shapes; mass, physics material, gravity scale, linear and angular damp, start velocities, `lock_rotation`, layers and masks, `contact_monitor` with `max_contacts_reported` up to 8 (asked from C); see "Collision" |
 | `Timer`                       | wait time, one-shot, autostart; emits `timeout`               |
 | `RayCast3D`, `RayCast2D`      | hits box and sphere shapes of bodies and areas, height maps, and tile maps; mask, areas/bodies, exclude parent; no `hit_from_inside` |
 | `ShapeCast3D`, `ShapeCast2D`  | moves a box, sphere or capsule (rectangle, circle, capsule) along its line and reports the first thing it touches: one result, with collider, point, normal and the safe and unsafe fraction (`rr_raycast_*`, `rr_shapecast_get_safe_fraction`, `rr_shapecast_get_unsafe_fraction`); no margin |
@@ -271,6 +271,29 @@ body that comes in fast may bounce a step's way before the surface. A rigid body
 not meet character bodies, capsules or tile maps, and areas do not report it. No joints,
 no sleeping, no continuous collision detection beyond what the engine does by itself.
 
-A `RigidBody2D` is moved the second way by the runtime itself, with gravity, bounce and
-friction. It does not turn and does not collide with other bodies.
+A `RigidBody2D` is a body of a physics engine too: Box2D, version 3
+(`runtime/third_party/box2d`, MIT licence). It is set up from the node in the same way:
+the rectangle, circle and capsule shapes below it, moved, turned or scaled as they are,
+its mass, physics material, gravity scale, linear and angular damp, start velocities,
+`lock_rotation`, layer and mask. Every `StaticBody2D` and every `TileMapLayer` with
+collision is a body of the engine that does not move by itself; one that something moves
+(an animation, a path, game code) is put where its node is before every step. Rigid
+bodies fall, turn, rub, bounce, stack and push each other, and come to rest (the engine
+puts resting bodies to sleep). Two materials are mixed as Godot mixes them: the smaller
+friction counts, the bounces add up. Layers and masks work as in Godot. A shape or a tile
+with one-way collision stops only what comes down onto it. The C functions are the same
+as for a `RigidBody3D`; of an angular velocity the third number counts, in radians per
+second.
+
+The engine wants bodies of 0.1 to 10 units, so the runtime scales the scene for it: 100
+pixels are one of its metres. Nothing of that shows outside; velocities and impulses are
+in pixels, as in Godot. Bodies smaller than about 10 pixels or larger than about 1000
+are outside of what the engine is made for.
+
+In `scenes/tests/rigid2d_test.tscn` the bodies come to rest where Godot's own physics
+puts them, to the pixel (`make test` compares the two). On the way there the two differ,
+as two physics engines do: a bounce is not the same height, a tumbling box does not turn
+the same way. A rigid body does not meet character bodies, and what areas report of a
+rigid body that has turned was not tested. No joints, no constant forces, no custom
+centre of mass.
 

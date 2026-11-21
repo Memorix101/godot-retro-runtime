@@ -24,6 +24,7 @@ COMPONENT_DECLARE(CanvasTest)
 COMPONENT_DECLARE(ScrollTest)
 COMPONENT_DECLARE(AnimTest)
 COMPONENT_DECLARE(GridTest)
+COMPONENT_DECLARE(Rigid2DTest)
 COMPONENT_DECLARE(CastTest)
 COMPONENT_DECLARE(SkinTest)
 COMPONENT_DECLARE(TestStats)
@@ -52,6 +53,7 @@ bool game_register_components(void)
            rr_component_register(&ScrollTest_component) &&
            rr_component_register(&AnimTest_component) &&
            rr_component_register(&GridTest_component) &&
+           rr_component_register(&Rigid2DTest_component) &&
            rr_component_register(&CastTest_component) &&
            rr_component_register(&SkinTest_component) &&
            rr_component_register(&TestStats_component) &&

@@ -201,11 +201,11 @@ origin), `u8 billboard`, `u8 pad`.
 Body (static, character and rigid): `u32 layer`, `u32 mask`, `u8 two_d`, `u8[3] pad`,
 `float bounce`, `float friction` (of the physics material; 0 and 1 without one), for
 rigid bodies `float[3] gravity` (the acceleration, with the body's gravity scale),
-`float mass`, `float linear_damp`, `float[3] velocity` (at the start), and for a
-`RigidBody3D`, which turns, `float angular_damp`, `float[3] angular_velocity` (at the
-start: axis times radians per second, in the directions of the world), `u8 lock_angular`
+`float mass`, `float linear_damp`, `float[3] velocity` (at the start), and, because a
+rigid body turns, `float angular_damp`, `float[3] angular_velocity` (at the
+start: axis times radians per second, in the directions of the world; a 2D body has Z only), `u8 lock_angular`
 (bit 0, 1, 2: the body does not turn around the world's X, Y, Z; `lock_rotation` is all
-three), `u8 contacts` (how many contacts it reports per step, from `contact_monitor` and
+three, and for a 2D body it is bit 2), `u8 contacts` (how many contacts it reports per step, from `contact_monitor` and
 `max_contacts_reported`; 0 for none), `u8[2] pad`. What a kind of body does not have is 0
 (mass 1). `two_d` tells where the floor is: below the body is -Y in 3D and +Y in 2D.
 
