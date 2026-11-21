@@ -47,6 +47,7 @@
 
 #define MAX_CHECKPOINTS 8
 #define WHEELS          4
+#define MAX_CRATES      6
 
 /* How hard it is to turn the car around its three axes, for a car of mass 1: pitching
  * (around the axis to its right), turning (around its up) and rolling (around its nose). */
@@ -84,6 +85,7 @@ typedef struct {
     float       downforce;    /* exported: press of the air per (m/s) squared, 1/m */
     float       gravity;      /* exported: what the car falls with, m/s2 */
     float       fall_limit;   /* exported: below this height the car is put back */
+    float       crate_size;   /* exported: edge of the crates in the group "crate", metres */
     Node       *model;        /* exported: shows more of an angle in a slide */
     Node       *wheel_fl;     /* exported: the four RayCast3D nodes, where the wheels are */
     Node       *wheel_fr;     /* exported */
@@ -99,7 +101,10 @@ typedef struct {
     int   act_gas, act_brake, act_left, act_right, act_reset, act_cancel;
     float forward[3], up[3];       /* the way the nose points and what is up for the car, unit length */
     float spin[3];                 /* how the car turns: axis times radians per second */
-    void *body;                    /* the car'"'"'s body in picophysics (a PPBody) */
+    void *body;                    /* the car's body in picophysics (a PPBody) */
+    Node *crates[MAX_CRATES];      /* the nodes in the group "crate", and their bodies */
+    void *crate_bodies[MAX_CRATES];
+    int   crate_count;
     float speed;                   /* along the nose, metres per second */
     float steering;                /* the stick, smoothed: -1 left .. 1 right */
     float slip;                    /* how far the tail slides out: the angle of the rear wheels to their way, radians */
@@ -210,7 +215,7 @@ static void kick(StuntCar *c, float *v, const float *right, const float *arm, co
 #ifndef M_PI
 #define M_PI 3.14159265358979323846 /* plain C11 has none */
 #endif
-#define PICOPHYSICS_MAX_OBJECTS   4
+#define PICOPHYSICS_MAX_OBJECTS   8
 #define PICOPHYSICS_MAX_TRIANGLES 256
 #define PICOPHYSICS_IMPLEMENTATION
 #include "../third_party/picophysics/picophysics.h"
@@ -228,6 +233,8 @@ static void kick(StuntCar *c, float *v, const float *right, const float *arm, co
 #define BODY_WIDTH  1.5f
 #define BODY_HEIGHT 0.5f
 #define BODY_LENGTH 2.8f
+/* A crate weighs this, where the car weighs 1. */
+#define CRATE_MASS 0.12f
 
 typedef struct {
     float v[3][3];
@@ -237,7 +244,8 @@ typedef struct {
 static TrackTriangle g_track[MAX_TRACK_TRIANGLES];
 static int           g_track_count;
 static bool          g_track_full; /* the warning about that was printed */
-static float         g_near_at[3];
+static float         g_near_at[1 + MAX_CRATES][3];
+static int           g_near_count;
 static bool          g_near_valid;
 
 /* One side of a box as two triangles that face `out`. picophysics' triangles stop only
@@ -350,39 +358,50 @@ static void track_collect(RRScene *scene)
     }
 }
 
-/* Hands picophysics the triangles near `pos`, if the ones it has are from too far away. */
-static void track_near(const float *pos)
+/* Hands picophysics the triangles near any of `count` places (the bodies), if the ones
+ * it has were picked for places too far from these. */
+static void track_near(float (*at)[3], int count)
 {
-    int i, k;
+    int  i, k, b;
+    bool stale = !g_near_valid || count != g_near_count;
 
-    if (g_near_valid) {
-        const float d[3] = { pos[0] - g_near_at[0], pos[1] - g_near_at[1], pos[2] - g_near_at[2] };
-        if (d[0] * d[0] + d[1] * d[1] + d[2] * d[2] < NEAR_STALE * NEAR_STALE) {
-            return;
-        }
+    for (b = 0; b < count && !stale; b++) {
+        const float d[3] = { at[b][0] - g_near_at[b][0], at[b][1] - g_near_at[b][1], at[b][2] - g_near_at[b][2] };
+        stale = d[0] * d[0] + d[1] * d[1] + d[2] * d[2] > NEAR_STALE * NEAR_STALE;
+    }
+    if (!stale) {
+        return;
     }
     tri_count = 0; /* picophysics has no call that drops its triangles and keeps its bodies */
     for (i = 0; i < g_track_count && tri_count < PICOPHYSICS_MAX_TRIANGLES; i++) {
         const TrackTriangle *t = &g_track[i];
         PPVec3               v[3];
         PPTriangle          *made;
-        bool                 far = false;
-        for (k = 0; k < 3; k++) {
-            far = far || t->lo[k] > pos[k] + NEAR_REACH || t->hi[k] < pos[k] - NEAR_REACH;
+        bool                 near = false;
+        for (b = 0; b < count && !near; b++) {
+            near = true;
+            for (k = 0; k < 3; k++) {
+                near = near && t->lo[k] <= at[b][k] + NEAR_REACH && t->hi[k] >= at[b][k] - NEAR_REACH;
+            }
         }
-        if (far) {
+        if (!near) {
             continue;
         }
         for (k = 0; k < 3; k++) {
             pp_vec3_set(&v[k], t->v[k][0], t->v[k][1], t->v[k][2]);
         }
-        made           = pp_physics_create_triangle(&v[0], &v[1], &v[2], 2);
-        made->friction = 0.08f;
+        made = pp_physics_create_triangle(&v[0], &v[1], &v[2], 2);
+        /* picophysics rubs with the product of the two frictions: this times the car's
+         * is next to nothing, this times a crate's is a crate that stays where it is put. */
+        made->friction = 0.5f;
         made->bounce   = 0.0f;
     }
-    for (k = 0; k < 3; k++) {
-        g_near_at[k] = pos[k];
+    for (b = 0; b < count; b++) {
+        for (k = 0; k < 3; k++) {
+            g_near_at[b][k] = at[b][k];
+        }
     }
+    g_near_count = count;
     g_near_valid = true;
 }
 
@@ -527,12 +546,38 @@ static void stunt_car_ready(Node *self, StuntCar *c)
         pp_vec3_set(&at, m[9], m[10], m[11]);
         body = pp_physics_create_box(BODY_WIDTH, BODY_HEIGHT, BODY_LENGTH, &at, 1.0f, 1);
         pp_body_set_bounce(body, 0.0f);
-        pp_body_set_friction(body, 0.08f);
+        pp_body_set_friction(body, 0.012f);
         pp_body_set_damping(body, 0.1f);
         pp_body_set_angular_damping(body, 0.05f);
         cross(c->forward, c->up, right);
         quat_of(right, c->up, c->forward, &body->rot);
         c->body = body;
+
+        /* Crates: every node in the group "crate" gets a body of its own, a light box
+         * that the car can ram and that falls, tumbles and stacks by picophysics alone.
+         * The node is stood where its body is; it must not have a parent that moves. */
+        n              = NULL;
+        c->crate_count = 0;
+        while (c->crate_count < MAX_CRATES && (n = rr_scene_find_tagged(self->scene, "crate", n)) != NULL) {
+            const float *w = n->world.m;
+            float        x[3], y[3], f[3];
+            PPBody      *crate;
+            for (k = 0; k < 3; k++) {
+                x[k] = w[k];
+                y[k] = w[3 + k];
+                f[k] = -w[6 + k];
+            }
+            pp_vec3_set(&at, w[9], w[10], w[11]);
+            crate = pp_physics_create_box(c->crate_size, c->crate_size, c->crate_size, &at, CRATE_MASS, 3);
+            pp_body_set_bounce(crate, 0.1f);
+            pp_body_set_friction(crate, 1.0f);
+            pp_body_set_damping(crate, 0.2f);
+            pp_body_set_angular_damping(crate, 0.6f);
+            quat_of(x, y, f, &crate->rot);
+            c->crates[c->crate_count]       = n;
+            c->crate_bodies[c->crate_count] = crate;
+            c->crate_count++;
+        }
     }
     show_time(c);
     show_info(c);
@@ -926,11 +971,47 @@ static void stunt_car_update(Node *self, StuntCar *c, float frame_dt)
      * its way, a rail, a wall, or the road when the car comes down on its side or roof. */
     pp_vec3_set(&body->vel, v[0], v[1], v[2]);
     pp_vec3_set(&body->a_vel, c->spin[0], c->spin[1], c->spin[2]);
-    track_near(pos);
+    {
+        /* The triangles are picked for the car and for every crate that is still there. */
+        float at[1 + MAX_CRATES][3];
+        int   count = 1;
+        memcpy(at[0], pos, sizeof(at[0]));
+        for (i = 0; i < c->crate_count; i++) {
+            const PPBody *crate = (const PPBody *)c->crate_bodies[i];
+            if (crate != NULL) {
+                memcpy(at[count++], crate->pos.xyz, sizeof(at[0]));
+            }
+        }
+        track_near(at, count);
+    }
     memcpy(g_body_up, c->up, sizeof(g_body_up));
     g_hit_ago += dt;
     pp_physics_step(dt, 6, 3);
     body_read(c, self, v, right);
+    for (i = 0; i < c->crate_count; i++) {
+        PPBody *crate = (PPBody *)c->crate_bodies[i];
+        PPVec3  x, y, z;
+        float  *m = c->crates[i]->local.m;
+        if (crate == NULL) {
+            continue;
+        }
+        if (crate->pos.y < c->fall_limit) {
+            /* Fallen off the world: the crate is gone until the scene is loaded again. */
+            pp_physics_destroy_body(crate);
+            c->crate_bodies[i] = NULL;
+            c->crates[i]->flags &= (uint8_t)~RR_NODE_FLAG_VISIBLE;
+            continue;
+        }
+        pp_body_get_right(crate, &x);
+        pp_body_get_up(crate, &y);
+        pp_body_get_forward(crate, &z);
+        for (k = 0; k < 3; k++) {
+            m[k]     = x.xyz[k];
+            m[3 + k] = y.xyz[k];
+            m[6 + k] = z.xyz[k];
+            m[9 + k] = crate->pos.xyz[k];
+        }
+    }
     pose_model(c);
     place_camera(c, pos, v, dt);
 
@@ -1002,6 +1083,7 @@ COMPONENT_BEGIN(StuntCar, "StuntCar")
     EXPORT_FLOAT(downforce)
     EXPORT_FLOAT(gravity)
     EXPORT_FLOAT(fall_limit)
+    EXPORT_FLOAT(crate_size)
     EXPORT_NODE(model)
     EXPORT_NODE(wheel_fl)
     EXPORT_NODE(wheel_fr)

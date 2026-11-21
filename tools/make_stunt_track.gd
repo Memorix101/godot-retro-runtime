@@ -37,6 +37,8 @@ const RAIL_HEIGHT := 0.7
 const PLAZA_WIDTH := 170.0
 const PLAZA_LENGTH := 170.0
 const PLAZA_BACK := 128.0
+## Edge of the crates beside the start, metres.
+const CRATE_SIZE := 1.2
 const RAIL_WIDTH := 0.35
 ## How far to the side a rail begins, and over how many metres it comes in to the edge.
 const RAIL_FLARE := 1.6
@@ -72,6 +74,7 @@ func _init() -> void:
 	_plain_material.vertex_color_use_as_albedo = true
 
 	_plaza()
+	_crates()
 	_mark()
 	var start := _course()
 	_build()
@@ -87,6 +90,26 @@ func _init() -> void:
 		print("wrote %s (%d m of road, %d checkpoints)" % [OUTPUT, int(_length), _checkpoints])
 	_root.free()
 	quit(0 if status == OK else 1)
+
+
+## Three crates beside the start, two on the square and one on top of them, for the car
+## to ram. Each is a node in the group "crate" with the kit's crate as its mesh, brought
+## to CRATE_SIZE; the car's component gives each a body (see runtime/game/stunt_car.c).
+func _crates() -> void:
+	var mesh: Mesh = load("res://assets/kenney/platformer-kit/crate.obj")
+	var box := mesh.get_aabb()
+	var fit := CRATE_SIZE / maxf(box.size.x, maxf(box.size.y, box.size.z))
+	var floor_y := -0.03 + CRATE_SIZE * 0.5
+	var places: Array[Vector3] = [Vector3(-7.5, floor_y, -22.0), Vector3(-7.5, floor_y, -23.3),
+			Vector3(-7.5, floor_y + CRATE_SIZE, -22.65)]
+	for i in places.size():
+		var crate := _add(_root, Node3D.new(), "Crate%d" % i) as Node3D
+		crate.add_to_group("crate", true)
+		crate.position = places[i]
+		var model := _add(crate, MeshInstance3D.new(), "Mesh") as MeshInstance3D
+		model.mesh = mesh
+		# The middle of the crate's mesh goes to the node, where the middle of its body is.
+		model.transform = Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * fit), -box.get_center() * fit)
 
 
 ## A wide square around the start, to try the car on before the course: room to turn,
@@ -500,6 +523,7 @@ func _player(start: Transform3D) -> void:
 	car.gravity = 24.5
 	car.model = model
 	car.fall_limit = -60.0
+	car.crate_size = CRATE_SIZE
 	car.wheel_fl = wheels[0]
 	car.wheel_fr = wheels[1]
 	car.wheel_rl = wheels[2]

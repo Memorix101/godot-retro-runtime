@@ -135,6 +135,11 @@ Godot, but running the tool again overwrites it.
 - The air presses a fast car onto the road, which with its speed is what holds it in the
   loop. The loop is turned a little against the road into it, so that a car that drives
   straight on is carried over to the loop's other end and comes out straight.
+- Beside the start stand three crates, two on the square and one on top of them. Every
+  node in the group "crate" gets a light box in picophysics as its body (a crate weighs
+  an eighth of the car), which the car can ram and which falls, tumbles and comes to
+  rest by the engine alone. A crate that falls off the square is gone until the scene is
+  loaded again.
 - At a rail the body is stopped and turned by picophysics, where the box meets it. Right
   after that the nose is brought round to where the car is going, so that it runs along
   the rail and does not go on pushing into it. A car that lies still without standing on
@@ -146,12 +151,15 @@ What was driven with the body in picophysics: with the gas alone the car goes do
 slope and through the loop to the first checkpoint, without turning by itself on the way
 (this is in `make test`), then scrapes round the banked turn along its outer rail at
 about 80 km/h, leaves the road after it, tumbles as it falls and is put back. A drift on
-the square at 100 km/h came out the same as before the change of body. Not driven with it:
+the square at 100 km/h came out the same as before the change of body. The crates stood
+still for three seconds (they crept a centimetre) and flew apart when the car drove into
+them at 50 km/h, which cost the car hardly any speed. Not driven with the new body:
 the jump, the hill, the S and the finish, and a landing on the roof. Those were driven by
 scripts only with earlier versions of the car, never in one run without a fall. How it
 feels with a pad in the hand only a person can say. In Flycast the scene runs at 60 fps
 from the start into the banked turn (game logic about 4 ms a frame, of which picophysics
-is some 0.3 ms; drawing about 3 ms); the rest was not measured there.
+is some 0.3 to 0.5 ms with the three crates standing; drawing about 3 ms). The rest was
+not measured there, and the crates were not rammed there.
 
 ## Racing demo
 

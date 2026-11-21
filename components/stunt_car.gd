@@ -46,6 +46,10 @@ extends Node3D
 @export var gravity: float = 24.5
 ## Below this height the car is put back at the last checkpoint.
 @export var fall_limit: float = -60.0
+## Edge of the crates, metres: every node in the group "crate" gets a light box of this
+## size as its body, which the car can ram. Such a node must be a child of the scene's
+## root (or of nodes that do not move), with its mesh as a child.
+@export var crate_size: float = 1.2
 ## The model of the car. It may have a scale.
 @export var model: Node3D
 ## The four RayCast3D nodes, one where each wheel is: front left, front right, rear left,
