@@ -2234,7 +2234,8 @@ func _music_asset(node: Node, stream: AudioStream) -> int:
 		_fail(node, "cannot decode '%s'" % stream.resource_path)
 		return 0
 	playback.start(0.0)
-	var pcm := _new_buffer()
+	# A WAV file is little-endian whatever the platform is.
+	var pcm := StreamPeerBuffer.new()
 	var left := 0.0
 	var right := 0.0
 	var held := 0
@@ -2257,7 +2258,7 @@ func _music_asset(node: Node, stream: AudioStream) -> int:
 				held = 0
 	playback.stop()
 	var rate := mix_rate / step
-	var wav := _new_buffer()
+	var wav := StreamPeerBuffer.new()
 	wav.put_data("RIFF".to_ascii_buffer())
 	wav.put_u32(36 + pcm.get_size())
 	wav.put_data("WAVEfmt ".to_ascii_buffer())

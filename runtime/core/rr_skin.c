@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "rr_internal.h"
+#include "rr_platform.h"
 
 #define MAX_BONES 256
 
@@ -77,6 +78,7 @@ void rr_skins_update(RRScene *scene)
         const uint16_t       *bones = (const uint16_t *)((const uint8_t *)skin + skin->bones_off);
         const RRMat34        *binds = (const RRMat34 *)((const uint8_t *)skin + skin->binds_off);
         const RRPkgInfluence *influence = (const RRPkgInfluence *)((const uint8_t *)skin + skin->influences_off);
+        const uint32_t        position = rr_vertex_position_offset(scene->pkg->header->platform);
         RRMat34               to_mesh, in_mesh;
 
         if (!rr_node_visible_in_tree(node)) {
@@ -90,11 +92,11 @@ void rr_skins_update(RRScene *scene)
             rr_mat34_mul(&matrices[b], &in_mesh, &binds[b]);
         }
         for (s = 0; s < rest->surface_count; s++) {
-            /* Both vertex layouts start with the position and are 24 bytes long. */
-            const uint8_t *from = (const uint8_t *)rr_surface_verts(rest, &rest->surfaces[s]);
-            uint8_t       *to = (uint8_t *)posed + rest->surfaces[s].verts_off;
+            const uint8_t *from = (const uint8_t *)rr_surface_verts(rest, &rest->surfaces[s]) + position;
+            uint8_t       *to = (uint8_t *)posed + rest->surfaces[s].verts_off + position;
 
-            for (v = 0; v < rest->surfaces[s].vertex_count; v++, influence++, from += 24, to += 24) {
+            for (v = 0; v < rest->surfaces[s].vertex_count;
+                 v++, influence++, from += RR_VERTEX_SIZE, to += RR_VERTEX_SIZE) {
                 const float *p = (const float *)(const void *)from;
                 float       *out = (float *)(void *)to;
                 float        x = 0.0f, y = 0.0f, z = 0.0f;
@@ -111,5 +113,6 @@ void rr_skins_update(RRScene *scene)
                 out[2] = z;
             }
         }
+        rr_gfx_mesh_changed(posed, scene->pkg->assets[d->mesh].size);
     }
 }

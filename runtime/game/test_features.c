@@ -187,7 +187,16 @@ static void feature_test_update(Node *self, FeatureTest *test, float dt)
     rr_audio_mix(test->speaker, &volume, &pan);
     check(test, near(volume, 1.0f) && near(pan, 1.0f), "AudioStreamPlayer3D volume and pan");
     rr_audio_mix(test->speaker_2d, &volume, &pan);
-    check(test, near(volume, 0.5f) && near(pan, 0.5f), "AudioStreamPlayer2D volume and pan");
+    {
+        /* The listener is the middle of the screen, which is not as wide on every
+         * platform: on one of 640 pixels both values are 0.5. */
+        const RRPkgAudioNode *a = (const RRPkgAudioNode *)test->speaker_2d->data;
+        const float           half = (float)RR_SCREEN_WIDTH * 0.5f;
+        const float           dx = test->speaker_2d->world.m[9] - half;
+        check(test, near(test->speaker_2d->world.m[10], (float)RR_SCREEN_HEIGHT * 0.5f) &&
+                        near(volume, 1.0f - fabsf(dx) / a->max_distance) && near(pan, dx / half),
+              "AudioStreamPlayer2D volume and pan");
+    }
     check(test, test->beep_finished && !rr_audio_is_playing(test->beep), "finished signal");
     check(test, rr_audio_is_playing(test->music), "music plays");
     {
@@ -739,22 +748,24 @@ typedef struct {
 /* Where the vertex of a posed mesh is that is nearest to `probe` in the mesh at rest. */
 static void skin_test_vertex(const RRPkgMesh *rest, const RRPkgMesh *posed, const float *probe, float *out)
 {
-    float    best = 1.0e30f;
-    uint32_t s, v;
-    int      a;
+    const uint32_t position = rr_vertex_position_offset(rr_plat_id());
+    float          best = 1.0e30f;
+    uint32_t       s, v;
+    int            a;
 
     for (s = 0; s < rest->surface_count; s++) {
-        const RRVertexPC *from = (const RRVertexPC *)rr_surface_verts(rest, &rest->surfaces[s]);
-        const RRVertexPC *to = (const RRVertexPC *)rr_surface_verts(posed, &posed->surfaces[s]);
-        for (v = 0; v < rest->surfaces[s].vertex_count; v++) {
-            float d = 0.0f;
+        const uint8_t *from = (const uint8_t *)rr_surface_verts(rest, &rest->surfaces[s]) + position;
+        const uint8_t *to = (const uint8_t *)rr_surface_verts(posed, &posed->surfaces[s]) + position;
+        for (v = 0; v < rest->surfaces[s].vertex_count; v++, from += RR_VERTEX_SIZE, to += RR_VERTEX_SIZE) {
+            const float *p = (const float *)(const void *)from, *q = (const float *)(const void *)to;
+            float        d = 0.0f;
             for (a = 0; a < 3; a++) {
-                d += (from[v].pos[a] - probe[a]) * (from[v].pos[a] - probe[a]);
+                d += (p[a] - probe[a]) * (p[a] - probe[a]);
             }
             if (d < best) {
                 best = d;
                 for (a = 0; a < 3; a++) {
-                    out[a] = to[v].pos[a];
+                    out[a] = q[a];
                 }
             }
         }

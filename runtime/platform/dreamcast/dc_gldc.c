@@ -164,6 +164,12 @@ void rr_gfx_draw_mesh(const RRPkgMesh *mesh, const RRMat34 *world, const uint32_
     glPopMatrix();
 }
 
+void rr_gfx_mesh_changed(const RRPkgMesh *mesh, uint32_t size)
+{
+    (void)mesh;
+    (void)size;
+}
+
 void rr_gfx_draw_sky(uint32_t texture, const float *xyz, const float *uv)
 {
     static const int  order[4] = { 0, 1, 3, 2 }; /* as a strip, see rr_gfx_draw_quad_3d */

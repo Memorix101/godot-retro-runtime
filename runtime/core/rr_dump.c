@@ -16,7 +16,9 @@ static const char *const g_blend_names[] = { "opaque", "punch-through", "translu
 static const char *const g_align_names[] = { "begin", "center", "end" };
 static const char *const g_wrap_names[] = { "off", "arbitrary", "word", "word-smart" };
 static const char *const g_bind_names[] = { "", "key", "button", "axis" };
-static const char *const g_texture_formats[] = { "", "rgba8888", "rgb565", "argb1555", "argb4444" };
+static const char *const g_texture_formats[] = { "", "rgba8888", "rgb565", "argb1555", "argb4444",
+                                                 "bgr565", "abgr1555", "abgr4444",
+                                                 "gx-rgb565", "gx-rgb5a3", "gx-ia8" };
 static const char *const g_sound_formats[] = { "", "pcm16", "adpcm" };
 
 /* Rounds to three decimals and avoids printing "-0.000". */

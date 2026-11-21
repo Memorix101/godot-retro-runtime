@@ -66,6 +66,8 @@ _Static_assert(sizeof(RRPkgGlyph) == 20, "glyph layout");
 _Static_assert(sizeof(RRPkgSound) == 16, "sound layout");
 _Static_assert(sizeof(RRVertexPC) == 24, "PC vertex layout");
 _Static_assert(sizeof(RRVertexDC) == 24, "Dreamcast vertex layout");
+_Static_assert(sizeof(RRVertexPSP) == 24 && offsetof(RRVertexPSP, pos) == 12, "PSP vertex layout");
+_Static_assert(sizeof(RRVertexWii) == 24, "Wii vertex layout");
 
 static char g_error[256];
 
@@ -105,8 +107,15 @@ static uint32_t vertex_size(uint8_t platform)
     switch (platform) {
     case RR_PLATFORM_PC:        return sizeof(RRVertexPC);
     case RR_PLATFORM_DREAMCAST: return sizeof(RRVertexDC);
+    case RR_PLATFORM_PSP:       return sizeof(RRVertexPSP);
+    case RR_PLATFORM_WII:       return sizeof(RRVertexWii);
     default:                    return 0;
     }
+}
+
+uint32_t rr_vertex_position_offset(uint8_t platform)
+{
+    return platform == RR_PLATFORM_PSP ? (uint32_t)offsetof(RRVertexPSP, pos) : 0u;
 }
 
 /* Size of the type-specific data of a node type, 0 if the type has none. */
@@ -238,7 +247,7 @@ static bool check_texture(const RRPackage *pkg, uint32_t index)
         return corrupt_asset(index, "texture header");
     }
     bpp = t->format == RR_TEX_RGBA8888 ? 4u : 2u;
-    if (t->format < RR_TEX_RGBA8888 || t->format > RR_TEX_ARGB4444 ||
+    if (t->format < RR_TEX_RGBA8888 || t->format > RR_TEX_GX_IA8 ||
         t->filter > RR_FILTER_NEAREST || t->width == 0 ||
         t->height == 0 || t->content_width > t->width || t->content_height > t->height ||
         (uint64_t)sizeof(RRPkgTexture) + (uint64_t)t->width * t->height * bpp > a->size) {

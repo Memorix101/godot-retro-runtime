@@ -5,9 +5,14 @@
 
 #include "rr_package.h"
 
-/* All current targets render at this size; the exporter bakes UI rectangles for it. */
+/* The size of the screen in the units the game counts in: the exporter bakes UI rectangles
+ * for it (screen_size() of the platform's baker), and 2D positions are in these pixels. A
+ * platform whose screen has another shape sets both on its compiler's command line; its
+ * graphics layer scales to the pixels the screen really has. */
+#ifndef RR_SCREEN_WIDTH
 #define RR_SCREEN_WIDTH  640
 #define RR_SCREEN_HEIGHT 480
+#endif
 
 /* The platform id this build loads packages for (RR_PLATFORM_*). */
 uint8_t rr_plat_id(void);
@@ -16,6 +21,9 @@ uint8_t rr_plat_id(void);
  * it cannot tell. */
 const char *rr_plat_locale(void);
 
+/* Called first thing in main, before any file is read: a platform whose files are on a
+ * card that has to be mounted does that here. */
+void  rr_plat_boot(void);
 bool  rr_plat_init(const char *title);
 void  rr_plat_shutdown(void);
 bool  rr_plat_should_quit(void);
@@ -63,6 +71,10 @@ void rr_gfx_set_fog(const RRPkgEnvironmentNode *environment);
 void rr_gfx_draw_sky(uint32_t texture, const float *xyz, const float *uv);
 /* `textures` maps asset indices to texture handles, for the surfaces that have one. */
 void rr_gfx_draw_mesh(const RRPkgMesh *mesh, const RRMat34 *world, const uint32_t *textures);
+/* The vertices of a mesh (`size` bytes, a copy the core keeps for a skin) were written to
+ * since it was last drawn. For hardware that reads vertices from memory behind the back of
+ * the processor's cache; the others do nothing. */
+void rr_gfx_mesh_changed(const RRPkgMesh *mesh, uint32_t size);
 /* One translucent quad in world space, for particles. Corners as x,y,z triples: top left,
  * top right, bottom right, bottom left; `uv` and `rgba` as for rr_gfx_draw_quad. Call it
  * after all rr_gfx_draw_mesh calls of the frame and before rr_gfx_begin_2d. */

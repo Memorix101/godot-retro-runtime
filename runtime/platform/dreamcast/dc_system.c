@@ -34,6 +34,10 @@ uint8_t rr_plat_id(void)
     return RR_PLATFORM_DREAMCAST;
 }
 
+void rr_plat_boot(void)
+{
+}
+
 bool rr_plat_init(const char *title)
 {
     (void)title;

@@ -556,6 +556,12 @@ void rr_gfx_draw_mesh(const RRPkgMesh *mesh, const RRMat34 *world, const uint32_
     }
 }
 
+void rr_gfx_mesh_changed(const RRPkgMesh *mesh, uint32_t size)
+{
+    (void)mesh;
+    (void)size;
+}
+
 /* A quad in world space: corners and `uv` as in rr_gfx_draw_quad_3d. */
 static void draw_world_quad(List *list, const float *xyz, const float *uv, uint32_t argb,
                             float depth_scale)

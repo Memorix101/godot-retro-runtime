@@ -26,6 +26,10 @@ uint8_t rr_plat_id(void)
     return RR_PLATFORM_PC;
 }
 
+void rr_plat_boot(void)
+{
+}
+
 bool rr_plat_init(const char *title)
 {
     SetTraceLogLevel(LOG_WARNING);
@@ -281,6 +285,12 @@ void rr_gfx_draw_mesh(const RRPkgMesh *mesh, const RRMat34 *world, const uint32_
             draw_surface(mesh, surf, world, textures);
         }
     }
+}
+
+void rr_gfx_mesh_changed(const RRPkgMesh *mesh, uint32_t size)
+{
+    (void)mesh;
+    (void)size;
 }
 
 /* Draws the translucent surfaces that were held back. Called when the meshes of the

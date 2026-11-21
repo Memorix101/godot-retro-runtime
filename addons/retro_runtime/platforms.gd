@@ -17,6 +17,8 @@ const PARALLAX_META := &"retro_parallax"
 const BAKERS := {
 	"pc": preload("bakers/pc_baker.gd"),
 	"dreamcast": preload("bakers/dreamcast_baker.gd"),
+	"psp": preload("bakers/psp_baker.gd"),
+	"wii": preload("bakers/wii_baker.gd"),
 }
 
 

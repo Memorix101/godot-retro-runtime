@@ -27,7 +27,7 @@ is the file name of the `.tscn` without its extension.
 | Offset | Type    | Field        | Meaning                                         |
 |-------:|---------|--------------|-------------------------------------------------|
 | 0      | char[4] | `magic`      | `"RPKG"`                                        |
-| 4      | u8      | `platform`   | 1 PC, 2 Dreamcast, 3 PSP, 4 Wii                 |
+| 4      | u8      | `platform`   | 1 PC, 2 Dreamcast, 3 PSP, 4 Wii and GameCube    |
 | 5      | u8      | `big_endian` | 0 little-endian, 1 big-endian                   |
 | 6      | u16     | `version`    | format version, currently 27                     |
 | 8      | u32     | `file_size`  | size of the whole file in bytes                 |
@@ -524,6 +524,8 @@ Codes per platform:
 |-----------|--------------|-------------------------|--------------------------------------------------|
 | PC        | raylib key   | raylib `GamepadButton`  | raylib `GamepadAxis`                             |
 | Dreamcast | not present  | KallistiOS `CONT_*` mask | 0 stick X, 1 stick Y, 2 left trigger, 3 right trigger |
+| PSP       | not present  | PSP SDK `PSP_CTRL_*` mask | 0 stick X, 1 stick Y, 2 the L button, 3 the R button |
+| Wii       | not present  | libogc `PAD_BUTTON_*` mask (a GameCube pad) | 0 stick X, 1 stick Y, 2 left trigger, 3 right trigger |
 
 Events for inputs a platform does not have are left out by the baker.
 
@@ -579,7 +581,12 @@ Vertex layout, PC (24 bytes): `float[3] position`, `float[2] uv`, `u8[4] r, g, b
 Vertex layout, Dreamcast (24 bytes): `float[3] position`, `float[2] uv`, `u32` colour as
 `0xAARRGGBB` (PVR packed colour).
 
-PSP and Wii layouts are defined when their bakers are written.
+Vertex layout, PSP (24 bytes): `float[2] uv`, `u8[4] r, g, b, a`, `float[3] position`, the
+order the PSP's graphics chip reads a vertex in. Code that works on any platform finds the
+position with `rr_vertex_position_offset()`.
+
+Vertex layout, Wii and GameCube (24 bytes): `float[3] position`, `u32` colour as
+`0xRRGGBBAA`, `float[2] uv`.
 
 ### Texture asset
 
@@ -600,11 +607,20 @@ PSP and Wii layouts are defined when their bakers are written.
 | 2     | RGB565   | Dreamcast | u16, for images without alpha                 |
 | 3     | ARGB1555 | Dreamcast | u16, for images whose alpha is fully on or off |
 | 4     | ARGB4444 | Dreamcast | u16, for everything else                      |
+| 5     | BGR565   | PSP       | u16 with red in the low bits, for images without alpha |
+| 6     | ABGR1555 | PSP       | u16, for images whose alpha is fully on or off |
+| 7     | ABGR4444 | PSP       | u16, for everything else                      |
+| 8     | GX RGB565 | Wii      | u16, for images without alpha                 |
+| 9     | GX RGB5A3 | Wii      | u16: top bit set, 5 bits a colour; or 3 bits of alpha and 4 bits a colour |
+| 10    | GX IA8   | Wii       | u16: alpha in the high byte, grey in the low one; for grey images with alpha |
 
 On the PC the stored size is the image size. On the Dreamcast it is the next power of two
 (at least 8, at most 1024); the image sits in the top left corner and its last row and column
 are repeated into the padding. Texture coordinates of the image run from 0 to
-`content / stored`. Dreamcast textures are stored row by row, not twiddled.
+`content / stored`. Dreamcast textures are stored row by row, not twiddled. The PSP stores
+its textures the same way, with at most 512 pixels a side; its runtime swizzles them when
+they are loaded. The Wii's textures are padded the same way (at most 1024) but stored in
+blocks of 4 x 4 pixels: block after block in rows, and inside a block row after row.
 
 The filter belongs to the texture asset. An image that is used with both filters is stored
 twice. There are no mipmaps.
@@ -732,7 +748,8 @@ mesh asset per mesh node with a skin and writes the positions into it once per f
 ### Music asset
 
 Music is not stored in the package. The exporter writes it as a WAV file (16-bit PCM,
-stereo, 44100 Hz for the PC and 22050 Hz for the Dreamcast) into the directory of the
+stereo, 44100 Hz for the PC, the PSP and the Wii and 22050 Hz for the Dreamcast;
+little-endian on every platform, as WAV files are) into the directory of the
 package, and the runtime streams it from there.
 
 ```
@@ -778,8 +795,8 @@ up direction of a 3D curve at that point, +Y if the curve has none).
 |-------:|------|----------------|----------------------------------------|
 | 0      | u32  | `sample_rate`  | in Hz                                  |
 | 4      | u32  | `sample_count` |                                        |
-| 8      | u8   | `format`       | 1 PCM16 (PC), 2 Yamaha 4-bit ADPCM (Dreamcast) |
-| 9      | u8   | `channels`     | 1 (mono only so far)                   |
+| 8      | u8   | `format`       | 1 PCM16 (PC, PSP, Wii), 2 Yamaha 4-bit ADPCM (Dreamcast) |
+| 9      | u8   | `channels`     | 1 or 2                                 |
 | 10     | u16  | `pad`          | 0                                      |
 | 12     | u32  | `data_size`    | bytes of sample data that follow       |
 

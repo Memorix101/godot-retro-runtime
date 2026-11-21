@@ -32,11 +32,15 @@ grow_vertical = 2
 texture = ExtResource("2_backdrop")
 
 [node name="Title" type="Label" parent="." unique_id=372245376]
-layout_mode = 0
-offset_left = 121.0
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -199.0
 offset_top = 34.0
-offset_right = 521.0
+offset_right = 201.0
 offset_bottom = 82.0
+grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_font_sizes/font_size = 32
 text = "RETRO RUNTIME"
@@ -44,11 +48,15 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Buttons" type="VBoxContainer" parent="." unique_id=1952239306]
-layout_mode = 0
-offset_left = 210.0
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -110.0
 offset_top = 112.0
-offset_right = 430.0
+offset_right = 110.0
 offset_bottom = 434.0
+grow_horizontal = 2
 theme_override_constants/separation = 6
 
 [node name="Start" type="Button" parent="Buttons" unique_id=158718179]
@@ -97,11 +105,15 @@ size_flags_vertical = 3
 text = "Quit"
 
 [node name="Hint" type="Label" parent="." unique_id=966821402]
-layout_mode = 0
-offset_left = 20.0
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
 offset_top = 440.0
-offset_right = 620.0
+offset_right = 300.0
 offset_bottom = 466.0
+grow_horizontal = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 1, 1)
 text = "Up/Down: select   Enter or A: confirm"
 horizontal_alignment = 1

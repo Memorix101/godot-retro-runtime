@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>Retro Runtime</name>
+  <coder>godot4-retro</coder>
+  <short_description>Scenes from the Godot editor, run by a small C runtime</short_description>
+  <long_description>The demo scenes of the Godot Retro Runtime. The packages are in the data folder next to boot.dol.</long_description>
+</app>

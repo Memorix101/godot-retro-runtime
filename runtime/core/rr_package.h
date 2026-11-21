@@ -110,7 +110,13 @@ enum { RR_ATTENUATION_INVERSE = 0, RR_ATTENUATION_INVERSE_SQUARE, RR_ATTENUATION
 enum { RR_PATH_ROTATION_NONE = 0, RR_PATH_ROTATION_Y, RR_PATH_ROTATION_FORWARD, RR_PATH_ROTATION_ORIENTED };
 enum { RR_FILL_BEGIN_TO_END = 0, RR_FILL_END_TO_BEGIN, RR_FILL_TOP_TO_BOTTOM, RR_FILL_BOTTOM_TO_TOP };
 enum { RR_BIND_KEY = 1, RR_BIND_PAD_BUTTON = 2, RR_BIND_PAD_AXIS = 3 };
-enum { RR_TEX_RGBA8888 = 1, RR_TEX_RGB565 = 2, RR_TEX_ARGB1555 = 3, RR_TEX_ARGB4444 = 4 };
+/* 2 to 4 have red in the high bits (Dreamcast), 5 to 7 in the low bits (PSP). 8 to 10 are
+ * the Wii's and GameCube's, stored in blocks of 4 x 4 pixels. All but the first are 16-bit. */
+enum {
+    RR_TEX_RGBA8888 = 1, RR_TEX_RGB565 = 2, RR_TEX_ARGB1555 = 3, RR_TEX_ARGB4444 = 4,
+    RR_TEX_BGR565 = 5, RR_TEX_ABGR1555 = 6, RR_TEX_ABGR4444 = 7,
+    RR_TEX_GX_RGB565 = 8, RR_TEX_GX_RGB5A3 = 9, RR_TEX_GX_IA8 = 10
+};
 enum { RR_FILTER_LINEAR = 0, RR_FILTER_NEAREST = 1 };
 enum { RR_SOUND_PCM16 = 1, RR_SOUND_ADPCM = 2 };
 enum { RR_SIDE_LEFT = 0, RR_SIDE_TOP, RR_SIDE_RIGHT, RR_SIDE_BOTTOM };
@@ -784,7 +790,9 @@ typedef struct {
     RRPkgCurvePoint points[1];   /* point_count entries */
 } RRPkgCurve;
 
-/* Vertex layouts. Both are 24 bytes; they differ in how the colour is packed. */
+/* Vertex layouts. All are 24 bytes; they differ in how the colour is packed and in the
+ * order of the members, which is the one the platform's hardware takes as it is. Code that
+ * works on any platform finds the position with rr_vertex_position_offset(). */
 typedef struct {
     float   pos[3];
     float   uv[2];
@@ -796,6 +804,20 @@ typedef struct {
     float    uv[2];
     uint32_t argb;
 } RRVertexDC;
+
+typedef struct {
+    float    uv[2];
+    uint32_t abgr; /* in memory: r, g, b, a */
+    float    pos[3];
+} RRVertexPSP;
+
+typedef struct {
+    float    pos[3];
+    uint32_t rgba; /* 0xRRGGBBAA */
+    float    uv[2];
+} RRVertexWii;
+
+#define RR_VERTEX_SIZE 24u
 
 /* A validated view into a package that was read into memory. It allocates nothing and
  * points into the caller's block, which must stay alive and must be 4-byte aligned. */
@@ -862,6 +884,9 @@ static inline int rr_package_node_level(const RRPkgNode *node)
 }
 
 const char *rr_platform_name(uint8_t platform);
+
+/* Where the position (three floats) is inside a vertex of a platform, in bytes. */
+uint32_t rr_vertex_position_offset(uint8_t platform);
 
 /* Writes the package content as text: node tree, components, connections, assets. */
 void rr_package_dump(const RRPackage *pkg, FILE *out);

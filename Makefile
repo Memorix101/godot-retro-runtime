@@ -11,7 +11,7 @@
 #   make dist       zip the PC game (runtime, packages) into build/dist/
 #   make test       run the exporter, loader and game flow tests
 #
-# The Dreamcast build lives in runtime/platform/dreamcast/Makefile.
+# The console builds live in the Makefiles of runtime/platform/dreamcast, psp and wii.
 
 ifeq ($(origin CC),default)
 CC := gcc
@@ -102,7 +102,7 @@ $(BUILD)/.imported: $(ASSETS)
 	$(GODOT) --headless --path . --import
 	@touch $@
 
-packages: $(BUILD)/pkg/pc/.exported $(BUILD)/pkg/dreamcast/.exported
+packages: $(BUILD)/pkg/pc/.exported $(BUILD)/pkg/dreamcast/.exported $(BUILD)/pkg/psp/.exported $(BUILD)/pkg/wii/.exported
 
 $(BUILD)/pkg/%/.exported: $(SCENES) $(PARTS) $(EXPORT_DEPS)
 	$(EXPORT) --platform $* --out $(BUILD)/pkg/$* $(addprefix res://,$(SCENES))

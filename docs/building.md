@@ -1,6 +1,6 @@
 # Building and running
 
-How to build the runtime for the PC and the Dreamcast, start the game from the editor or
+How to build the runtime for the PC, the Dreamcast, the PSP and the Wii, start the game from the editor or
 the command line, package it, and look into a package.
 
 ## Pinned versions
@@ -20,6 +20,11 @@ the command line, package it, and look into a package.
   `make install` in `kos-ports/libwav`). The GLdc port (`libGL`) is only needed for
   `GFX=gldc`. Checked on Linux with the KallistiOS master of 15 November 2026 (9926b70a)
   and its default kos-chain profile (GCC 15.2).
+- PSP: the PSP SDK of pspdev (https://github.com/pspdev/pspdev) with `PSPDEV` set and
+  `$PSPDEV/bin` on the PATH. Checked with its GCC 15.2 under WSL, and PPSSPP 1.20.4.
+- Wii and GameCube: devkitPPC and libogc of devkitPro (https://devkitpro.org), with
+  `DEVKITPRO` and `DEVKITPPC` set. Checked with the Docker image `devkitpro/devkitppc`
+  (GCC 16.2), which needs no installation, and Dolphin.
 
 ## PC
 
@@ -46,7 +51,7 @@ is somewhere else.
 
 Godot's own play buttons would run the scene in Godot, which never runs the game. The
 addon puts its own into the toolbar above the viewport instead, with a list next to them
-that picks the platform (`pc` or `dreamcast`; the editor remembers it per project):
+that picks the platform (`pc`, `dreamcast`, `psp` or `wii`; the editor remembers it per project):
 
 - **Run the game** exports every scene directly inside `scenes/` for that platform and
   starts the game in the project's main scene.
@@ -75,7 +80,22 @@ run=["C:/emulators/flycast.exe", "{project}/build/dc/retro.cdi"]
 [dreamcast.linux]
 build=["bash", "-c", "source /opt/toolchains/dc/kos/environ.sh && make -j8 -C {project}/runtime/platform/dreamcast cdi PADDING=0 BOOT={scene}"]
 run=["/home/me/flycast-x86_64-2.7.appimage", "{project}/build/dc/retro.cdi"]
+
+[psp.windows]
+build=["wsl", "--cd", "{project}", "--", "bash", "-c", "export PSPDEV=~/pspdev PATH=~/pspdev/bin:/usr/local/bin:/usr/bin:/bin && make -j8 -C runtime/platform/psp game BOOT={scene}"]
+run=["C:/emulators/ppsspp/PPSSPPWindows64.exe", "{project}/build/psp/retro/EBOOT.PBP"]
+
+[psp.linux]
+build=["bash", "-c", "export PSPDEV=~/pspdev PATH=~/pspdev/bin:/usr/local/bin:/usr/bin:/bin && make -j8 -C {project}/runtime/platform/psp game BOOT={scene}"]
+run=["/usr/bin/PPSSPPSDL", "{project}/build/psp/retro/EBOOT.PBP"]
+
+[wii.windows]
+build=["docker", "run", "--rm", "-v", "{project}:/src", "-w", "/src", "devkitpro/devkitppc:latest", "make", "-j8", "-C", "runtime/platform/wii", "game", "BOOT={scene}"]
+run=["C:/emulators/dolphin/Dolphin.exe", "-C", "Dolphin.Core.WiiSDCard=True", "-C", "Dolphin.Core.WiiSDCardEnableFolderSync=True", "-C", "Dolphin.General.WiiSDCardSyncFolder={project}/build/wii/sd", "-C", "Dolphin.General.WiiSDCardPath={project}/build/wii/sd.raw", "-b", "-e", "{project}/build/wii/sd/apps/retro/boot.dol"]
 ```
+
+The PSP commands set the PATH to fixed folders on purpose: the command line passes a shell
+on its way, and the PATH that WSL takes over from Windows has spaces and brackets in it.
 
 On Linux KallistiOS runs natively, no WSL; the Flycast AppImage is started directly. An
 AppImage needs FUSE 2 (`libfuse2t64` on Ubuntu); without it, start it as
@@ -129,13 +149,62 @@ that is shown takes up memory; `flycast build/dc/retro.cdi` runs it. `ROMDISK=1`
 packages into the ELF instead, which costs their whole size in RAM and is only meant for
 test builds that an emulator starts without a disc. A+B+X+Y+START leaves the program.
 
+## PSP
+
+PSP, with the tools of the PSP SDK on the PATH (after `make packages` on the PC side):
+
+```
+export PSPDEV=~/pspdev PATH=$PATH:~/pspdev/bin
+make -C runtime/platform/psp game                # build/psp/retro/: EBOOT.PBP and data/
+make -C runtime/platform/psp game BOOT=island    # the game starts in that scene (data/boot.txt)
+make -C runtime/platform/psp                     # only EBOOT.PBP
+make -C runtime/platform/psp FPS=1 LOG=1         # print the frame rate, and write what is printed
+                                                 # into retro.log next to the program
+```
+
+`build/psp/retro/` is the game: copy the folder to `ms0:/PSP/GAME/` on the memory stick of a
+console with custom firmware, or open its `EBOOT.PBP` in PPSSPP
+(`PPSSPPWindows64.exe build/psp/retro/EBOOT.PBP`). The program reads its packages from the
+`data` folder next to it, so only the scene that is shown takes up memory. HOME leaves the
+program. [psp-backend.md](psp-backend.md) says how the backend works and why the PSP's
+screen shows more to the sides.
+
+## Wii and GameCube
+
+With devkitPro's tools (after `make packages` on the PC side), natively or in its Docker
+image:
+
+```
+make -C runtime/platform/wii game                 # build/wii/sd/: what goes onto the SD card
+make -C runtime/platform/wii game BOOT=island     # the game starts in that scene (data/boot.txt)
+make -C runtime/platform/wii CONSOLE=gamecube game   # the same for the GameCube, in build/gamecube/
+make -C runtime/platform/wii FPS=1 LOG=1          # print the frame rate, to the console's debug
+                                                  # output (Dolphin's log, channel OSREPORT)
+
+docker run --rm -v "$PWD:/src" -w /src devkitpro/devkitppc make -C runtime/platform/wii game
+```
+
+`build/wii/sd/` is the content of the SD card: `apps/retro/boot.dol`, which the Homebrew
+Channel lists, and the packages in `apps/retro/data/`. Both consoles load the packages of
+the platform `wii`.
+
+Dolphin has to be given that folder as the SD card, which it then makes a card image from
+each time a game starts (in its window: Config > Wii > SD Card, "Automatically sync with
+folder"). The run command above does it for one start with `-C`, which sets a setting
+without saving it: Dolphin keeps its own settings, the controllers among them, and its own
+SD card. In
+Dolphin's default key mapping the arrow keys are the stick, X is A, Z is B, and Enter is
+both Start and the HOME button of the Wii Remote, which leaves the program: map HOME to
+another key. [wii-backend.md](wii-backend.md) says how the backend works.
+
 ## Runtime options
 
 Runtime options on the PC: `retro [scene] [--data dir] [--dump] [--frames N]
 [--screenshot file.png] [--input script]`. The input script presses actions at given frames
 (`"30:ui_accept,60:accelerate:300"`) and is what the game flow tests use; while a script is
 set, real keys and pads are ignored. For a console test build, pass
-`INPUT_SCRIPT='...' BUILD=../../../build/dc-test` to the Dreamcast Makefile.
+`INPUT_SCRIPT='...' BUILD=../../../build/dc-test` to the Dreamcast Makefile; the PSP
+Makefile takes `INPUT_SCRIPT` the same way.
 
 ## Looking into a package
 
@@ -161,7 +230,9 @@ assets/                 placeholder images and sounds (made by tools/make_test_a
                         assets/sounds/music.ogg is a test tone made with ffmpeg
 runtime/core/           portable C: package loader, scene, components, input, triggers, UI
 runtime/platform/       pc/ (raylib), dreamcast/ (KallistiOS: dc_system.c, and dc_pvr.c
-                        or dc_gldc.c for the graphics)
+                        or dc_gldc.c for the graphics), psp/ (PSP SDK: psp_system.c
+                        and psp_gu.c), wii/ (libogc, for the Wii and the
+                        GameCube: wii_system.c and wii_gx.c)
 runtime/game/           game components
 tools/                  rpkdump (C), make_test_assets.gd, make_platformer_2d.gd,
                         make_racing.gd (builds scenes/racing.tscn from track pieces),

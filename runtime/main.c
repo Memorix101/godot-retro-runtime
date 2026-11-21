@@ -99,6 +99,7 @@ int main(int argc, char **argv)
     long        max_frames = -1, frame = 0;
     int         i;
 
+    rr_plat_boot();
     for (i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--dump") == 0) {
             want_dump = true;
