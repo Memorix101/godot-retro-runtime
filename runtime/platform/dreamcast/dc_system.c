@@ -28,6 +28,11 @@ static wav_stream_hnd_t g_music = -1;
 static int      g_sound_channels[MAX_SOUNDS];
 static uint32_t g_sound_rates[MAX_SOUNDS]; /* sample rate each sound was recorded at */
 static bool     g_sound_stereo[MAX_SOUNDS]; /* plays on two voices: its own and the next */
+/* A looping sound plays on voices reserved for it with snd_sfx_chn_alloc. KallistiOS
+ * only keeps reserved voices out of the hands of others: a sound that loops on a voice
+ * it picked itself can be given to a music stream that starts later, and the volume and
+ * pitch this backend sets every frame then go to the music. */
+static bool     g_sound_reserved[MAX_SOUNDS];
 
 uint8_t rr_plat_id(void)
 {
@@ -120,6 +125,7 @@ uint32_t rr_snd_load(const RRPkgSound *sound)
             g_sounds[i] = snd_sfx_load_raw_buf((char *)(sound + 1), sound->data_size,
                                                sound->sample_rate, 4, sound->channels);
             g_sound_channels[i] = -1;
+            g_sound_reserved[i] = false;
             g_sound_rates[i]    = sound->sample_rate;
             g_sound_stereo[i]   = sound->channels > 1;
             return g_sounds[i] != SFXHND_INVALID ? i : RR_NONE32;
@@ -154,6 +160,26 @@ void rr_snd_play(uint32_t handle, float volume, float pan, float pitch, bool loo
     if (handle < MAX_SOUNDS && g_sounds[handle] != SFXHND_INVALID) {
         sfx_play_data_t data = { 0 };
         data.chn  = -1;
+        if (loop) {
+            /* A stereo sound takes two voices side by side. */
+            int first, second = -1;
+            rr_snd_stop(handle);
+            first = snd_sfx_chn_alloc();
+            if (first >= 0 && g_sound_stereo[handle]) {
+                second = snd_sfx_chn_alloc();
+                if (second != first + 1) {
+                    if (second >= 0) {
+                        snd_sfx_chn_free(second);
+                    }
+                    snd_sfx_chn_free(first);
+                    first = -1;
+                }
+            }
+            if (first >= 0) {
+                data.chn                 = first;
+                g_sound_reserved[handle] = true;
+            }
+        }
         data.idx  = g_sounds[handle];
         data.vol  = aica_volume(volume);
         data.pan  = aica_pan(pan);
@@ -161,6 +187,13 @@ void rr_snd_play(uint32_t handle, float volume, float pan, float pitch, bool loo
         /* The AICA plays a sound faster by being told a higher sample rate. */
         data.freq = (int)((float)g_sound_rates[handle] * pitch + 0.5f);
         g_sound_channels[handle] = snd_sfx_play_ex(&data);
+        if (g_sound_channels[handle] < 0 && g_sound_reserved[handle]) {
+            snd_sfx_chn_free(data.chn);
+            if (g_sound_stereo[handle]) {
+                snd_sfx_chn_free(data.chn + 1);
+            }
+            g_sound_reserved[handle] = false;
+        }
     }
 }
 
@@ -223,6 +256,13 @@ void rr_snd_stop(uint32_t handle)
         snd_sfx_stop(g_sound_channels[handle]);
         if (g_sound_stereo[handle]) {
             snd_sfx_stop(g_sound_channels[handle] + 1);
+        }
+        if (g_sound_reserved[handle]) {
+            snd_sfx_chn_free(g_sound_channels[handle]);
+            if (g_sound_stereo[handle]) {
+                snd_sfx_chn_free(g_sound_channels[handle] + 1);
+            }
+            g_sound_reserved[handle] = false;
         }
         g_sound_channels[handle] = -1;
     }

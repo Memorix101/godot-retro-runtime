@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/airplane_bullet.gd" id="1_oiwsm"]
+[ext_resource type="ArrayMesh" path="res://assets/airplane/meshes/Sphere_Arrow.res" id="2_htkwd"]
+
+[node name="Bullet" type="Node3D" unique_id=852369892 node_paths=PackedStringArray("ray")]
+script = ExtResource("1_oiwsm")
+ray = NodePath("Ray")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=261130476]
+mesh = ExtResource("2_htkwd")
+
+[node name="Ray" type="RayCast3D" parent="." unique_id=1716033888]
+target_position = Vector3(0, 0, -20)

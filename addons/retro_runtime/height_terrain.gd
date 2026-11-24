@@ -36,8 +36,8 @@ extends StaticBody3D
 	set(value):
 		cells = value.clamp(Vector2i(2, 2), Vector2i(256, 256))
 		_changed()
-## Metres per cell.
-@export_range(0.25, 8.0, 0.25) var cell_size := 1.0:
+## Metres per cell. Large cells suit large, far ground such as the hills under a plane.
+@export_range(0.25, 8.0, 0.25, "or_greater") var cell_size := 1.0:
 	set(value):
 		cell_size = value
 		_changed()
@@ -83,7 +83,14 @@ extends StaticBody3D
 		if colors != null:
 			colors.changed.connect(_changed)
 		_changed()
+## Colour by place: an image laid over the whole ground (its top edge is the -Z side),
+## multiplied with the colour by height. A splat map turned into colours fits here.
+@export var color_image: Texture2D:
+	set(value):
+		color_image = value
+		_changed()
 ## Colour of steep ground, and the slope in degrees from which it is fully that colour.
+## Its alpha says how much of it there is: 0 leaves steep ground as it is.
 @export var steep_color := Color(0.5, 0.48, 0.45):
 	set(value):
 		steep_color = value
@@ -96,6 +103,7 @@ extends StaticBody3D
 @export_tool_button("Rebuild", "Reload") var rebuild_button := rebuild
 
 var _heights := PackedFloat32Array()  # (cells.x + 1) * (cells.y + 1), metres
+var _colors := PackedColorArray()  # the same points: colour_image, or empty
 var _pending := false
 
 
@@ -183,6 +191,16 @@ func _sample_heights() -> void:
 		if image.is_compressed():
 			image.decompress()
 		image.resize(width, depth, Image.INTERPOLATE_BILINEAR)
+	_colors.clear()
+	var color_source: Image = color_image.get_image() if color_image != null else null
+	if color_source != null:
+		if color_source.is_compressed():
+			color_source.decompress()
+		color_source.resize(width, depth, Image.INTERPOLATE_BILINEAR)
+		_colors.resize(width * depth)
+		for z in depth:
+			for x in width:
+				_colors[z * width + x] = color_source.get_pixel(x, z)
 	_heights.resize(width * depth)
 	for z in depth:
 		for x in width:
@@ -221,7 +239,10 @@ func _chunk_mesh(first_x: int, first_z: int, material: Material) -> ArrayMesh:
 			var color := Color.WHITE
 			if colors != null:
 				color = colors.sample(clampf((h - base_height) / maxf(height, 0.001), 0.0, 1.0))
-			color = color.lerp(steep_color, smoothstep(1.0, steep_cos, normal.y))
+			if not _colors.is_empty():
+				color *= _colors[gz * (cells.x + 1) + gx]
+			var steep := Color(steep_color.r, steep_color.g, steep_color.b)
+			color = color.lerp(steep, smoothstep(1.0, steep_cos, normal.y) * steep_color.a)
 			positions.append(pos)
 			normals.append(normal)
 			vertex_colors.append(color)

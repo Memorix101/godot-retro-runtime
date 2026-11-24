@@ -29,6 +29,12 @@ COMPONENT_DECLARE(CastTest)
 COMPONENT_DECLARE(SkinTest)
 COMPONENT_DECLARE(TestStats)
 COMPONENT_DECLARE(GameState)
+COMPONENT_DECLARE(Collectable)
+COMPONENT_DECLARE(AirplaneCamera)
+COMPONENT_DECLARE(AirplanePlayer)
+COMPONENT_DECLARE(AirplaneBullet)
+COMPONENT_DECLARE(AirplaneGame)
+COMPONENT_DECLARE(Jukebox)
 
 bool game_register_components(void)
 {
@@ -57,5 +63,11 @@ bool game_register_components(void)
            rr_component_register(&CastTest_component) &&
            rr_component_register(&SkinTest_component) &&
            rr_component_register(&TestStats_component) &&
-           rr_component_register(&GameState_component);
+           rr_component_register(&GameState_component) &&
+           rr_component_register(&Collectable_component) &&
+           rr_component_register(&AirplaneCamera_component) &&
+           rr_component_register(&AirplanePlayer_component) &&
+           rr_component_register(&AirplaneBullet_component) &&
+           rr_component_register(&AirplaneGame_component) &&
+           rr_component_register(&Jukebox_component);
 }
