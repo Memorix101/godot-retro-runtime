@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/highway_car.gd" id="1_ni683"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TruckAmericanA_TruckAmerican.res" id="2_kfhes"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBLX_TruckAmerican.res" id="3_t4t2s"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBLY_TruckAmerican.res" id="4_ayqj3"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBRX_TruckAmerican.res" id="5_kan3r"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBRY_TruckAmerican.res" id="6_23euf"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFL_TruckAmerican.res" id="7_jif0j"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFR_TruckAmerican.res" id="8_f7hl6"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_eavch"]
+size = Vector3(3.5403972, 4.5281305, 9.559067)
+
+[node name="TruckAmericanA" type="Area3D" unique_id=246195584 groups=["traffic", "vehicle"]]
+script = ExtResource("1_ni683")
+half_width = 1.7701986
+half_length = 4.7795334
+wreck_kind = 1
+cruise = 15.0
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=2054445748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4484665, -0.3227318)
+shape = SubResource("BoxShape3D_eavch")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=355268689]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+mesh = ExtResource("2_kfhes")
+
+[node name="TireBLX" type="MeshInstance3D" parent="." unique_id=727931835]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.2364194, 0.6494553, 2.0171077)
+mesh = ExtResource("3_t4t2s")
+
+[node name="TireBLY" type="MeshInstance3D" parent="." unique_id=572804499]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.2364194, 0.6494553, 3.4265895)
+mesh = ExtResource("4_ayqj3")
+
+[node name="TireBRX" type="MeshInstance3D" parent="." unique_id=599278031]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.2364194, 0.6494553, 2.0171077)
+mesh = ExtResource("5_kan3r")
+
+[node name="TireBRY" type="MeshInstance3D" parent="." unique_id=1886771116]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.2364194, 0.6494553, 3.4265895)
+mesh = ExtResource("6_23euf")
+
+[node name="TireFL" type="MeshInstance3D" parent="." unique_id=1100487177]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.3575069, 0.6494553, -3.9539258)
+mesh = ExtResource("7_jif0j")
+
+[node name="TireFR" type="MeshInstance3D" parent="." unique_id=1980055932]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.3575069, 0.6494553, -3.9539258)
+mesh = ExtResource("8_f7hl6")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

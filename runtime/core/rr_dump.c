@@ -91,6 +91,9 @@ static void dump_node_data(const RRPackage *pkg, const RRPkgNode *n, uint32_t de
         if (m->range_begin > 0.0f || m->range_end > 0.0f) {
             fprintf(out, " visible from %.3f to %.3f", tidy(m->range_begin), tidy(m->range_end));
         }
+        if (m->tinted) {
+            fprintf(out, " tinted %08x", (unsigned)m->color);
+        }
         fputc('\n', out);
         break;
     }
@@ -660,6 +663,11 @@ static void dump_asset(const RRPackage *pkg, uint32_t index, FILE *out)
                 fprintf(out, " texture asset %u", (unsigned)surf->texture);
             }
             fputc('\n', out);
+        }
+        for (s = 0; s < mesh->lod_count; s++) {
+            const RRPkgMeshLod *lod = &rr_mesh_lods(mesh)[s];
+            fprintf(out, "    lod %u edge %.5f mesh asset %u\n", (unsigned)s, (double)lod->edge,
+                    (unsigned)lod->mesh);
         }
         break;
     }

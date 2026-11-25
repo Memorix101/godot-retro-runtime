@@ -11,3 +11,5 @@ extends Node
 ## Shown for `show_time` seconds after a piece starts.
 @export var panel: Control
 @export var show_time: float = 6.0
+## The action next_song plays the next piece (off where its buttons do something else).
+@export var can_skip: bool = true

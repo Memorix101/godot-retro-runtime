@@ -35,6 +35,25 @@ COMPONENT_DECLARE(AirplanePlayer)
 COMPONENT_DECLARE(AirplaneBullet)
 COMPONENT_DECLARE(AirplaneGame)
 COMPONENT_DECLARE(Jukebox)
+COMPONENT_DECLARE(ChaseCamera)
+COMPONENT_DECLARE(HighwayPlayer)
+COMPONENT_DECLARE(HighwayCar)
+COMPONENT_DECLARE(HighwayRival)
+COMPONENT_DECLARE(HighwayRoad)
+COMPONENT_DECLARE(TitleScreen)
+COMPONENT_DECLARE(ForwardDummy)
+COMPONENT_DECLARE(HighwayWreck)
+COMPONENT_DECLARE(Flare)
+COMPONENT_DECLARE(NeonGame)
+COMPONENT_DECLARE(NeonCamera)
+COMPONENT_DECLARE(NeonPlayer)
+COMPONENT_DECLARE(NeonEnemy)
+COMPONENT_DECLARE(NeonLaser)
+COMPONENT_DECLARE(NeonBomb)
+COMPONENT_DECLARE(NeonSpawner)
+COMPONENT_DECLARE(NeonDisco)
+COMPONENT_DECLARE(NeonFlicker)
+COMPONENT_DECLARE(NeonMenu)
 
 bool game_register_components(void)
 {
@@ -69,5 +88,24 @@ bool game_register_components(void)
            rr_component_register(&AirplanePlayer_component) &&
            rr_component_register(&AirplaneBullet_component) &&
            rr_component_register(&AirplaneGame_component) &&
-           rr_component_register(&Jukebox_component);
+           rr_component_register(&Jukebox_component) &&
+           rr_component_register(&ChaseCamera_component) &&
+           rr_component_register(&HighwayPlayer_component) &&
+           rr_component_register(&HighwayCar_component) &&
+           rr_component_register(&HighwayRival_component) &&
+           rr_component_register(&HighwayRoad_component) &&
+           rr_component_register(&TitleScreen_component) &&
+           rr_component_register(&ForwardDummy_component) &&
+           rr_component_register(&HighwayWreck_component) &&
+           rr_component_register(&Flare_component) &&
+           rr_component_register(&NeonGame_component) &&
+           rr_component_register(&NeonCamera_component) &&
+           rr_component_register(&NeonPlayer_component) &&
+           rr_component_register(&NeonEnemy_component) &&
+           rr_component_register(&NeonLaser_component) &&
+           rr_component_register(&NeonBomb_component) &&
+           rr_component_register(&NeonSpawner_component) &&
+           rr_component_register(&NeonDisco_component) &&
+           rr_component_register(&NeonFlicker_component) &&
+           rr_component_register(&NeonMenu_component);
 }

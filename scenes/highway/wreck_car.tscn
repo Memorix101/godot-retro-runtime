@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/highway_wreck.gd" id="1_7u63f"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/CarD_CarD.res" id="2_ftr5a"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBL_CarD.res" id="3_quyky"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBR_CarD.res" id="4_al4ot"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFL_2_CarD.res" id="5_cbc8h"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFR_2_CarD.res" id="6_hmt3r"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_y8cew"]
+friction = 0.6
+bounce = 0.15
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fwyl5"]
+size = Vector3(3.089518, 2.67, 5.875687)
+
+[node name="Wreck" type="RigidBody3D" unique_id=2009881767]
+mass = 100.0
+physics_material_override = SubResource("PhysicsMaterial_y8cew")
+linear_damp = 0.1
+angular_damp = 0.3
+script = ExtResource("1_7u63f")
+radius = 1.544759
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=951103038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0006979108, 1.38, 0.06967905)
+shape = SubResource("BoxShape3D_fwyl5")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=612886774]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+mesh = ExtResource("2_ftr5a")
+
+[node name="TireBL" type="MeshInstance3D" parent="." unique_id=1105830988]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.3046112, 0.55044556, 1.8327637)
+mesh = ExtResource("3_quyky")
+
+[node name="TireBR" type="MeshInstance3D" parent="." unique_id=1081612540]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.3046112, 0.55044556, 1.8327637)
+mesh = ExtResource("4_al4ot")
+
+[node name="TireFL" type="MeshInstance3D" parent="." unique_id=2007282767]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.3046112, 0.55044556, -1.6868973)
+mesh = ExtResource("5_cbc8h")
+
+[node name="TireFR" type="MeshInstance3D" parent="." unique_id=346879767]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.3046112, 0.55044556, -1.6868973)
+mesh = ExtResource("6_hmt3r")

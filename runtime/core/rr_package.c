@@ -46,7 +46,7 @@ _Static_assert(sizeof(RRPkgField) == 12, "field layout");
 _Static_assert(sizeof(RRPkgConnection) == 12, "connection layout");
 _Static_assert(sizeof(RRPkgPool) == 12, "pool layout");
 _Static_assert(sizeof(RRPkgResource) == 12, "resource layout");
-_Static_assert(sizeof(RRPkgMeshNode) == 16, "mesh node layout");
+_Static_assert(sizeof(RRPkgMeshNode) == 24, "mesh node layout");
 _Static_assert(sizeof(RRPkgInfluence) == 8, "skin influence layout");
 _Static_assert(sizeof(RRVertexPC) == 24 && sizeof(RRVertexDC) == 24, "vertex layout");
 _Static_assert(sizeof(RRPkgRayCastNode) == 36, "ray cast layout");
@@ -60,7 +60,8 @@ _Static_assert(sizeof(RRPkgAction) == 12, "action layout");
 _Static_assert(sizeof(RRPkgBinding) == 4, "binding layout");
 _Static_assert(sizeof(RRPkgAsset) == 16, "asset layout");
 _Static_assert(sizeof(RRPkgSurface) == 24, "surface layout");
-_Static_assert(offsetof(RRPkgMesh, surfaces) == 20, "mesh layout");
+_Static_assert(offsetof(RRPkgMesh, surfaces) == 28, "mesh layout");
+_Static_assert(sizeof(RRPkgMeshLod) == 8, "mesh LOD layout");
 _Static_assert(sizeof(RRPkgTexture) == 12, "texture layout");
 _Static_assert(sizeof(RRPkgGlyph) == 20, "glyph layout");
 _Static_assert(sizeof(RRPkgSound) == 16, "sound layout");
@@ -116,6 +117,19 @@ static uint32_t vertex_size(uint8_t platform)
 uint32_t rr_vertex_position_offset(uint8_t platform)
 {
     return platform == RR_PLATFORM_PSP ? (uint32_t)offsetof(RRVertexPSP, pos) : 0u;
+}
+
+void rr_vertex_color_bytes(uint8_t platform, uint8_t *offsets)
+{
+    /* PC: bytes r, g, b, a. Dreamcast: a little-endian 0xAARRGGBB. PSP: bytes r, g, b, a
+     * after the texture coordinates. Wii: a big-endian 0xRRGGBBAA after the position. */
+    static const uint8_t pc[4] = { 20, 21, 22, 23 }, dc[4] = { 22, 21, 20, 23 };
+    static const uint8_t psp[4] = { 8, 9, 10, 11 }, wii[4] = { 12, 13, 14, 15 };
+    const uint8_t       *o = platform == RR_PLATFORM_DREAMCAST ? dc
+                           : platform == RR_PLATFORM_PSP     ? psp
+                           : platform == RR_PLATFORM_WII     ? wii
+                                                             : pc;
+    memcpy(offsets, o, 4);
 }
 
 /* Size of the type-specific data of a node type, 0 if the type has none. */
@@ -206,6 +220,22 @@ static bool check_mesh(const RRPackage *pkg, uint32_t index)
     /* Written this way so that a NaN fails as well. */
     if (!(mesh->radius >= 0.0f)) {
         return corrupt_asset(index, "bounding sphere");
+    }
+    if (mesh->lod_count > 0) {
+        const RRPkgMeshLod *lods = rr_mesh_lods(mesh);
+        if (!range_ok(mesh->lods_off, mesh->lod_count, sizeof(RRPkgMeshLod), offsetof(RRPkgMesh, surfaces),
+                      a->size)) {
+            return corrupt_asset(index, "LOD table");
+        }
+        /* Each level is a mesh of its own, written (and checked) before this one, with no
+         * levels of its own; the edge lengths grow. */
+        for (i = 0; i < mesh->lod_count; i++) {
+            if (lods[i].mesh >= index || pkg->assets[lods[i].mesh].type != RR_ASSET_MESH ||
+                rr_package_mesh(pkg, lods[i].mesh)->lod_count != 0 || !(lods[i].edge >= 0.0f) ||
+                (i > 0 && lods[i].edge < lods[i - 1].edge)) {
+                return corrupt_asset(index, "LOD level");
+            }
+        }
     }
     for (s = 0; s < mesh->surface_count; s++) {
         const RRPkgSurface *surf = &mesh->surfaces[s];

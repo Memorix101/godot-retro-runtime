@@ -286,6 +286,7 @@ bool rr_scene_create(RRScene *scene, const RRPackage *pkg)
     uint8_t           *block, *comp_data;
 
     memset(scene, 0, sizeof(*scene));
+    scene->clear_color = pkg->header->clear_color;
 
     /* First pass: resolve the component types and add up everything that needs memory. */
     for (i = 0; i < h->resources.count; i++) {
@@ -323,8 +324,9 @@ bool rr_scene_create(RRScene *scene, const RRPackage *pkg)
             pn->type == RR_NODE_RIGID_BODY) {
             body_count++;
         }
-        if (pn->type == RR_NODE_MESH && ((const RRPkgMeshNode *)rr_package_node_data(pkg, pn))->skin != RR_NONE32) {
-            /* A mesh with a skin gets a copy of its mesh to pose. */
+        if (pn->type == RR_NODE_MESH && rr_mesh_node_has_copy((const RRPkgMeshNode *)rr_package_node_data(pkg, pn))) {
+            /* A mesh with a skin gets a copy of its mesh to pose, one whose colour can
+             * change a copy to colour. */
             skin_count++;
             skin_bytes += ALIGN8(pkg->assets[((const RRPkgMeshNode *)rr_package_node_data(pkg, pn))->mesh].size);
         }
@@ -442,6 +444,7 @@ bool rr_scene_create(RRScene *scene, const RRPackage *pkg)
         n->local      = pn->xform;
         n->data       = pn->data == RR_NONE32 ? NULL : rr_package_node_data(pkg, pn);
         n->z          = (int16_t)rr_package_node_level(pn);
+        n->modulate   = 0xFFFFFFFFu;
         add_level(scene, n->z);
         rr_mat34_identity(&n->world);
 
@@ -509,7 +512,7 @@ bool rr_scene_create(RRScene *scene, const RRPackage *pkg)
             }
         } else if (n->type == RR_NODE_AUDIO || n->type == RR_NODE_AUDIO_SPATIAL) {
             rr_audio_init(scene, n);
-        } else if (n->type == RR_NODE_MESH && ((const RRPkgMeshNode *)n->data)->skin != RR_NONE32) {
+        } else if (n->type == RR_NODE_MESH && rr_mesh_node_has_copy((const RRPkgMeshNode *)n->data)) {
             rr_skin_init(scene, n, skin_memory);
             skin_memory += ALIGN8(pkg->assets[((const RRPkgMeshNode *)n->data)->mesh].size);
         } else if (n->type == RR_NODE_RAYCAST) {
@@ -683,13 +686,39 @@ static void free_queued(RRScene *scene)
     rr_colliders_refresh(scene); /* the freed ones are out */
 }
 
+static float g_time_scale = 1.0f;
+
+void rr_environment_set_background_color(RRScene *scene, const float *rgba)
+{
+    uint32_t c = 0;
+    int      k;
+
+    for (k = 0; k < 4; k++) {
+        const float v = rgba[k] <= 0.0f ? 0.0f : (rgba[k] >= 1.0f ? 1.0f : rgba[k]);
+        c = (c << 8) | (uint32_t)(v * 255.0f + 0.5f);
+    }
+    scene->clear_color = c;
+}
+
+void rr_set_time_scale(float scale)
+{
+    g_time_scale = scale > 0.0f ? scale : 0.0f;
+}
+
+float rr_get_time_scale(void)
+{
+    return g_time_scale;
+}
+
 void rr_scene_update(RRScene *scene, float dt)
 {
-    uint32_t i;
+    const float real_dt = dt;
+    uint32_t    i;
 
+    dt *= g_time_scale;
     rr_input_update();
     scene->time += dt;
-    rr_ui_update(scene, dt);
+    rr_ui_update(scene, real_dt);
     rr_anims_update(scene, dt);
     rr_sprites_update(scene, dt);
     rr_timers_update(scene, dt);
@@ -714,7 +743,7 @@ void rr_scene_update(RRScene *scene, float dt)
     }
     rr_canvas_update(scene, dt);
     rr_skins_update(scene);
-    rr_audios_update(scene, dt);
+    rr_audios_update(scene, real_dt); /* sounds play at their own speed */
     rr_particles_update(scene, dt);
     free_queued(scene);
 }
@@ -751,6 +780,13 @@ Node *rr_instantiate(const RRPackedScene *packed)
         n->flags = pn->flags & (RR_NODE_FLAG_VISIBLE | RR_NODE_FLAG_CURRENT_CAMERA |
                                 RR_NODE_FLAG_AUTOLOAD);
         n->local = pn->xform;
+        n->modulate = 0xFFFFFFFFu;
+        if (n->type == RR_NODE_MESH && ((const RRPkgMeshNode *)n->data)->tinted) {
+            const uint32_t c = ((const RRPkgMeshNode *)n->data)->color;
+            const float    rgba[4] = { (float)(c >> 24) / 255.0f, (float)((c >> 16) & 0xFFu) / 255.0f,
+                                       (float)((c >> 8) & 0xFFu) / 255.0f, (float)(c & 0xFFu) / 255.0f };
+            rr_mesh_set_albedo_color(n, rgba);
+        }
         if (n->type == RR_NODE_PROGRESS_BAR) {
             n->value = ((const RRPkgProgressBarNode *)n->data)->value;
         } else if (n->type == RR_NODE_PATH_FOLLOW) {

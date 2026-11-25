@@ -26,6 +26,7 @@ struct Node {
     RRMat34     world; /* recomputed from `local` after every update */
     const void *data;  /* type-specific package data (RRPkg...Node), read-only */
     const char *text;  /* Label and Button: the text that is drawn */
+    uint32_t    modulate; /* controls and 2D nodes: rr_canvas_item_set_modulate, 0xRRGGBBAA */
 };
 
 /* 2D nodes use the same matrices: X and Y of the origin are screen pixels, the basis
@@ -146,10 +147,12 @@ typedef struct {
     float    contact_normals[RR_MAX_CONTACTS][3]; /* out of what was touched, world space */
 } RRRigidState;
 
-/* A mesh that bones deform: the copy of its mesh asset that holds it as it is posed. */
+/* A mesh that bones deform, or one whose colour changes: the copy of its mesh asset that
+ * holds it as it is posed and coloured. */
 typedef struct {
     uint16_t   node;
     RRPkgMesh *mesh;
+    uint32_t   color; /* the albedo a tinted mesh has now, 0xRRGGBBAA */
 } RRSkinState;
 
 /* What one RayCast node hit at its last update. */
@@ -239,6 +242,7 @@ struct RRScene {
     Node                 *camera;  /* active camera, NULL if the scene has none */
     Node                 *camera2d; /* active Camera2D, NULL if the scene has none */
     Node                 *environment; /* WorldEnvironment, NULL if the scene has none */
+    uint32_t              clear_color; /* the background, 0xRRGGBBAA: from the package, or set */
     Node                 *focus;    /* focused button or slider, NULL if the scene has none */
     float                 ui_hold;  /* how long a direction has been held on a slider */
     float                 time;     /* seconds since the scene was made: the clock of animated tiles */
@@ -465,6 +469,33 @@ float rr_path_get_length(const Node *path);
  * its emission again, which is how a one-shot burst is fired. */
 void rr_particles_restart(Node *particles);
 void rr_particles_set_emitting(Node *particles, bool emitting);
+
+/* Colours that change while the game runs.
+ *
+ * rr_mesh_set_albedo_color is `material_override.albedo_color = color` on a
+ * MeshInstance3D whose material_override is a StandardMaterial3D that is local to the
+ * scene (resource_local_to_scene), so every instance has its own: four floats, r, g, b, a,
+ * 0..1. The light bake is kept; the colour replaces the material's albedo colour (its
+ * alpha counts if the material is transparent). Other mesh nodes do not change.
+ *
+ * rr_canvas_item_set_modulate is CanvasItem.modulate of a control or 2D node: it
+ * multiplies the colours of the node and of everything below it. It starts white; the
+ * colours from the editor, the modulate set there included, are multiplied with it. */
+void rr_mesh_set_albedo_color(Node *mesh, const float *rgba);
+void rr_mesh_get_albedo_color(const Node *mesh, float *rgba);
+void rr_canvas_item_set_modulate(Node *item, const float *rgba);
+void rr_canvas_item_get_modulate(const Node *item, float *rgba);
+
+/* Environment.background_color: the colour the screen is cleared to behind the 3D scene
+ * (and behind a 2D one), r, g, b, a 0..1. It holds until the scene ends. */
+void rr_environment_set_background_color(RRScene *scene, const float *rgba);
+
+/* Engine.time_scale: the delta of every update is multiplied with it (components,
+ * animations, physics, particles, timers, tweens); 0 stops the game, 0.25 is slow motion.
+ * Buttons and sliders keep working at the real speed, and sounds play as they are. It
+ * stays set when the scene changes. */
+void  rr_set_time_scale(float scale);
+float rr_get_time_scale(void);
 
 /* CharacterBody nodes (2D and 3D), after Godot's move_and_slide(): moves the body by
  * `velocity` (three floats, world units per second; Z is 0 for a 2D body) for `dt`

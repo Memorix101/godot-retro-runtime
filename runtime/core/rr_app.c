@@ -108,7 +108,7 @@ bool rr_app_frame(float dt, const char *screenshot)
     g_mark = rr_plat_time_us();
 #endif
 
-    rr_gfx_begin_frame(g_app.pkg.header->clear_color);
+    rr_gfx_begin_frame(g_app.scene.clear_color);
     rr_scene_draw(&g_app.scene);
     if (screenshot != NULL && !rr_plat_screenshot(screenshot)) {
         fprintf(stderr, "retro: cannot save screenshot '%s'\n", screenshot);

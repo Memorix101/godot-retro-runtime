@@ -179,3 +179,28 @@ const Node *rr_canvas_repeat(const Node *node, float *step, int *times)
     }
     return NULL;
 }
+
+/* --- modulate ----------------------------------------------------------------------- */
+
+static uint8_t unit_to_byte(float v)
+{
+    return (uint8_t)(v <= 0.0f ? 0 : (v >= 1.0f ? 255 : (int)(v * 255.0f + 0.5f)));
+}
+
+void rr_canvas_item_set_modulate(Node *item, const float *rgba)
+{
+    if (item != NULL) {
+        item->modulate = (uint32_t)unit_to_byte(rgba[0]) << 24 | (uint32_t)unit_to_byte(rgba[1]) << 16 |
+                         (uint32_t)unit_to_byte(rgba[2]) << 8 | unit_to_byte(rgba[3]);
+    }
+}
+
+void rr_canvas_item_get_modulate(const Node *item, float *rgba)
+{
+    const uint32_t c = item != NULL ? item->modulate : 0xFFFFFFFFu;
+    int            k;
+
+    for (k = 0; k < 4; k++) {
+        rgba[k] = (float)((c >> (24 - 8 * k)) & 0xFFu) * (1.0f / 255.0f);
+    }
+}

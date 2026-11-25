@@ -26,8 +26,10 @@
 
 /* Room in each list for one frame, in units of 32 bytes: a vertex or a polygon header.
  * Each buffer exists twice in main memory (the frame that is built and the one that is
- * transferred), and the tile accelerator keeps as much again in video memory. */
-#define OP_UNITS 12288
+ * transferred), and the tile accelerator keeps as much again in video memory. The
+ * highway demo needs up to some 20500 solid units with its LOD levels (FPS=1 prints the
+ * peaks). */
+#define OP_UNITS 24576
 #define PT_UNITS 4096
 #define TR_UNITS 4096
 /* Kept free at the end of a list: KallistiOS adds an empty header and an end marker. */
@@ -124,8 +126,18 @@ void dc_gfx_shutdown(void)
 
 /* --- lists --------------------------------------------------------------------------- */
 
+#ifdef RR_PRINT_FPS
+/* With FPS=1: how full the lists get, printed every 120 frames next to the rate. */
+static uint32_t g_stat_peak[LIST_COUNT];
+static uint32_t g_stat_frames, g_stat_full_frames;
+static bool     g_stat_full;
+#endif
+
 static void list_full(List *list)
 {
+#ifdef RR_PRINT_FPS
+    g_stat_full = true;
+#endif
     if (!list->warned) {
         list->warned = true;
         printf("retro: PVR list %d is full (%u units per frame), polygons are left out\n",
@@ -346,7 +358,24 @@ void rr_gfx_end_frame(void)
         if (used != 0) {
             pvr_vertbuf_written(list->id, used * 32u);
         }
+#ifdef RR_PRINT_FPS
+        if (used > g_stat_peak[i]) {
+            g_stat_peak[i] = used;
+        }
+#endif
     }
+#ifdef RR_PRINT_FPS
+    g_stat_full_frames += g_stat_full ? 1u : 0u;
+    g_stat_full = false;
+    if (++g_stat_frames == 120) {
+        printf("pvr: peak units op %u/%u pt %u/%u tr %u/%u, full in %u of 120 frames, %u KB video memory free\n",
+               (unsigned)g_stat_peak[LIST_OP], (unsigned)OP_UNITS, (unsigned)g_stat_peak[LIST_PT],
+               (unsigned)PT_UNITS, (unsigned)g_stat_peak[LIST_TR], (unsigned)TR_UNITS,
+               (unsigned)g_stat_full_frames, (unsigned)(pvr_mem_available() / 1024));
+        memset(g_stat_peak, 0, sizeof(g_stat_peak));
+        g_stat_frames = g_stat_full_frames = 0;
+    }
+#endif
     /* Waits until the tile accelerator is free, then hands the lists over. */
     pvr_scene_finish();
 }

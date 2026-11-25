@@ -24,10 +24,16 @@
 //   terrain/*_color.png  the terrain's look: the average colour of every terrain layer,
 //                     mixed by the splat map, same orientation as the heights
 //
+// scene.json also has the clips of the Animators ("animations", sampled 30 times a second)
+// and the scene's baked NavMesh ("navmesh": vertices and triangles).
+//
+// Run it without -nographics: images Unity cannot read directly (PSD) are drawn through
+// the GPU, and come out grey without one.
+//
 // All positions, rotations and meshes are converted to Godot's axes: Unity's Z is
 // negated (left-handed to right-handed), so Unity's forward (+Z) becomes Godot's
-// forward (-Z). Texture coordinates get v = 1 - v. Triangles are turned so the fronts
-// stay the fronts.
+// forward (-Z). Texture coordinates get v = 1 - v. Triangles keep their order: the
+// mirror keeps a clockwise front clockwise on screen.
 
 using System;
 using System.Collections.Generic;
@@ -127,6 +133,8 @@ public static class RetroSceneExport
         root["audio"] = audio;
         root["fonts"] = fonts;
         root["terrains"] = terrains;
+        root["animations"] = animations;
+        root["navmesh"] = NavMeshJson();
         root["render"] = RenderSettingsJson();
         root["tags"] = Json.Arr(UnityEditorInternal.InternalEditorUtility.tags);
         var layers = Json.Arr();
@@ -331,8 +339,18 @@ public static class RetroSceneExport
             case ParticleSystem ps:
                 WriteParticles(ps, j);
                 break;
+            case Animator an:
+                WriteAnimator(an, j);
+                break;
+            case TrailRenderer tr:
+                j["time"] = tr.time;
+                j["start_width"] = tr.startWidth;
+                j["end_width"] = tr.endWidth;
+                j["start_color"] = Col(tr.startColor);
+                j["end_color"] = Col(tr.endColor);
+                j["material"] = MaterialKey(tr.sharedMaterial);
+                break;
             case LineRenderer _:
-            case TrailRenderer _:
                 break;
             default:
                 // Game scripts and everything else: their serialized fields.
@@ -739,6 +757,188 @@ public static class RetroSceneExport
         return copy;
     }
 
+    // ------------------------------------------------------------------------------------
+    // Animator: the states of the controller's first layer, and their clips sampled.
+
+    static void WriteAnimator(Animator an, Json j)
+    {
+        j["speed"] = an.speed;
+        var controller = an.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
+        if (controller == null || controller.layers.Length == 0)
+            return;
+        j["controller"] = controller.name;
+        var machine = controller.layers[0].stateMachine;
+        if (controller.layers.Length > 1)
+            Warn(an.gameObject.name + ": Animator: only the first of " + controller.layers.Length + " layers is written");
+        if (machine.defaultState != null)
+            j["default_state"] = machine.defaultState.name;
+        var states = Json.Arr();
+        foreach (var child in machine.states)
+        {
+            var state = child.state;
+            var s = Json.Obj();
+            s["name"] = state.name;
+            s["speed"] = state.speed;
+            var clip = state.motion as AnimationClip;
+            if (clip != null)
+                s["clip"] = ClipKey(clip, an.gameObject);
+            else if (state.motion != null)
+                Warn(an.gameObject.name + ": Animator state " + state.name + ": a blend tree is not written");
+            states.Add(s);
+        }
+        j["states"] = states;
+    }
+
+    static readonly Dictionary<UnityEngine.Object, string> clipKeys = new Dictionary<UnityEngine.Object, string>();
+    static readonly Json animations = Json.Obj();
+
+    // Samples per second of a written clip. Unity's curves are smooth between keys;
+    // sampled this often, Godot's linear tracks follow them closely.
+    const float ClipRate = 30f;
+
+    static Json ClipKey(AnimationClip clip, GameObject root)
+    {
+        if (clipKeys.TryGetValue(clip, out var key))
+            return Json.Str(key);
+        key = UniqueName("anim:", clip.name);
+        clipKeys[clip] = key;
+        var j = Json.Obj();
+        j["asset"] = AssetDatabase.GetAssetPath(clip);
+        j["length"] = clip.length;
+        j["loop"] = clip.isLooping;
+
+        // Bindings by path: the transform parts and the active flag are written.
+        var byPath = new Dictionary<string, List<EditorCurveBinding>>();
+        foreach (var b in AnimationUtility.GetCurveBindings(clip))
+        {
+            if (!byPath.TryGetValue(b.path, out var list))
+                byPath[b.path] = list = new List<EditorCurveBinding>();
+            list.Add(b);
+        }
+        int frames = Mathf.Max(1, Mathf.CeilToInt(clip.length * ClipRate - 0.001f));
+        var tracks = Json.Arr();
+        foreach (var kv in byPath)
+        {
+            Transform target = kv.Key.Length == 0 ? root.transform : root.transform.Find(kv.Key);
+            Vector3 basePos = target != null ? target.localPosition : Vector3.zero;
+            Quaternion baseRot = target != null ? target.localRotation : Quaternion.identity;
+            Vector3 baseEuler = target != null ? target.localEulerAngles : Vector3.zero;
+            Vector3 baseScale = target != null ? target.localScale : Vector3.one;
+            AnimationCurve[] pos = new AnimationCurve[3], quat = new AnimationCurve[4], euler = new AnimationCurve[3], scale = new AnimationCurve[3];
+            AnimationCurve active = null;
+            foreach (var b in kv.Value)
+            {
+                var curve = AnimationUtility.GetEditorCurve(clip, b);
+                string p = b.propertyName;
+                if (b.type == typeof(Transform))
+                {
+                    int axis = p.EndsWith(".x") ? 0 : p.EndsWith(".y") ? 1 : p.EndsWith(".z") ? 2 : p.EndsWith(".w") ? 3 : -1;
+                    if (p.StartsWith("m_LocalPosition") && axis < 3 && axis >= 0) pos[axis] = curve;
+                    else if (p.StartsWith("m_LocalRotation") && axis >= 0) quat[axis] = curve;
+                    else if (p.StartsWith("localEulerAngles") && axis < 3 && axis >= 0) euler[axis] = curve;
+                    else if (p.StartsWith("m_LocalScale") && axis < 3 && axis >= 0) scale[axis] = curve;
+                    else Warn(clip.name + ": curve " + p + " is not written");
+                }
+                else if (b.type == typeof(GameObject) && p == "m_IsActive")
+                    active = curve;
+                else
+                    Warn(clip.name + ": curve " + b.type.Name + "." + p + " of '" + b.path + "' is not written");
+            }
+            var track = Json.Obj();
+            track["path"] = kv.Key;
+            if (pos[0] != null || pos[1] != null || pos[2] != null)
+            {
+                var values = Json.Arr();
+                for (int f = 0; f <= frames; f++)
+                {
+                    float t = Mathf.Min(f / ClipRate, clip.length);
+                    var v = new Vector3(pos[0] != null ? pos[0].Evaluate(t) : basePos.x,
+                        pos[1] != null ? pos[1].Evaluate(t) : basePos.y, pos[2] != null ? pos[2].Evaluate(t) : basePos.z);
+                    values.Add(Pos(v));
+                }
+                tracks.Add(Json.Obj().Set("path", kv.Key).Set("property", "position").Set("values", values));
+            }
+            bool hasQuat = quat[0] != null || quat[1] != null || quat[2] != null || quat[3] != null;
+            bool hasEuler = euler[0] != null || euler[1] != null || euler[2] != null;
+            if (hasQuat || hasEuler)
+            {
+                var values = Json.Arr();
+                for (int f = 0; f <= frames; f++)
+                {
+                    float t = Mathf.Min(f / ClipRate, clip.length);
+                    Quaternion q;
+                    if (hasQuat)
+                        q = new Quaternion(quat[0] != null ? quat[0].Evaluate(t) : baseRot.x, quat[1] != null ? quat[1].Evaluate(t) : baseRot.y,
+                            quat[2] != null ? quat[2].Evaluate(t) : baseRot.z, quat[3] != null ? quat[3].Evaluate(t) : baseRot.w);
+                    else
+                        q = Quaternion.Euler(euler[0] != null ? euler[0].Evaluate(t) : baseEuler.x,
+                            euler[1] != null ? euler[1].Evaluate(t) : baseEuler.y, euler[2] != null ? euler[2].Evaluate(t) : baseEuler.z);
+                    values.Add(Rot(q.normalized));
+                }
+                tracks.Add(Json.Obj().Set("path", kv.Key).Set("property", "rotation").Set("values", values));
+            }
+            if (scale[0] != null || scale[1] != null || scale[2] != null)
+            {
+                var values = Json.Arr();
+                for (int f = 0; f <= frames; f++)
+                {
+                    float t = Mathf.Min(f / ClipRate, clip.length);
+                    values.Add(Vec(new Vector3(scale[0] != null ? scale[0].Evaluate(t) : baseScale.x,
+                        scale[1] != null ? scale[1].Evaluate(t) : baseScale.y, scale[2] != null ? scale[2].Evaluate(t) : baseScale.z)));
+                }
+                tracks.Add(Json.Obj().Set("path", kv.Key).Set("property", "scale").Set("values", values));
+            }
+            if (active != null)
+            {
+                // Steps: a key where the flag changes.
+                var times = Json.Arr();
+                var values = Json.Arr();
+                bool? last = null;
+                foreach (var k in active.keys)
+                {
+                    bool on = k.value > 0.5f;
+                    if (last == on)
+                        continue;
+                    times.Add(Json.Num(k.time));
+                    values.Add(Json.Bool(on));
+                    last = on;
+                }
+                tracks.Add(Json.Obj().Set("path", kv.Key).Set("property", "visible").Set("times", times).Set("values", values));
+            }
+        }
+        j["rate"] = ClipRate;
+        j["frames"] = frames;
+        j["tracks"] = tracks;
+        animations[key] = j;
+        return Json.Str(key);
+    }
+
+    // The baked NavMesh of the open scene, in Godot's axes: what NavigationRegion3D needs.
+    static Json NavMeshJson()
+    {
+        var tri = UnityEngine.AI.NavMesh.CalculateTriangulation();
+        var j = Json.Obj();
+        var verts = Json.Arr();
+        foreach (var v in tri.vertices)
+            verts.Add(Pos(v));
+        var idx = Json.Arr();
+        // The mirror of Z turns the winding: two indices are swapped so the faces stay up.
+        for (int i = 0; i + 2 < tri.indices.Length; i += 3)
+        {
+            idx.Add(Json.Num(tri.indices[i]));
+            idx.Add(Json.Num(tri.indices[i + 2]));
+            idx.Add(Json.Num(tri.indices[i + 1]));
+        }
+        j["vertices"] = verts;
+        j["indices"] = idx;
+        var settings = UnityEngine.AI.NavMesh.GetSettingsByIndex(0);
+        j["agent_radius"] = settings.agentRadius;
+        j["agent_height"] = settings.agentHeight;
+        j["agent_climb"] = settings.agentClimb;
+        j["agent_slope"] = settings.agentSlope;
+        return j;
+    }
+
     static Json AudioKey(AudioClip clip)
     {
         if (clip == null)
@@ -844,13 +1044,11 @@ public static class RetroSceneExport
             {
                 int[] tris = mesh.GetTriangles(s);
                 w.Write((uint)tris.Length);
-                for (int i = 0; i + 2 < tris.Length; i += 3)
-                {
-                    // Mirroring Z turns the triangles inside out: swap two corners.
-                    w.Write((uint)tris[i]);
-                    w.Write((uint)tris[i + 2]);
-                    w.Write((uint)tris[i + 1]);
-                }
+                // Kept in Unity's order. Unity and Godot both call a triangle that is
+                // clockwise on screen its front, and negating Z only describes the same
+                // triangle in other axes, so on screen it stays clockwise. (Swapping two
+                // corners here turned every mesh inside out.)
+                foreach (int index in tris) w.Write((uint)index);
             }
         }
     }

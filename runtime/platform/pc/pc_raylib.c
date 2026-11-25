@@ -229,6 +229,24 @@ typedef struct {
 static Translucent g_translucent[MAX_TRANSLUCENT];
 static uint16_t    g_translucent_order[MAX_TRANSLUCENT];
 
+/* Opaque surfaces are drawn without blending: their texture's alpha (often a gloss
+ * map, in models made for other engines) does not show, as in Godot and on the
+ * consoles. Changing the state flushes raylib's batch, so it is only changed when needed. */
+static bool g_blend_off;
+
+static void set_blend(bool on)
+{
+    if (on == g_blend_off) {
+        rlDrawRenderBatchActive();
+        if (on) {
+            rlEnableColorBlend();
+        } else {
+            rlDisableColorBlend();
+        }
+        g_blend_off = !on;
+    }
+}
+
 static void draw_surface(const RRPkgMesh *mesh, const RRPkgSurface *surf, const RRMat34 *world,
                          const uint32_t *textures)
 {
@@ -240,10 +258,11 @@ static void draw_surface(const RRPkgMesh *mesh, const RRPkgSurface *surf, const 
     const uint32_t    texture = surf->texture != RR_NONE32 ? textures[surf->texture] : RR_NONE32;
     uint32_t          i, k;
 
+    set_blend(surf->blend != RR_BLEND_OPAQUE);
     rlPushMatrix();
     rlMultMatrixf(matrix);
-    /* raylib blends by alpha already, so all blend modes draw the same here. The texture
-     * colour is multiplied with the vertex colour. */
+    /* Punch-through and translucent surfaces blend by alpha. The texture colour is
+     * multiplied with the vertex colour. */
     rlSetTexture(texture < MAX_TEXTURES && g_textures[texture].id != 0 ? g_textures[texture].id
                                                                       : rlGetTextureIdDefault());
     rlBegin(RL_TRIANGLES);
@@ -299,6 +318,7 @@ static void draw_translucent(void)
 {
     uint32_t i, k;
 
+    set_blend(true);
     if (g_translucent_count == 0) {
         return;
     }

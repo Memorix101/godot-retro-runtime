@@ -148,6 +148,15 @@ int main(int argc, char **argv)
     if (!rr_plat_init("Retro Runtime")) {
         return fail("platform init");
     }
+    /* rand() is seeded at random, as Godot seeds its random numbers at start (and after
+     * whatever a platform did in its init), except in automated runs, which repeat. */
+    {
+        bool repeat = max_frames >= 0;
+#ifdef RR_INPUT_SCRIPT
+        repeat = true;
+#endif
+        srand(repeat ? 1u : (unsigned)(rr_plat_time_us() ^ 0x5bd1e995u));
+    }
     if (!rr_app_start(data_dir, scene)) {
         rr_plat_shutdown();
         return fail(scene);

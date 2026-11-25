@@ -697,6 +697,9 @@ void rr_rigid_body_reset(Node *body)
 
 void rr_rigid_bodies_update(RRScene *scene, float dt)
 {
+    if (dt <= 0.0f) {
+        return; /* the time scale is 0 */
+    }
     /* A long frame must not carry a body through a wall. */
     if (dt > 1.0f / 20.0f) {
         dt = 1.0f / 20.0f;

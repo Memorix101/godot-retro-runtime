@@ -108,9 +108,12 @@ func sky_face_size() -> int:
 	return 256
 
 
-## Half the rate of a CD: 88 KB per second of stereo music to read from the disc.
+## The rate of a CD: 176 KB per second of stereo music to read from the disc, which the
+## drive does at a fraction of its speed. Half of it sounded dull and harsh at once: the
+## halving let through what lies above the new limit, and the sound chip's linear
+## interpolation back up added mirror images of the rest.
 func music_rate() -> int:
-	return 22050
+	return 44100
 
 
 func bake_sound(samples: PackedInt32Array, sample_rate: int, channels: int) -> PackedByteArray:

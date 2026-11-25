@@ -50,9 +50,12 @@ BUILD := build
 # The scenes of the game. The first scene the runtime loads is main_menu.
 SCENES := scenes/main_menu.tscn scenes/test_track.tscn scenes/sprites_2d.tscn \
           scenes/platformer_2d.tscn scenes/platformer_3d.tscn scenes/racing.tscn \
-          scenes/island.tscn scenes/ball_roll.tscn scenes/stunt_track.tscn scenes/features.tscn
+          scenes/island.tscn scenes/ball_roll.tscn scenes/stunt_track.tscn scenes/features.tscn \
+          scenes/airplane.tscn scenes/highway_title.tscn scenes/highway.tscn \
+          scenes/neonleague_title.tscn scenes/neonleague.tscn
 # Scenes that are instanced by the ones above.
-PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/*.tscn)
+PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/*.tscn \
+                    scenes/airplane/*.tscn scenes/highway/*.tscn scenes/neonleague/*.tscn)
 
 CORE_SRC := $(wildcard runtime/core/*.c)
 GAME_SRC := $(wildcard runtime/game/*.c)
@@ -268,7 +271,7 @@ test: all $(BUILD)/pkg/pc/.exported
 	    "scene: main_menu scene: stunt_track stunt: checkpoint 1/3 scene: main_menu " || \
 	    { echo "FAIL: unexpected output:"; cat $(T)/flow_stunt.log; exit 1; }
 	@echo "== game flow: menu -> 2D test -> cancel -> menu -> quit"
-	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_accept" > $(T)/flow_2d.log
+	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_down,210:ui_down,215:ui_down,220:ui_accept" > $(T)/flow_2d.log
 	@test "$$(tr -d '\r' < $(T)/flow_2d.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: sprites_2d scene: main_menu quit " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_2d.log; exit 1; }
@@ -278,7 +281,7 @@ test: all $(BUILD)/pkg/pc/.exported
 	    "scene: main_menu scene: sprites_2d scene: main_menu " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_pool.log; exit 1; }
 	@echo "== game flow: menu -> feature test, report on screen -> cancel -> menu"
-	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,55:ui_down,60:ui_down,65:ui_accept,215:ui_cancel" > $(T)/flow_features.log
+	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,55:ui_down,60:ui_down,65:ui_down,70:ui_down,75:ui_down,80:ui_accept,230:ui_cancel" > $(T)/flow_features.log
 	@test "$$(tr -d '\r' < $(T)/flow_features.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: features scene: features features: ok scene: main_menu " || \
 	    { echo "FAIL: unexpected output:"; cat $(T)/flow_features.log; exit 1; }
@@ -313,6 +316,28 @@ test: all $(BUILD)/pkg/pc/.exported
 	@test "$$(tr -d '\r' < $(T)/flow_platformer_3d.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: platformer_3d scene: main_menu " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_platformer_3d.log; exit 1; }
+	@echo "== game flow: menu -> airplane, started and flown through the first gate -> cancel -> menu"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) --data $(BUILD)/pkg/pc --frames 1600 \
+	    --input "10:ui_down,15:ui_down,20:ui_down,25:ui_down,30:ui_down,35:ui_down,40:ui_down,50:ui_accept,110:start,1500:ui_cancel" \
+	    > $(T)/flow_airplane.log
+	@test "$$(tr -d '\r' < $(T)/flow_airplane.log | tr '\n' ' ')" = \
+	    "scene: main_menu scene: airplane airplane: GATES 1/9 scene: main_menu " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/flow_airplane.log; exit 1; }
+	@echo "== game flow: menu -> highway title -> game: rivals taken down, three crashes, game over -> title -> menu"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) --data $(BUILD)/pkg/pc --frames 2950 \
+	    --input "10:ui_down,15:ui_down,20:ui_down,25:ui_down,30:ui_down,35:ui_down,40:ui_down,45:ui_down,50:ui_accept,80:start,90:accelerate:3000,120:steer_left:20,380:steer_right:20,680:steer_left:20,980:steer_right:20,1280:steer_left:20,1580:steer_right:20,1880:steer_left:20,2180:steer_right:20,2480:steer_left:20,2800:start,2850:ui_cancel" \
+	    > $(T)/flow_highway.log
+	@grep -q "^highway: takedown" $(T)/flow_highway.log && \
+	    test "$$(grep -E '^(scene|highway: (crash|game over))' $(T)/flow_highway.log | sed 's/, score.*//' | tr -d '\r' | tr '\n' ' ')" = \
+	        "scene: main_menu scene: highway_title scene: highway highway: crash highway: crash highway: crash highway: game over scene: highway_title scene: main_menu " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/flow_highway.log; exit 1; }
+	@echo "== game flow: menu -> neon league title -> game: three deaths, game over -> title -> exit -> menu"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) --data $(BUILD)/pkg/pc --frames 1950 \
+	    --input "10:ui_down,15:ui_down,20:ui_down,25:ui_down,30:ui_down,35:ui_down,40:ui_down,45:ui_down,50:ui_down,60:ui_accept,90:ui_accept,1800:nl_back,1850:ui_down,1860:ui_down,1870:ui_down,1880:ui_accept" \
+	    > $(T)/flow_neonleague.log
+	@test "$$(grep -E '^(scene|neonleague: (died|game over))' $(T)/flow_neonleague.log | sed 's/, score.*//' | tr -d '\r' | tr '\n' ' ')" = \
+	    "scene: main_menu scene: neonleague_title scene: neonleague neonleague: died, 2 lives left neonleague: died, 1 lives left neonleague: died, 0 lives left neonleague: game over scene: neonleague_title scene: main_menu " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/flow_neonleague.log; exit 1; }
 	@echo "ALL TESTS PASSED"
 
 clean:

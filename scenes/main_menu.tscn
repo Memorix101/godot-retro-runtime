@@ -5,6 +5,9 @@
 [ext_resource type="AudioStream" uid="uid://su2fqo052qxx" path="res://assets/sounds/beep.wav" id="4_beep"]
 [ext_resource type="AudioStream" uid="uid://pd5x3c4mtm18" path="res://assets/sounds/music.ogg" id="5_music"]
 
+[sub_resource type="Theme" id="Theme_buttons"]
+Button/font_sizes/font_size = 14
+
 [node name="MainMenu" type="Control" unique_id=1063516715]
 layout_mode = 3
 anchors_preset = 15
@@ -20,6 +23,9 @@ platformer_3d_scene = "res://scenes/platformer_3d.tscn"
 racing_scene = "res://scenes/racing.tscn"
 island_scene = "res://scenes/island.tscn"
 ball_scene = "res://scenes/ball_roll.tscn"
+airplane_scene = "res://scenes/airplane.tscn"
+highway_scene = "res://scenes/highway_title.tscn"
+neonleague_scene = "res://scenes/neonleague_title.tscn"
 feature_scene = "res://scenes/features.tscn"
 
 [node name="Backdrop" type="TextureRect" parent="." unique_id=2044799120]
@@ -37,9 +43,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -199.0
-offset_top = 34.0
+offset_top = 2.0
 offset_right = 201.0
-offset_bottom = 82.0
+offset_bottom = 50.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_font_sizes/font_size = 32
@@ -53,11 +59,12 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -110.0
-offset_top = 112.0
+offset_top = 56.0
 offset_right = 110.0
-offset_bottom = 434.0
+offset_bottom = 472.0
 grow_horizontal = 2
-theme_override_constants/separation = 6
+theme = SubResource("Theme_buttons")
+theme_override_constants/separation = 3
 
 [node name="Start" type="Button" parent="Buttons" unique_id=158718179]
 layout_mode = 2
@@ -94,6 +101,21 @@ layout_mode = 2
 size_flags_vertical = 3
 text = "Ball Roll"
 
+[node name="Airplane" type="Button" parent="Buttons" unique_id=1734002519]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Airplane Arcade"
+
+[node name="Highway" type="Button" parent="Buttons" unique_id=602781344]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Highway Pursuit"
+
+[node name="NeonLeague" type="Button" parent="Buttons" unique_id=1488302117]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Neon League"
+
 [node name="Features" type="Button" parent="Buttons" unique_id=353392737]
 layout_mode = 2
 size_flags_vertical = 3
@@ -105,6 +127,7 @@ size_flags_vertical = 3
 text = "Quit"
 
 [node name="Hint" type="Label" parent="." unique_id=966821402]
+visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -120,12 +143,10 @@ horizontal_alignment = 1
 
 [node name="Jingle" type="AudioStreamPlayer" parent="." unique_id=260371834]
 stream = ExtResource("4_beep")
-autoplay = true
 
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=1568281136]
 stream = ExtResource("5_music")
 volume_db = -8.0
-autoplay = true
 
 [connection signal="pressed" from="Buttons/Start" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="Buttons/Test2D" to="." method="_on_test_2d_pressed"]
@@ -134,5 +155,8 @@ autoplay = true
 [connection signal="pressed" from="Buttons/Racing" to="." method="_on_racing_pressed"]
 [connection signal="pressed" from="Buttons/Island" to="." method="_on_island_pressed"]
 [connection signal="pressed" from="Buttons/Ball" to="." method="_on_ball_pressed"]
+[connection signal="pressed" from="Buttons/Airplane" to="." method="_on_airplane_pressed"]
+[connection signal="pressed" from="Buttons/Highway" to="." method="_on_highway_pressed"]
+[connection signal="pressed" from="Buttons/NeonLeague" to="." method="_on_neonleague_pressed"]
 [connection signal="pressed" from="Buttons/Features" to="." method="_on_features_pressed"]
 [connection signal="pressed" from="Buttons/Quit" to="." method="_on_quit_pressed"]

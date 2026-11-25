@@ -133,13 +133,15 @@ void rr_particles_draw(const RRScene *scene); /* needs the scene's camera */
 void rr_particles_draw_2d(const RRScene *scene, const Node *node, float ox, float oy, float zx,
                           float zy);
 
-/* rr_skin.c */
+/* rr_skin.c: mesh nodes with a copy of their mesh, for a skin or a colour that changes */
+#define rr_mesh_node_has_copy(d) ((d)->skin != RR_NONE32 || (d)->tinted)
 /* During scene creation: `memory` is where the node's copy of its mesh goes. */
 void rr_skin_init(RRScene *scene, Node *node, uint8_t *memory);
 /* Puts the vertices of every mesh with a skin where its bones are now. Needs the world
  * transforms. */
 void rr_skins_update(RRScene *scene);
-/* The posed mesh of a mesh node with a skin; NULL for any other node. */
+/* The copy of a mesh node with a skin or a tint (posed, coloured); NULL for any other
+ * node. */
 const RRPkgMesh *rr_skin_mesh(const RRScene *scene, const Node *node);
 
 /* rr_canvas.c */

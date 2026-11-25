@@ -52,9 +52,40 @@ static void ui_begin(const Node *n)
     }
 }
 
+/* The modulate of the 2D node that is drawn, with those of its parents: 0xRRGGBBAA. */
+static uint32_t g_modulate = 0xFFFFFFFFu;
+
+static uint32_t mul_color(uint32_t a, uint32_t b)
+{
+    uint32_t out = 0;
+    int      k;
+
+    if (b == 0xFFFFFFFFu) {
+        return a;
+    }
+    for (k = 0; k < 32; k += 8) {
+        const uint32_t x = ((a >> k) & 0xFFu) * ((b >> k) & 0xFFu) + 128u;
+        out |= ((x + (x >> 8)) >> 8) << k;
+    }
+    return out;
+}
+
+static uint32_t inherited_modulate(const Node *n)
+{
+    uint32_t m = 0xFFFFFFFFu;
+    for (; n != NULL; n = n->parent) {
+        m = mul_color(m, n->modulate);
+    }
+    return m;
+}
+
 /* One quad of a control: upright, corners in the order of rr_gfx_draw_quad. */
 static void ui_quad(uint32_t texture, const float *xy, const float *uv, uint32_t color)
 {
+    color = mul_color(color, g_modulate);
+    if ((color & 0xFFu) == 0) {
+        return;
+    }
     float p[4] = { xy[0] + g_ui.shift[0], xy[1] + g_ui.shift[1], xy[4] + g_ui.shift[0], xy[5] + g_ui.shift[1] };
     float t[4] = { uv[0], uv[1], uv[4], uv[5] };
     int   a;
@@ -314,7 +345,10 @@ static void draw_node_quad(const RRScene *scene, const Canvas *c, const Node *n,
         uv[i * 2]     = right ? u1 : u0;
         uv[i * 2 + 1] = bottom ? v1 : v0;
     }
-    rr_gfx_draw_quad(scene->handles[texture], xy, uv, color);
+    color = mul_color(color, g_modulate);
+    if ((color & 0xFFu) != 0) {
+        rr_gfx_draw_quad(scene->handles[texture], xy, uv, color);
+    }
 }
 
 static void draw_sprite(const RRScene *scene, const Canvas *c, const Node *n)
@@ -628,6 +662,47 @@ static bool mesh_in_view(const Frustum *f, const RRPkgMesh *mesh, const RRMat34 
         side = -side;
     }
     return f->half_y > 0.0f ? side - f->half_y <= r : (side - depth * f->tan_y) * f->inv_y <= r;
+}
+
+/* Godot's automatic mesh LOD (mesh_surface_get_lod): the coarsest level whose error, an
+ * edge length in the mesh, covers no more than the threshold in pixels on the screen.
+ * Godot: edge * scale / (distance * lod_multiplier) <= threshold / viewport width, with
+ * the distance from the camera to the nearest part of the mesh and lod_multiplier the
+ * width of the view at distance 1 (an orthogonal camera: distance 1, multiplier half
+ * the width of the view). The exporter has divided the edges by the threshold. */
+static const RRPkgMesh *mesh_lod(const RRPackage *pkg, const Frustum *f, const RRPkgMesh *mesh,
+                                 const RRMat34 *world)
+{
+    const RRPkgMeshLod *lods = rr_mesh_lods(mesh);
+    const float        *m = world->m;
+    const float        *c = mesh->center;
+    const float         sx = dot3(&m[0], &m[0]), sy = dot3(&m[3], &m[3]), sz = dot3(&m[6], &m[6]);
+    const float         scale = sqrtf(sx > sy ? (sx > sz ? sx : sz) : (sy > sz ? sy : sz));
+    const RRPkgMesh    *chosen = mesh;
+    float               distance, multiplier, limit;
+    uint32_t            i;
+
+    if (mesh->lod_count == 0 || scale <= 0.0f) {
+        return mesh;
+    }
+    if (f->half_y > 0.0f) {
+        distance   = 1.0f;
+        multiplier = f->half_x;
+    } else {
+        const float d[3] = { m[0] * c[0] + m[3] * c[1] + m[6] * c[2] + m[9] - f->origin[0],
+                             m[1] * c[0] + m[4] * c[1] + m[7] * c[2] + m[10] - f->origin[1],
+                             m[2] * c[0] + m[5] * c[1] + m[8] * c[2] + m[11] - f->origin[2] };
+        distance   = sqrtf(dot3(d, d)) - mesh->radius * scale;
+        multiplier = 2.0f * f->tan_x;
+        if (distance <= 0.0f) {
+            return mesh; /* the camera is inside it */
+        }
+    }
+    limit = distance * multiplier / (scale * (float)RR_SCREEN_WIDTH);
+    for (i = 0; i < mesh->lod_count && lods[i].edge <= limit; i++) {
+        chosen = rr_package_mesh(pkg, lods[i].mesh);
+    }
+    return chosen;
 }
 
 /* The two directions a flat node (Sprite3D, Label3D) is laid out along in the world: its
@@ -1131,6 +1206,7 @@ static void draw_scroll(const Node *n)
 /* One 2D node or control. `c` is the view it is seen through. */
 static void draw_2d_node(const RRScene *scene, const Canvas *c, const Node *n)
 {
+    g_modulate = inherited_modulate(n);
     ui_begin(n);
     switch (n->type) {
     case RR_NODE_SPRITE:
@@ -1243,9 +1319,10 @@ void rr_scene_draw(const RRScene *scene)
             const Node *n = &scene->nodes[i];
             if (n->type == RR_NODE_MESH && rr_node_visible_in_tree(n)) {
                 const RRPkgMeshNode *d = (const RRPkgMeshNode *)n->data;
-                /* A mesh with a skin is drawn as its bones have posed it. */
-                const RRPkgMesh     *mesh = d->skin != RR_NONE32 ? rr_skin_mesh(scene, n)
-                                                                 : rr_package_mesh(scene->pkg, d->mesh);
+                /* A mesh with a skin is drawn as its bones have posed it, one whose colour
+                 * can change in its colour. */
+                const RRPkgMesh     *mesh = rr_mesh_node_has_copy(d) ? rr_skin_mesh(scene, n)
+                                                                     : rr_package_mesh(scene->pkg, d->mesh);
                 if (d->range_begin > 0.0f || d->range_end > 0.0f) {
                     /* Visibility range: by the distance from the camera to the node. */
                     const float *c = scene->camera->world.m, *w = n->world.m;
@@ -1257,7 +1334,8 @@ void rr_scene_draw(const RRScene *scene)
                     }
                 }
                 if (mesh_in_view(&frustum, mesh, &n->world)) {
-                    rr_gfx_draw_mesh(mesh, &n->world, scene->handles);
+                    rr_gfx_draw_mesh(mesh_lod(scene->pkg, &frustum, mesh, &n->world), &n->world,
+                                     scene->handles);
                 }
             }
         }

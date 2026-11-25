@@ -25,7 +25,7 @@ something the runtime cannot handle is not exported; the message names the node.
 | Godot                         | Notes                                                         |
 |-------------------------------|---------------------------------------------------------------|
 | `Node`, `Node3D`, `Node2D`    |                                                               |
-| `MeshInstance3D`              | ArrayMesh (also an imported `.obj`) or primitive mesh; `StandardMaterial3D` or no material; albedo colour and one albedo texture; transparency Disabled, Alpha Scissor or Alpha (drawn after everything solid, the far ones first, as in Godot); `visibility_range_begin`/`end` without margins or fading |
+| `MeshInstance3D`              | ArrayMesh (also an imported `.obj`) or primitive mesh; `StandardMaterial3D` or no material; albedo colour and one albedo texture; transparency Disabled, Alpha Scissor or Alpha (drawn after everything solid, the far ones first, as in Godot); `visibility_range_begin`/`end` without margins or fading; the mesh's automatic LOD levels (as Godot's importer makes them, or `ImporterMesh.generate_lods`), switched as Godot does by `rendering/mesh_lod/lod_change/threshold_pixels`, which can be set per platform (`threshold_pixels.dreamcast` and so on); no `lod_bias`; a `material_override` that is local to the scene can change its colour while the game runs (see "Colours and time while the game runs") |
 | `Camera3D`                    | perspective or orthogonal (`size`), Keep Height; an orthogonal camera not together with fog or a sky background |
 | `DirectionalLight3D`, `OmniLight3D`, `SpotLight3D` | inputs of the light bake only; they become `Node3D` nodes. Colour, energy, range, attenuation, spot angle and its attenuation; no shadows, no negative lights |
 | `Area3D`, `Area2D` + `CollisionShape3D`, `CollisionShape2D` | box and sphere shapes, rectangle and circle in 2D; emits `area_entered` / `area_exited`; `body_entered` and `body_exited` for static and character bodies |
@@ -105,6 +105,26 @@ Things to know:
   Nearest on the root of the 2D scene.
 - Models with a skeleton work: rigidly skinned meshes are cut into pieces per bone, others get a skin; see "Animations and particles".
 - WAV files must be imported with Compress Mode "PCM (Uncompressed)".
+
+## Colours and time while the game runs
+
+Colours are baked into the package, as the light is. Four things can still change while
+the game runs, from C (`runtime/core/rr_scene.h`):
+
+- `rr_mesh_set_albedo_color` is `material_override.albedo_color = color` on a
+  `MeshInstance3D` whose `material_override` is a `StandardMaterial3D` with
+  `resource_local_to_scene` on, so every instance has its own. The exporter bakes such a
+  mesh with a white albedo; the runtime gives the node a copy of its mesh (as for a
+  skin) and colours that copy. The light bake is kept; the alpha counts if the material
+  is transparent. Such a mesh has no LOD levels.
+- `rr_canvas_item_set_modulate` is `modulate` of a control or 2D node: it multiplies the
+  colours of the node and of everything below it. It starts white; what the editor set,
+  its modulate included, is baked into the colours below it.
+- `rr_environment_set_background_color` is the background colour of the scene's
+  environment (the colour the screen is cleared to).
+- `rr_set_time_scale` is `Engine.time_scale`: the delta of components, animations,
+  physics, particles, timers and tweens is multiplied with it. Buttons and sliders and
+  the sounds keep the real speed. It stays set when the scene changes.
 
 ## Instancing scenes
 

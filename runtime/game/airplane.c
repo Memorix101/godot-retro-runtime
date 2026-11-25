@@ -793,10 +793,14 @@ static void airplane_game_show_counts(AirplaneGame *g)
     for (i = 0; i < 4; i++) {
         const int left = count_children(lists[i]);
         if (left != g->left[i]) {
+            const bool collected = g->left[i] >= 0; /* not the first count */
             g->left[i] = left;
             snprintf(g->counts_text[i], sizeof(g->counts_text[i]), "%s %d/%d", names[i],
                      g->totals[i] - left, g->totals[i]);
             set_text(labels[i], g->counts_text[i]);
+            if (collected) {
+                printf("airplane: %s\n", g->counts_text[i]);
+            }
         }
     }
 }
@@ -937,6 +941,7 @@ typedef struct {
     Node *title_label;  /* exported */
     Node *panel;        /* exported: shown for show_time after a piece starts */
     float show_time;    /* exported: seconds */
+    bool  can_skip;     /* exported: the action next_song plays the next piece */
 
     int   act_next;
     Node *songs[JUKEBOX_MAX];
@@ -999,7 +1004,7 @@ static void jukebox_update(Node *self, Jukebox *j, float dt)
     if (!visible_in_tree(self)) {
         return; /* plays once the game has begun */
     }
-    if (!j->started || rr_action_pressed(j->act_next) ||
+    if (!j->started || (j->can_skip && rr_action_pressed(j->act_next)) ||
         (j->current >= 0 && !rr_audio_is_playing(j->songs[j->current]))) {
         j->started = true;
         jukebox_play_next(j);
@@ -1015,6 +1020,7 @@ COMPONENT_BEGIN(Jukebox, "Jukebox")
     EXPORT_NODE(title_label)
     EXPORT_NODE(panel)
     EXPORT_FLOAT(show_time)
+    EXPORT_BOOL(can_skip)
     ON_READY(jukebox_ready)
     ON_UPDATE(jukebox_update)
 COMPONENT_END()

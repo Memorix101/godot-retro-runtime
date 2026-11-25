@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/neon_bomb.gd" id="1_wavv7"]
+[ext_resource type="Texture2D" path="res://assets/neonleague/textures/neon_wire.res" id="2_umujx"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_tsplg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vjnpr"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 0.55, 0, 0.8)
+albedo_texture = ExtResource("2_umujx")
+
+[sub_resource type="SphereMesh" id="SphereMesh_h7l01"]
+radial_segments = 16
+rings = 8
+
+[node name="Bomb" type="Area3D" unique_id=849024548]
+collision_layer = 32
+collision_mask = 4
+monitorable = false
+script = ExtResource("1_wavv7")
+size = 15.0
+grow_time = 1.0
+hold_time = 2.0
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=723836698]
+shape = SubResource("SphereShape3D_tsplg")
+
+[node name="Look" type="MeshInstance3D" parent="." unique_id=696736409]
+material_override = SubResource("StandardMaterial3D_vjnpr")
+mesh = SubResource("SphereMesh_h7l01")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]

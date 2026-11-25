@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/neon_enemy.gd" id="1_dybff"]
+[ext_resource type="Texture2D" path="res://assets/neonleague/textures/neon_cell.res" id="2_6lji8"]
+[ext_resource type="ArrayMesh" path="res://assets/neonleague/meshes/Cube_.res" id="3_0avp0"]
+[ext_resource type="Script" path="res://components/neon_disco.gd" id="4_l8qna"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_s50ey"]
+size = Vector3(0.9, 0.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4x4ql"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4vq6g"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(1, 0, 0, 1)
+albedo_texture = ExtResource("2_6lji8")
+
+[node name="Enemy" type="CharacterBody3D" unique_id=14560357 node_paths=PackedStringArray("look") groups=["enemy"]]
+collision_layer = 0
+script = ExtResource("1_dybff")
+speed = 8.0
+acceleration = 8.0
+turn_speed = 120.0
+radius = 0.5
+look = NodePath("Look")
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=932622830]
+shape = SubResource("BoxShape3D_s50ey")
+
+[node name="Hitbox" type="Area3D" parent="." unique_id=1694180772]
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+
+[node name="Shape" type="CollisionShape3D" parent="Hitbox" unique_id=715809661]
+shape = SubResource("BoxShape3D_4x4ql")
+
+[node name="Look" type="MeshInstance3D" parent="." unique_id=481933539]
+material_override = SubResource("StandardMaterial3D_4vq6g")
+mesh = ExtResource("3_0avp0")
+script = ExtResource("4_l8qna")
+mode = 1
+brightness = 1.0

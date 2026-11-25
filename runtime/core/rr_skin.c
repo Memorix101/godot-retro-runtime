@@ -1,5 +1,6 @@
 /* Meshes that bones deform (a MeshInstance3D with a skin whose vertices follow more than
- * one bone).
+ * one bone), and meshes whose colour changes while the game runs (a material_override
+ * that is local to the scene).
  *
  * The bones are nodes of the scene, moved by an AnimationPlayer or a component. A mesh
  * with a skin has a copy of its mesh asset in the scene's memory; once per frame every
@@ -41,6 +42,32 @@ static void invert(RRMat34 *out, const RRMat34 *in)
     }
 }
 
+static void tint(RRScene *scene, RRSkinState *state, uint32_t rgba)
+{
+    const Node          *node = &scene->nodes[state->node];
+    const RRPkgMeshNode *d = (const RRPkgMeshNode *)node->data;
+    const RRPkgMesh     *rest = rr_package_mesh(scene->pkg, d->mesh);
+    const uint32_t       c[4] = { rgba >> 24, (rgba >> 16) & 0xFFu, (rgba >> 8) & 0xFFu, rgba & 0xFFu };
+    uint8_t              at[4];
+    uint32_t             s, v, k;
+
+    state->color = rgba;
+    rr_vertex_color_bytes(scene->pkg->header->platform, at);
+    for (s = 0; s < rest->surface_count; s++) {
+        const uint8_t *from = (const uint8_t *)rr_surface_verts(rest, &rest->surfaces[s]);
+        uint8_t       *to = (uint8_t *)state->mesh + rest->surfaces[s].verts_off;
+
+        for (v = 0; v < rest->surfaces[s].vertex_count; v++, from += RR_VERTEX_SIZE, to += RR_VERTEX_SIZE) {
+            for (k = 0; k < 4; k++) {
+                /* (a * b + 127) / 255, without a division */
+                const uint32_t x = (uint32_t)from[at[k]] * c[k] + 128u;
+                to[at[k]] = (uint8_t)((x + (x >> 8)) >> 8);
+            }
+        }
+    }
+    rr_gfx_mesh_changed(state->mesh, scene->pkg->assets[d->mesh].size);
+}
+
 void rr_skin_init(RRScene *scene, Node *node, uint8_t *memory)
 {
     const RRPkgMeshNode *d = (const RRPkgMeshNode *)node->data;
@@ -48,20 +75,67 @@ void rr_skin_init(RRScene *scene, Node *node, uint8_t *memory)
 
     state->node = (uint16_t)(node - scene->nodes);
     state->mesh = (RRPkgMesh *)memory;
+    state->color = 0xFFFFFFFFu;
     memcpy(memory, rr_package_asset(scene->pkg, d->mesh), scene->pkg->assets[d->mesh].size);
+    if (d->tinted) {
+        tint(scene, state, d->color);
+    }
 }
 
-const RRPkgMesh *rr_skin_mesh(const RRScene *scene, const Node *node)
+static RRSkinState *copy_of(const RRScene *scene, const Node *node)
 {
     const uint16_t index = (uint16_t)(node - scene->nodes);
     uint32_t       i;
 
     for (i = 0; i < scene->skin_count; i++) {
         if (scene->skins[i].node == index) {
-            return scene->skins[i].mesh;
+            return &scene->skins[i];
         }
     }
     return NULL;
+}
+
+static uint8_t to_byte(float v)
+{
+    return (uint8_t)(v <= 0.0f ? 0 : (v >= 1.0f ? 255 : (int)(v * 255.0f + 0.5f)));
+}
+
+void rr_mesh_set_albedo_color(Node *mesh, const float *rgba)
+{
+    RRSkinState   *state;
+    const uint32_t c = (uint32_t)to_byte(rgba[0]) << 24 | (uint32_t)to_byte(rgba[1]) << 16 |
+                       (uint32_t)to_byte(rgba[2]) << 8 | to_byte(rgba[3]);
+
+    if (mesh == NULL || mesh->type != RR_NODE_MESH || !((const RRPkgMeshNode *)mesh->data)->tinted) {
+        return;
+    }
+    state = copy_of(mesh->scene, mesh);
+    if (state != NULL && state->color != c) {
+        tint(mesh->scene, state, c);
+    }
+}
+
+void rr_mesh_get_albedo_color(const Node *mesh, float *rgba)
+{
+    const RRSkinState *state = NULL;
+    uint32_t           c = 0xFFFFFFFFu;
+    int                k;
+
+    if (mesh != NULL && mesh->type == RR_NODE_MESH && ((const RRPkgMeshNode *)mesh->data)->tinted) {
+        state = copy_of(mesh->scene, mesh);
+    }
+    if (state != NULL) {
+        c = state->color;
+    }
+    for (k = 0; k < 4; k++) {
+        rgba[k] = (float)((c >> (24 - 8 * k)) & 0xFFu) * (1.0f / 255.0f);
+    }
+}
+
+const RRPkgMesh *rr_skin_mesh(const RRScene *scene, const Node *node)
+{
+    const RRSkinState *state = copy_of(scene, node);
+    return state != NULL ? state->mesh : NULL;
 }
 
 void rr_skins_update(RRScene *scene)
@@ -72,7 +146,7 @@ void rr_skins_update(RRScene *scene)
     for (i = 0; i < scene->skin_count; i++) {
         const Node           *node = &scene->nodes[scene->skins[i].node];
         const RRPkgMeshNode  *d = (const RRPkgMeshNode *)node->data;
-        const RRPkgSkin      *skin = (const RRPkgSkin *)rr_package_asset(scene->pkg, d->skin);
+        const RRPkgSkin      *skin = (const RRPkgSkin *)rr_package_asset(scene->pkg, d->skin != RR_NONE32 ? d->skin : d->mesh);
         const RRPkgMesh      *rest = rr_package_mesh(scene->pkg, d->mesh);
         RRPkgMesh            *posed = scene->skins[i].mesh;
         const uint16_t       *bones = (const uint16_t *)((const uint8_t *)skin + skin->bones_off);
@@ -81,7 +155,7 @@ void rr_skins_update(RRScene *scene)
         const uint32_t        position = rr_vertex_position_offset(scene->pkg->header->platform);
         RRMat34               to_mesh, in_mesh;
 
-        if (!rr_node_visible_in_tree(node)) {
+        if (d->skin == RR_NONE32 || !rr_node_visible_in_tree(node)) {
             continue;
         }
         /* The vertices stay in the space of the mesh node, which is drawn with its own

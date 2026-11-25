@@ -189,3 +189,85 @@ runs at 60 fps on the start grid, where all cars and the whole straight are in v
 rest of the lap was not measured with the PVR backend). With GLdc it was about 40 fps
 there and 50 to 60 on the rest of the track.
 
+
+## Unity ports: Airplane Arcade, Highway Pursuit and Neon League
+
+Three Unity games were brought over with a converter rather than by hand. All are in the
+main menu ("Airplane Arcade", "Highway Pursuit", "Neon League"). The Unity projects are not in the
+repository; the generated scenes and converted assets are.
+
+**How a Unity scene comes over.**
+
+1. `tools/unity/RetroSceneExport.cs` is an editor script. It is copied into a *copy* of the
+   Unity project (`build/unity_<name>`), because Unity 6.6 rejects some old API calls and
+   batch mode stops at any compile error. Run it once per scene:
+   `Unity.exe -batchmode -projectPath <copy> -executeMethod RetroSceneExport.Run
+   -exportScene Assets/Scenes/<scene>.unity -exportOut <repo>/build/<name>_export -quit`.
+   It writes the node tree with all component fields as JSON, plus the meshes, textures,
+   sounds and terrains. Positions get Godot's axes (Z negated); triangles keep their order,
+   since the mirror keeps a clockwise front clockwise on screen.
+2. `tools/unity_import.gd` turns that into Godot nodes and resources: meshes with
+   Godot's automatic LOD levels, materials, colliders, UI, sounds, and an Animator's
+   states as the clips of an AnimationPlayer (sampled at 30 per second).
+3. A game's own tool (`tools/make_airplane.gd`, `tools/make_highway.gd`,
+   `tools/make_neonleague.gd`) builds the scenes. It puts the components of
+   `runtime/game/airplane.c`, `highway.c` and `neonleague.c` where the
+   C# scripts were, sets their fields from the scripts' values, and leaves out what the
+   consoles cannot draw. The results are ordinary scenes; running the tool again overwrites
+   them.
+
+**Airplane Arcade** (`scenes/airplane.tscn`): the prototype's collect mode. Fly through
+the gates and coins and shoot the targets and ships before the clock runs out. Throttle:
+W/S or the triggers; pitch: Up/Down or the stick; steer: Left/Right; fire: Space; boost:
+Left Ctrl; next song: Tab.
+
+**Highway Pursuit** (`scenes/highway_title.tscn`, then `scenes/highway.tscn`): a police
+car on an endless desert highway, with traffic both ways. Rivals are to be taken down:
+ram them, grind along them, or push them into a rail. Half of the rivals (the blue
+dummies) are wrecked by the first touch. Hitting traffic, or a rail head-on at speed,
+wrecks the police car; three wrecks end the game. Steer: Left/Right or the stick;
+accelerate and brake as in the racing demo; boost: Left Ctrl; next song: Tab; Escape goes
+back to the title.
+
+- The road is one PackedScene (`scenes/highway/road_segment.tscn`). `HighwayRoad` lays
+  copies of it one after the other and spawns traffic and rivals from pooled scenes.
+- The police car and the rivals collide as boxes and push each other with equal masses,
+  as Unity's rigid bodies did. A crash between two cars shares their momentum.
+- A wrecked car is swapped for a `RigidBody3D` wreck (`scenes/highway/wreck_*.tscn`)
+  that tumbles on picophysics. The police car shoves wrecks out of its way.
+- Unity's lens flares (the police lights, and the red and blue wash over the title) are
+  billboard `Sprite3D` glows. The `Flare` component swings their size as the flares'
+  brightness swung.
+- On the Dreamcast the scene needs up to some 20500 solid units a frame with
+  `threshold_pixels.dreamcast = 10`, and runs at 60 fps in Flycast (see
+  [dreamcast-backend.md](dreamcast-backend.md)).
+
+**Neon League** (`scenes/neonleague_title.tscn`, then `scenes/neonleague.tscn`): a
+twin-stick arena shooter. Enemies come out of ten spawners and chase the player; lasers
+bounce off the walls and kill what they meet, the player too. Survive five stages of 60
+seconds (15 seconds of rest between them), then an endless one; the walls start moving in
+stage 4 and two cones rise in stage 5. Three lives, three bombs per stage.
+
+| Action        | PC                     | Dreamcast, PSP, pad |
+|---------------|------------------------|---------------------|
+| Move          | WASD                   | analog stick, d-pad |
+| Aim and fire  | arrow keys             | face buttons (Y up, A down, X left, B right); a PC pad's right stick too |
+| Bomb          | Space, E               | triggers            |
+| Pause         | Escape, P              | Start               |
+| Game over     | Enter or R: again; Backspace or Q: title | Start: again; B: title |
+
+- Unity drew most things with a wireframe shader and made them glow with bloom. The tool
+  draws the wireframes as small textures of lines instead (a grid cell, a sphere's
+  grid), and the floor's 40 wire planes of 200 triangles as one grid of 40 quads.
+- The colours that changed in Unity (walls and floor every half second, the enemies and
+  cones pulsing red, the spawners fading in) are material_overrides local to the scene,
+  which `NeonDisco` and `NeonSpawner` colour with `rr_mesh_set_albedo_color`.
+- The lasers are `RigidBody3D` nodes with a bounce of 1 (as Unity's physics material).
+  Their TrailRenderer is 8 pieces that `NeonLaser` lays along the way the laser came,
+  through its bounces, 20 m back.
+- Unity's NavMesh was one flat rectangle, so the enemies head straight for the player
+  (`CharacterBody3D`, sliding along the walls) and keep off each other.
+- The slow motion at the end and the pause use `rr_set_time_scale`. The settings (music
+  and sound volume, rumble) are kept in the saved game `NEONLEAGUE`.
+- Left out: the online leaderboard, the ASCII mode, the screen resolution, the
+  post-processing.

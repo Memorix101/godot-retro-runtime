@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/highway_car.gd" id="1_6xw8b"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/CarD_CarD.res" id="2_gfjo7"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBL_CarD.res" id="3_x5ko0"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBR_CarD.res" id="4_6j1ve"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFL_2_CarD.res" id="5_kwqc1"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFR_2_CarD.res" id="6_vdm7h"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fwyl5"]
+size = Vector3(3.089518, 2.67, 5.875687)
+
+[node name="CarD" type="Area3D" unique_id=766121098 groups=["traffic", "vehicle"]]
+script = ExtResource("1_6xw8b")
+half_width = 1.544759
+half_length = 2.9378436
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=951103038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0006979108, 1.38, 0.06967905)
+shape = SubResource("BoxShape3D_fwyl5")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=612886774]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+mesh = ExtResource("2_gfjo7")
+
+[node name="TireBL" type="MeshInstance3D" parent="." unique_id=1105830988]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.3046112, 0.55044556, 1.8327637)
+mesh = ExtResource("3_x5ko0")
+
+[node name="TireBR" type="MeshInstance3D" parent="." unique_id=1081612540]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.3046112, 0.55044556, 1.8327637)
+mesh = ExtResource("4_6j1ve")
+
+[node name="TireFL" type="MeshInstance3D" parent="." unique_id=2007282767]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.3046112, 0.55044556, -1.6868973)
+mesh = ExtResource("5_kwqc1")
+
+[node name="TireFR" type="MeshInstance3D" parent="." unique_id=346879767]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.3046112, 0.55044556, -1.6868973)
+mesh = ExtResource("6_vdm7h")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

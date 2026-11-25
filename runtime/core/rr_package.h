@@ -6,7 +6,7 @@
 
 #include "rr_types.h"
 
-#define RR_PKG_VERSION 28
+#define RR_PKG_VERSION 30
 #define RR_MAX_Z_LEVELS 16 /* different draw levels (z_index, CanvasLayer) in one scene */
 #define RR_MAX_BUSES   16 /* audio buses of a project */
 #define RR_NONE16      0xFFFFu
@@ -179,6 +179,12 @@ typedef struct {
     /* A mesh that bones deform: asset index of its skin (RRPkgSkin), RR_NONE32 for a mesh
      * that keeps its shape. */
     uint32_t skin;
+    /* A mesh whose material_override is local to the scene: its colour can change while
+     * the game runs (rr_mesh_set_albedo_color). Its vertex colours were baked with a white
+     * albedo, and `color` (0xRRGGBBAA) is the albedo it starts with. */
+    uint8_t  tinted;
+    uint8_t  pad[3];
+    uint32_t color;
 } RRPkgMeshNode;
 
 typedef struct {
@@ -622,8 +628,18 @@ typedef struct {
     uint32_t verts_off;
 } RRPkgSurface;
 
+/* A simpler version of a mesh (Godot's automatic mesh LOD). */
+typedef struct {
+    /* Godot's LOD edge length (the error of this level, in the mesh's units) divided by
+     * the platform's rendering/mesh_lod/lod_change/threshold_pixels. */
+    float    edge;
+    uint32_t mesh; /* asset index of the RRPkgMesh of this level, written before */
+} RRPkgMeshLod;
+
 typedef struct {
     uint32_t     surface_count;
+    uint32_t     lod_count; /* simpler versions, from fine to coarse */
+    uint32_t     lods_off;  /* RRPkgMeshLod entries, from the start of the mesh */
     float        center[3]; /* bounding sphere in the mesh's own space, for culling */
     float        radius;
     RRPkgSurface surfaces[1]; /* surface_count entries */
@@ -825,6 +841,10 @@ typedef struct {
 
 #define RR_VERTEX_SIZE 24u
 
+/* Where a vertex of the platform keeps its colour: the byte offsets of red, green, blue
+ * and alpha inside the vertex. */
+void rr_vertex_color_bytes(uint8_t platform, uint8_t *offsets);
+
 /* A validated view into a package that was read into memory. It allocates nothing and
  * points into the caller's block, which must stay alive and must be 4-byte aligned. */
 typedef struct {
@@ -879,6 +899,11 @@ static inline const uint16_t *rr_surface_strips(const RRPkgMesh *mesh, const RRP
 static inline const void *rr_surface_verts(const RRPkgMesh *mesh, const RRPkgSurface *s)
 {
     return (const uint8_t *)mesh + s->verts_off;
+}
+
+static inline const RRPkgMeshLod *rr_mesh_lods(const RRPkgMesh *mesh)
+{
+    return (const RRPkgMeshLod *)((const uint8_t *)mesh + mesh->lods_off);
 }
 
 /* The level a 2D node or control is drawn at: lower levels first, and inside a level in

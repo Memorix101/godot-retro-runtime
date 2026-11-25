@@ -1,0 +1,154 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/highway_wreck.gd" id="1_imxg5"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/Body_2_01_SteinMamba_Diffuse.res" id="2_16610"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireBackL_2_01_SteinMamba_Tire.res" id="3_8ngvg"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireBackR_2_01_SteinMamba_Tire.res" id="4_fj3qg"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireFrontL_2_01_SteinMamba_Tire.res" id="5_0bscl"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireFrontR_2_01_SteinMamba_Tire.res" id="6_ihsdg"]
+[ext_resource type="Texture2D" path="res://assets/highway/textures/ParticleFirecloud_additive.res" id="7_e3ymp"]
+[ext_resource type="Texture2D" path="res://assets/highway/textures/ParticleCloudBlack.png" id="8_jf7yn"]
+[ext_resource type="Texture2D" path="res://assets/highway/textures/Default-Particle.png" id="9_ytbrk"]
+[ext_resource type="AudioStream" path="res://assets/highway/audio/HardCrash.wav" id="10_km7ht"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_nlaxq"]
+friction = 0.6
+bounce = 0.15
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_40n51"]
+size = Vector3(2.6805153, 1.625096, 4.5484247)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qqct0"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1.3582089, 1.3582089, 1.3582089, 1)
+albedo_texture = ExtResource("7_e3ymp")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_xhvv4"]
+material = SubResource("StandardMaterial3D_qqct0")
+
+[sub_resource type="Gradient" id="Gradient_evosd"]
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8s57b"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("8_jf7yn")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_f82hw"]
+material = SubResource("StandardMaterial3D_8s57b")
+
+[sub_resource type="Gradient" id="Gradient_3ajwl"]
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5xb7d"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("9_ytbrk")
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_upg0s"]
+material = SubResource("StandardMaterial3D_5xb7d")
+
+[sub_resource type="Gradient" id="Gradient_16tiy"]
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0)
+
+[node name="Wreck" type="RigidBody3D" unique_id=2123346580 node_paths=PackedStringArray("burst", "sound")]
+mass = 100.0
+physics_material_override = SubResource("PhysicsMaterial_nlaxq")
+linear_damp = 0.1
+angular_damp = 0.3
+script = ExtResource("1_imxg5")
+burst = NodePath("Explosion")
+sound = NodePath("CrashSound")
+radius = 1.3402576
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=1661884036]
+shape = SubResource("BoxShape3D_40n51")
+
+[node name="01_SteinMamba" type="Node3D" parent="." unique_id=161427913 groups=["rival"]]
+transform = Transform3D(3.9999998, 0, 0, 0, 4, 0, 0, 0, 3.9999998, 0.016296387, -0.9759979, 0.052000046)
+
+[node name="Body" type="MeshInstance3D" parent="01_SteinMamba" unique_id=1673480614]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 0.0032310486, 0.23938751, -0.029446125)
+mesh = ExtResource("2_16610")
+
+[node name="tireBackL" type="MeshInstance3D" parent="01_SteinMamba" unique_id=1742303059]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, -0.28299332, 0.10966492, 0.33483553)
+mesh = ExtResource("3_8ngvg")
+
+[node name="tireBackR" type="MeshInstance3D" parent="01_SteinMamba" unique_id=1144260465]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 0.2894516, 0.10966492, 0.33483553)
+mesh = ExtResource("4_fj3qg")
+
+[node name="tireFrontL" type="MeshInstance3D" parent="01_SteinMamba" unique_id=181912446]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, -0.27801132, 0.10966492, -0.28070498)
+mesh = ExtResource("5_0bscl")
+
+[node name="tireFrontR" type="MeshInstance3D" parent="01_SteinMamba" unique_id=582090859]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 0.28445435, 0.10966492, -0.28070498)
+mesh = ExtResource("6_ihsdg")
+
+[node name="Explosion" type="OmniLight3D" parent="." unique_id=1662061209]
+transform = Transform3D(2.6805153, 0, 0, 0, 1.625096, 0, 0, 0, 4.5484247, 0, 0, 0)
+light_energy = 1.370351
+omni_range = 10.0
+
+[node name="TrailsBlack" type="CPUParticles3D" parent="Explosion" unique_id=1599281474]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 0.99999994, 0, 0, 0.17108917, 0)
+emitting = false
+amount = 16
+lifetime = 2.0
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("QuadMesh_xhvv4")
+direction = Vector3(0, 0, -1)
+gravity = Vector3(0, -9.81, 0)
+initial_velocity_min = 12.0
+initial_velocity_max = 17.0
+scale_amount_min = 5.0
+scale_amount_max = 5.0
+color = Color(0.41960785, 0.41960785, 0.41960785, 1)
+color_ramp = SubResource("Gradient_evosd")
+
+[node name="Trail Black" type="CPUParticles3D" parent="Explosion/TrailsBlack" unique_id=169223072]
+transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 1, 0, 0, 0)
+emitting = false
+amount = 16
+lifetime = 1.5
+one_shot = true
+mesh = SubResource("QuadMesh_f82hw")
+direction = Vector3(0, 0, -1)
+spread = 60.26
+gravity = Vector3(0, 0, 0)
+scale_amount_min = 0.5
+color = Color(1, 1, 1, 0.078431375)
+color_ramp = SubResource("Gradient_3ajwl")
+
+[node name="TrailsWhite" type="CPUParticles3D" parent="Explosion" unique_id=746920566]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 0.99999994, 0, 0, 0.17108917, 0)
+emitting = false
+amount = 16
+lifetime = 2.0
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("QuadMesh_upg0s")
+emission_shape = 1
+emission_sphere_radius = 0.5
+direction = Vector3(0, 0, -1)
+spread = 180.0
+gravity = Vector3(0, -9.81, 0)
+initial_velocity_min = 12.0
+initial_velocity_max = 17.0
+scale_amount_max = 1.5
+color = Color(0.41960785, 0.41960785, 0.41960785, 1)
+color_ramp = SubResource("Gradient_16tiy")
+
+[node name="CrashSound" type="AudioStreamPlayer3D" parent="." unique_id=1640796928]
+stream = ExtResource("10_km7ht")
+volume_db = -2.4987748

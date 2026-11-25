@@ -11,7 +11,7 @@ extends RefCounted
 ## Anything the runtime cannot handle is an error that names the node. Errors are
 ## collected in `errors`, and no file is written if there is at least one.
 
-const FORMAT_VERSION := 28
+const FORMAT_VERSION := 30
 const MAX_Z_LEVELS := 16
 const HEADER_SIZE := 136
 const MAX_BUSES := 16
@@ -742,6 +742,9 @@ func _node_data(node: Node, type: int) -> StreamPeerBuffer:
 		NODE_MESH:
 			var influences: Array = [PackedByteArray()]
 			var data := _bake_mesh(node, influences)
+			var tint: Variant = _tint_color(node)
+			if not node.has_meta(SKIN_META) and tint == null:
+				data = _with_lods(node, data)
 			# Instances that bake to the same bytes share one asset.
 			var asset := _asset_data.find(data)
 			if asset < 0:
@@ -751,9 +754,15 @@ func _node_data(node: Node, type: int) -> StreamPeerBuffer:
 			if (instance.visibility_range_begin_margin != 0.0 or instance.visibility_range_end_margin != 0.0
 					or instance.visibility_range_fade_mode != GeometryInstance3D.VISIBILITY_RANGE_FADE_DISABLED):
 				_fail(node, "visibility range margins and fading are not supported")
+			if instance.lod_bias != 1.0:
+				_fail(node, "lod_bias is not supported (the LOD threshold is the project setting)")
 			out.put_float(instance.visibility_range_begin)
 			out.put_float(instance.visibility_range_end)
 			out.put_u32(_skin_asset(node, influences[0]) if node.has_meta(SKIN_META) else NONE32)
+			out.put_u8(1 if tint != null else 0)
+			out.put_u8(0)
+			out.put_u16(0)
+			out.put_u32(_rgba(tint) if tint != null else 0xFFFFFFFF)
 		NODE_CAMERA:
 			var camera := node as Camera3D
 			var orthogonal := camera.projection == Camera3D.PROJECTION_ORTHOGONAL
@@ -3553,7 +3562,20 @@ func _particles_data(node: CPUParticles3D, out: StreamPeerBuffer) -> void:
 ## With `influences` (an empty PackedByteArray in an array) the mesh is one that bones
 ## deform: the bones and weights of its vertices are put there, in the order the vertices
 ## have in the mesh asset.
-func _bake_mesh(instance: MeshInstance3D, influences: Array = []) -> PackedByteArray:
+##
+## With `lod` 0 or more, the triangles are those of that level of Godot's automatic mesh
+## LOD (see _with_lods) in every surface that has levels.
+## The colour a mesh starts with when the game may change it (rr_mesh_set_albedo_color):
+## the albedo of a material_override that is a StandardMaterial3D local to the scene.
+## null for every other mesh.
+func _tint_color(instance: MeshInstance3D) -> Variant:
+	var override := instance.material_override
+	if override is StandardMaterial3D and override.resource_local_to_scene:
+		return override.albedo_color
+	return null
+
+
+func _bake_mesh(instance: MeshInstance3D, influences: Array = [], lod := -1) -> PackedByteArray:
 	var mesh := instance.mesh
 	if mesh == null:
 		_fail(instance, "has no mesh")
@@ -3598,6 +3620,10 @@ func _bake_mesh(instance: MeshInstance3D, influences: Array = []) -> PackedByteA
 		var colors = arrays[Mesh.ARRAY_COLOR]
 		var uvs = arrays[Mesh.ARRAY_TEX_UV]
 		var indices = arrays[Mesh.ARRAY_INDEX]
+		if lod >= 0:
+			var lod_indices: Variant = _surface_lod_indices(mesh, s, lod)
+			if lod_indices != null:
+				indices = lod_indices
 		var bone_indices = arrays[Mesh.ARRAY_BONES]
 		var bone_weights = arrays[Mesh.ARRAY_WEIGHTS]
 		if skinned and (bone_indices == null or bone_weights == null):
@@ -3608,7 +3634,8 @@ func _bake_mesh(instance: MeshInstance3D, influences: Array = []) -> PackedByteA
 		var lit := true
 		var use_vertex_color := false
 		if material is StandardMaterial3D:
-			albedo = material.albedo_color
+			# A colour the game changes is put on by the runtime.
+			albedo = material.albedo_color if _tint_color(instance) == null else Color.WHITE
 			lit = material.shading_mode != BaseMaterial3D.SHADING_MODE_UNSHADED
 			use_vertex_color = material.vertex_color_use_as_albedo and colors != null
 		if lit and normals == null:
@@ -3700,8 +3727,10 @@ func _bake_mesh(instance: MeshInstance3D, influences: Array = []) -> PackedByteA
 
 	var header := _new_buffer()
 	var body := _new_buffer()
-	var body_start := 20 + parts.size() * 24
+	var body_start := 28 + parts.size() * 24
 	header.put_u32(parts.size())
+	header.put_u32(0)  # LOD levels: added by _with_lods
+	header.put_u32(0)
 	header.put_float(center.x)
 	header.put_float(center.y)
 	header.put_float(center.z)
@@ -3728,6 +3757,85 @@ func _bake_mesh(instance: MeshInstance3D, influences: Array = []) -> PackedByteA
 
 	header.put_data(body.data_array)
 	return header.data_array
+
+
+const LOD_SETTING := "rendering/mesh_lod/lod_change/threshold_pixels"
+
+## Godot's automatic mesh LOD: an ArrayMesh can hold simpler index lists per surface
+## (Godot's importer makes them; ImporterMesh.generate_lods does too), each with the edge
+## length of its error. Every level becomes a mesh asset of its own, and the mesh baked in
+## `data` gets their table; the runtime picks a level as Godot does. The threshold is the
+## project setting `LOD_SETTING`, overridden per platform by `<setting>.<platform>` (for
+## example `.dreamcast`); 0 switches LOD off, as in Godot.
+func _with_lods(instance: MeshInstance3D, data: PackedByteArray) -> PackedByteArray:
+	var mesh := instance.mesh as ArrayMesh
+	var threshold := _lod_threshold()
+	if mesh == null or data.is_empty() or threshold <= 0.0:
+		return data
+	var edges := _mesh_lod_edges(mesh)
+	if edges.is_empty():
+		return data
+	var table := _new_buffer()
+	for level in edges.size():
+		var level_data := _bake_mesh(instance, [], level)
+		var asset := _asset_data.find(level_data)
+		if asset < 0:
+			asset = _add_asset(ASSET_MESH, "%s (LOD %d)" % [_node_path(instance), level + 1], level_data)
+		table.put_float(edges[level] / threshold)
+		table.put_u32(asset)
+	var out := data.duplicate()
+	out.encode_u32(4, edges.size())
+	out.encode_u32(8, out.size())
+	out.append_array(table.data_array)
+	return out
+
+
+func _lod_threshold() -> float:
+	var key := "%s.%s" % [LOD_SETTING, _baker.platform_name()]
+	if ProjectSettings.has_setting(key):
+		return float(ProjectSettings.get_setting(key))
+	return float(ProjectSettings.get_setting(LOD_SETTING, 1.0))
+
+
+## The levels of a mesh as a whole: level i takes level i of every surface (or its last
+## one), and its error is the largest of theirs. Empty when no surface has levels.
+func _mesh_lod_edges(mesh: ArrayMesh) -> PackedFloat32Array:
+	var surfaces: Array[Array] = []
+	var count := 0
+	for s in mesh.get_surface_count():
+		var lods: Array = RenderingServer.mesh_get_surface(mesh.get_rid(), s).get("lods", [])
+		if not lods.is_empty():
+			surfaces.append(lods)
+			count = maxi(count, lods.size())
+	var edges := PackedFloat32Array()
+	for level in count:
+		var edge := edges[level - 1] if level > 0 else 0.0
+		for lods in surfaces:
+			edge = maxf(edge, float(lods[mini(level, lods.size() - 1)]["edge_length"]))
+		edges.append(edge)
+	return edges
+
+
+## The index list of level `level` of a surface (its last level where it has fewer), or
+## null for a surface without levels.
+func _surface_lod_indices(mesh: Mesh, surface: int, level: int) -> Variant:
+	if not mesh is ArrayMesh:
+		return null
+	var data: Dictionary = RenderingServer.mesh_get_surface(mesh.get_rid(), surface)
+	var lods: Array = data.get("lods", [])
+	if lods.is_empty():
+		return null
+	var bytes: PackedByteArray = lods[mini(level, lods.size() - 1)]["index_data"]
+	var main_bytes: PackedByteArray = data.get("index_data", PackedByteArray())
+	var index_count := int(data.get("index_count", 0))
+	var size := main_bytes.size() / index_count if index_count > 0 else 2
+	if size == 4:
+		return bytes.to_int32_array()
+	var out := PackedInt32Array()
+	out.resize(bytes.size() / 2)
+	for i in out.size():
+		out[i] = bytes.decode_u16(i * 2)
+	return out
 
 
 ## Checks that a material stays inside the shared material model and returns its blend mode.

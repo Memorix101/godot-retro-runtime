@@ -1,4 +1,4 @@
-package version 28 platform pc little-endian
+package version 30 platform pc little-endian
 clear color 336699ff
 nodes 69
 [0] DumpTest (Node3D)
@@ -225,18 +225,38 @@ audio buses 3
   [0] Master volume 1.000
   [1] Music volume 1.000 -> Master
   [2] SFX volume 1.000 -> Master
-actions 17
+actions 37
   accelerate deadzone 0.20: key 87 key 265 button 7 axis 5+
+  boost deadzone 0.30: key 341 button 7
   brake deadzone 0.20: key 83 key 264 button 6 axis 4+
+  fire deadzone 0.30: key 32 button 8
   jump deadzone 0.20: key 32 button 7
   leave deadzone 0.20: key 256 button 15
   move_down deadzone 0.20: key 83 key 264 button 3 axis 1+
   move_left deadzone 0.20: key 65 key 263 button 4 axis 0-
   move_right deadzone 0.20: key 68 key 262 button 2 axis 0+
   move_up deadzone 0.20: key 87 key 265 button 1 axis 1-
+  next_song deadzone 0.30: key 258 button 9 button 5
+  nl_aim_down deadzone 0.20: key 264 button 7 axis 3+
+  nl_aim_left deadzone 0.20: key 263 button 8 axis 2-
+  nl_aim_right deadzone 0.20: key 262 button 6 axis 2+
+  nl_aim_up deadzone 0.20: key 265 button 5 axis 3-
+  nl_back deadzone 0.30: key 259 key 81 button 6
+  nl_bomb deadzone 0.30: key 32 key 69 axis 4+ axis 5+ button 9 button 11
+  nl_move_down deadzone 0.20: key 83 axis 1+ button 3
+  nl_move_left deadzone 0.20: key 65 axis 0- button 4
+  nl_move_right deadzone 0.20: key 68 axis 0+ button 2
+  nl_move_up deadzone 0.20: key 87 axis 1- button 1
+  nl_pause deadzone 0.30: key 256 key 80 button 15
+  nl_restart deadzone 0.30: key 257 key 82 button 15
+  pitch_down deadzone 0.30: key 265 axis 1-
+  pitch_up deadzone 0.30: key 264 axis 1+
   respawn deadzone 0.20: key 82 button 5
+  start deadzone 0.30: key 257 key 32 button 15
   steer_left deadzone 0.20: key 65 key 263 button 4 axis 0-
   steer_right deadzone 0.20: key 68 key 262 button 2 axis 0+
+  throttle_down deadzone 0.30: key 83 axis 4+
+  throttle_up deadzone 0.30: key 87 axis 5+
   ui_accept deadzone 0.50: key 257 key 335 key 32
   ui_cancel deadzone 0.50: key 256
   ui_down deadzone 0.50: key 264 button 3 axis 1+

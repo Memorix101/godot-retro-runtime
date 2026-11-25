@@ -1,4 +1,4 @@
-# Package format (version 28)
+# Package format (version 30)
 
 A package (`.rpk`) holds one exported scene, baked for exactly one platform. It is the only
 contract between the Godot addon (`addons/retro_runtime/exporter.gd`) and the runtime
@@ -29,7 +29,7 @@ is the file name of the `.tscn` without its extension.
 | 0      | char[4] | `magic`      | `"RPKG"`                                        |
 | 4      | u8      | `platform`   | 1 PC, 2 Dreamcast, 3 PSP, 4 Wii and GameCube    |
 | 5      | u8      | `big_endian` | 0 little-endian, 1 big-endian                   |
-| 6      | u16     | `version`    | format version, currently 28                     |
+| 6      | u16     | `version`    | format version, currently 30                     |
 | 8      | u32     | `file_size`  | size of the whole file in bytes                 |
 | 12     | table   | `strings`    | string table; count is its size in bytes        |
 | 20     | table   | `nodes`      | node table                                      |
@@ -146,7 +146,12 @@ A `CanvasLayer` is stored as a plain `Node` (type 0), a `Marker3D` as a `Node3D`
 Mesh: `u32 mesh` (asset index), `float range_begin`, `float range_end` (the visibility
 range: the mesh is drawn while the camera is at least `range_begin` and at most `range_end`
 away from the node; 0 means no limit), `u32 skin` (asset index of a skin asset for a mesh
-that bones deform, `0xFFFFFFFF` for a mesh that keeps its shape).
+that bones deform, `0xFFFFFFFF` for a mesh that keeps its shape), `u8 tinted`, three bytes
+of padding, `u32 color`. A tinted mesh (its `material_override` is local to the scene) can
+change its albedo while the game runs: its vertex colours were baked with a white albedo,
+`color` (RGBA) is the albedo it starts with, and the runtime keeps a copy of the mesh asset
+for the node, whose vertex colours it multiplies with the albedo. A tinted mesh has no LOD
+levels.
 
 Camera: `float fov` (vertical, degrees), `float near`, `float far`, `float size` (an orthogonal
 camera: the height of its view in world units; 0 for a perspective camera, and then the
@@ -549,14 +554,29 @@ Offsets inside a mesh are relative to the start of the mesh data.
 
 ```
 u32      surface_count
+u32      lod_count                    simpler versions of the mesh, 0 for none
+u32      lods_off                     offset of the LOD table (lod_count entries of 8 bytes)
 float[3] center                       bounding sphere in the mesh's own space
 float    radius
 Surface  surfaces[surface_count]      24 bytes each
-...      strip length arrays and vertex arrays
+...      strip length arrays, vertex arrays, then the LOD table
 ```
 
 The bounding sphere encloses all vertices of all surfaces. The runtime transforms it with
 the node and skips the mesh when the sphere is outside the camera's view volume.
+
+LOD entry (8 bytes), from fine to coarse: `float edge`, `u32 mesh`. `mesh` is the asset
+index of a mesh written before this one, with no LOD levels of its own: the whole mesh at
+that level of Godot's automatic mesh LOD (each surface at its level of that number, or its
+last one). `edge` is Godot's LOD edge length (the error of the level, in the mesh's units;
+the largest of the surfaces') divided by the platform's
+`rendering/mesh_lod/lod_change/threshold_pixels`, which the exporter reads with the
+`.<platform>` override (`.dreamcast` and so on) where there is one. The runtime picks the
+coarsest level with `edge <= distance * lod_multiplier / (scale * screen_width)`, which is
+Godot's rule with the threshold already in: `distance` from the camera to the nearest point
+of the bounding sphere (an orthogonal camera: 1), `lod_multiplier` the width of the view at
+distance 1 (orthogonal: half the width of the view), `scale` the node's largest axis scale.
+Inside the sphere the full mesh is drawn.
 
 Surface (24 bytes):
 

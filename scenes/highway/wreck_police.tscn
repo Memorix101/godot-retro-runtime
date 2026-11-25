@@ -1,0 +1,84 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/highway_wreck.gd" id="1_soqfi"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/Body_01_SteinMambaPolice_Diffuse.res" id="2_e82hc"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/police_light_Police_Diffuse.res" id="3_w2rfb"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/police_ram_Police_Diffuse.res" id="4_my7w5"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireBackL_01_SteinMamba_Tire.res" id="5_tbgn4"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireBackR_01_SteinMamba_Tire.res" id="6_dx5kf"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireFrontL_01_SteinMamba_Tire.res" id="7_dkf8d"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/tireFrontR_01_SteinMamba_Tire.res" id="8_murrd"]
+[ext_resource type="Texture2D" path="res://assets/highway/textures/glow.res" id="9_fbsxw"]
+[ext_resource type="Script" path="res://components/flare.gd" id="10_hbafl"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_l66ay"]
+friction = 0.6
+bounce = 0.15
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gsnwo"]
+size = Vector3(2.7039268, 1.7874866, 4.6101627)
+
+[node name="Wreck" type="RigidBody3D" unique_id=668487554]
+mass = 100.0
+physics_material_override = SubResource("PhysicsMaterial_l66ay")
+linear_damp = 0.1
+angular_damp = 0.3
+script = ExtResource("1_soqfi")
+lifetime = 7.0
+
+[node name="Turn" type="Node3D" parent="." unique_id=2105176133]
+
+[node name="01_SteinMambaPolice" type="Node3D" parent="Turn" unique_id=822330640 groups=["player"]]
+transform = Transform3D(4.05589, 0, 1.1920929e-07, 0, 3.9324706, 0, 1.1920929e-07, 0, 4.1491466, -0.011993408, -0.9602051, 0.13479614)
+
+[node name="Body" type="MeshInstance3D" parent="Turn/01_SteinMambaPolice" unique_id=1125867530]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, 0.0032310486, 0.23938751, -0.029449463)
+mesh = ExtResource("2_e82hc")
+
+[node name="police_light" type="MeshInstance3D" parent="Turn/01_SteinMambaPolice" unique_id=1181225526]
+transform = Transform3D(0.9998532, 0.0039003417, -0.016680956, -0.003844481, 0.99998695, 0.0033795747, 0.01669401, -0.0033149484, 0.99985516, 0.0013408661, 0.43011856, 0.033233643)
+mesh = ExtResource("3_w2rfb")
+
+[node name="police_ram" type="MeshInstance3D" parent="Turn/01_SteinMambaPolice" unique_id=446508562]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, 0.0066661835, 0.15063477, -0.57535934)
+mesh = ExtResource("4_my7w5")
+
+[node name="tireBackL" type="MeshInstance3D" parent="Turn/01_SteinMambaPolice" unique_id=897852630]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, -0.2829914, 0.10966492, 0.33483124)
+mesh = ExtResource("5_tbgn4")
+
+[node name="tireBackR" type="MeshInstance3D" parent="Turn/01_SteinMambaPolice" unique_id=1170721127]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, 0.2894535, 0.10966492, 0.33483124)
+mesh = ExtResource("6_dx5kf")
+
+[node name="tireFrontL" type="MeshInstance3D" parent="Turn/01_SteinMambaPolice" unique_id=1484322316]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, -0.2780094, 0.10966492, -0.2807045)
+mesh = ExtResource("7_dkf8d")
+
+[node name="tireFrontR" type="MeshInstance3D" parent="Turn/01_SteinMambaPolice" unique_id=1643967901]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, 0.28445625, 0.10966492, -0.2807045)
+mesh = ExtResource("8_murrd")
+
+[node name="Lights" type="Node3D" parent="Turn/01_SteinMambaPolice" unique_id=407021586]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, 0, 0.47499847, 0)
+
+[node name="Blue" type="Sprite3D" parent="Turn/01_SteinMambaPolice/Lights" unique_id=728276985]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, 0.11264992, 0, 0)
+modulate = Color(0, 0.17241383, 1, 0.8)
+pixel_size = 0.025
+billboard = 1
+texture = ExtResource("9_fbsxw")
+script = ExtResource("10_hbafl")
+
+[node name="Red" type="Sprite3D" parent="Turn/01_SteinMambaPolice/Lights" unique_id=1574703545]
+transform = Transform3D(0.99999994, 0, 2.9802322e-08, 0, 1.0000001, 0, 0, 0, 1, -0.11264992, 0, 0)
+modulate = Color(1, 0, 0, 0.8)
+pixel_size = 0.025
+billboard = 1
+texture = ExtResource("9_fbsxw")
+script = ExtResource("10_hbafl")
+start_first = false
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=1239883268]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.17874865, 0)
+shape = SubResource("BoxShape3D_gsnwo")

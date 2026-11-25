@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/highway_wreck.gd" id="1_uv4xg"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TruckAmericanA_TruckAmerican.res" id="2_hd385"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBLX_TruckAmerican.res" id="3_vi56p"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBLY_TruckAmerican.res" id="4_nl6ew"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBRX_TruckAmerican.res" id="5_bvvwg"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireBRY_TruckAmerican.res" id="6_1pand"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFL_TruckAmerican.res" id="7_cr6k1"]
+[ext_resource type="ArrayMesh" path="res://assets/highway/meshes/TireFR_TruckAmerican.res" id="8_vbtnc"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_yqcqg"]
+friction = 0.6
+bounce = 0.15
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_eavch"]
+size = Vector3(3.5403972, 4.5281305, 9.559067)
+
+[node name="Wreck" type="RigidBody3D" unique_id=1655199711]
+mass = 100.0
+physics_material_override = SubResource("PhysicsMaterial_yqcqg")
+linear_damp = 0.1
+angular_damp = 0.3
+script = ExtResource("1_uv4xg")
+radius = 1.7701986
+
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=2054445748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4484665, -0.3227318)
+shape = SubResource("BoxShape3D_eavch")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=355268689]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+mesh = ExtResource("2_hd385")
+
+[node name="TireBLX" type="MeshInstance3D" parent="." unique_id=727931835]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.2364194, 0.6494553, 2.0171077)
+mesh = ExtResource("3_vi56p")
+
+[node name="TireBLY" type="MeshInstance3D" parent="." unique_id=572804499]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.2364194, 0.6494553, 3.4265895)
+mesh = ExtResource("4_nl6ew")
+
+[node name="TireBRX" type="MeshInstance3D" parent="." unique_id=599278031]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.2364194, 0.6494553, 2.0171077)
+mesh = ExtResource("5_bvvwg")
+
+[node name="TireBRY" type="MeshInstance3D" parent="." unique_id=1886771116]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.2364194, 0.6494553, 3.4265895)
+mesh = ExtResource("6_1pand")
+
+[node name="TireFL" type="MeshInstance3D" parent="." unique_id=1100487177]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -1.3575069, 0.6494553, -3.9539258)
+mesh = ExtResource("7_cr6k1")
+
+[node name="TireFR" type="MeshInstance3D" parent="." unique_id=1980055932]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 1.3575069, 0.6494553, -3.9539258)
+mesh = ExtResource("8_vbtnc")

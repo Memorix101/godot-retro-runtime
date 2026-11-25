@@ -20,6 +20,8 @@ extends RefCounted
 ##   Camera, Light               Camera3D, DirectionalLight3D / OmniLight3D / SpotLight3D
 ##   AudioSource                 AudioStreamPlayer (or ...3D if it is spatial)
 ##   ParticleSystem              CPUParticles3D, roughly
+##   Animator                    AnimationPlayer child: a clip per state (position, rotation,
+##                               scale, active), the default state plays from the start
 ##   Canvas                      CanvasLayer; RectTransforms below it become controls:
 ##                               TextMeshPro text a Label, an Image a TextureRect,
 ##                               ColorRect or TextureProgressBar (filled image)
@@ -33,12 +35,19 @@ const HeightTerrainScript := preload("res://addons/retro_runtime/height_terrain.
 
 ## Longest side of a converted texture, in pixels; textures are made powers of two.
 var max_texture_size := 256
+## Longest side per texture (by key), where one needs more than max_texture_size, such
+## as an atlas of many small pictures.
+var texture_sizes := {}
 ## Sample rate of converted sounds (music is left as it is).
 var sound_rate := 22050
 ## Longest sound in samples. The Dreamcast's sound chip plays at most 65534, and its
 ## ADPCM data is padded, which adds a few: so some room is left. A longer sound gets a
 ## lower rate (down to 11025 Hz), and what is still too long is cut off.
 var max_sound_samples := 64000
+## Give the meshes Godot's automatic LOD levels, as Godot's own scene importer does
+## (meshes/generate_lods): simpler versions that are drawn when the mesh is small on the
+## screen.
+var generate_lods := true
 ## Unity's UI is laid out for its screen in pixels; Godot's for 640x480. Offsets and font
 ## sizes are multiplied by this.
 var ui_scale := 0.5
@@ -50,6 +59,12 @@ var font_sizes := PackedInt32Array([10, 12, 16, 20, 24, 32])
 ## Godot classes for nodes with colliders, by the Unity node's name, in place of the
 ## one picked from the colliders (Area3D for a trigger, else a body).
 var body_types := {}
+## Mesh colliders become trimesh or convex shapes, which the runtime has not got. Off:
+## a convex one becomes the box around its mesh, a concave one is left out.
+var mesh_colliders := false
+## Optional filter: `keep_colliders.call(node)` (the exported node) false leaves out that
+## node's colliders, so it becomes a plain mesh or node.
+var keep_colliders := Callable()
 
 var data: Dictionary
 var source := ""  # the export folder, absolute
@@ -146,8 +161,8 @@ func _prepare_texture(key: String, info: Dictionary, folder: String) -> int:
 		return 0
 	if image.is_compressed():
 		image.decompress()
-	var size := Vector2i(_pow2_at_most(image.get_width(), max_texture_size),
-			_pow2_at_most(image.get_height(), max_texture_size))
+	var limit: int = texture_sizes.get(key, max_texture_size)
+	var size := Vector2i(_pow2_at_most(image.get_width(), limit), _pow2_at_most(image.get_height(), limit))
 	if size != image.get_size():
 		image.resize(size.x, size.y, Image.INTERPOLATE_LANCZOS)
 	image.save_png(out)
@@ -163,30 +178,33 @@ func _pow2_at_most(value: int, limit: int) -> int:
 
 func _audio_path(key: String) -> String:
 	var info: Dictionary = data.audio[key]
-	return target.path_join("audio").path_join(key + (".ogg" if _is_music(info) else ".wav"))
+	return target.path_join("audio").path_join(key + ("." + String(info.file).get_extension() if _is_music(info) else ".wav"))
 
 
-## Long Ogg files are music, which the runtime streams; everything else is a sound in
-## memory and must be a WAV.
+## Long Ogg and MP3 files are music, which the runtime streams; everything else is a
+## sound in memory and must be a WAV.
 func _is_music(info: Dictionary) -> bool:
-	return String(info.file).get_extension() == "ogg" and float(info.length) > 30.0
+	return String(info.file).get_extension() in ["ogg", "mp3"] and float(info.length) > 30.0
 
 
 func _prepare_audio(key: String, info: Dictionary, folder: String) -> int:
 	var music := _is_music(info)
-	var out := folder.path_join("audio").path_join(key + (".ogg" if music else ".wav"))
+	var extension := String(info.file).get_extension()
+	var out := folder.path_join("audio").path_join(key + ("." + extension if music else ".wav"))
 	if FileAccess.file_exists(out):
 		return 0
 	var loop: bool = _looping_audio.has(key)
 	if music:
 		DirAccess.copy_absolute(source.path_join(info.file), out)
-		_write_import(out, "oggvorbisstr", {"loop": loop})
+		_write_import(out, "oggvorbisstr" if extension == "ogg" else "mp3", {"loop": loop})
 		return 1
 	# A sound: decoded and written as mono 16-bit PCM at sound_rate.
 	var path := source.path_join(info.file)
 	var stream: AudioStream = null
 	if path.get_extension() == "ogg":
 		stream = AudioStreamOggVorbis.load_from_file(path)
+	elif path.get_extension() == "mp3":
+		stream = AudioStreamMP3.load_from_file(path)
 	else:
 		stream = AudioStreamWAV.load_from_file(path)
 	if stream == null:
@@ -310,6 +328,9 @@ func material(key: Variant) -> Material:
 	var shader := String(info.shader)
 	var m := StandardMaterial3D.new()
 	m.resource_name = key
+	var shader_name := String(info.shader).to_lower()
+	m.set_meta(&"uses_vertex_color", shader_name.contains("vertex") or shader_name.contains("particle")
+			or shader_name.contains("sprite") or shader_name.contains("ui/"))
 	var colors: Dictionary = info.colors
 	for name in ["_Color", "_BaseColor", "_TintColor"]:
 		if colors.has(name):
@@ -348,8 +369,41 @@ func material(key: Variant) -> Material:
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	if lower.contains("particle") or lower.contains("sprite") or lower.begins_with("wfx"):
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if lower.contains("additive") and m.albedo_texture != null:
+		# Unity adds these to the picture: black adds nothing. The runtime blends by alpha,
+		# so the texture gets an alpha from its brightness.
+		m.albedo_texture = _additive_texture(m.albedo_texture)
 	_materials[key] = m
 	return m
+
+
+var _additive := {}
+
+## A copy of a texture for additive blending done as alpha blending: alpha is the
+## brightest channel, the colour is divided by it (so colour * alpha is what was added).
+func _additive_texture(source: Texture2D) -> Texture2D:
+	if _additive.has(source):
+		return _additive[source]
+	var image := source.get_image()
+	if image == null:
+		return source
+	if image.is_compressed():
+		image.decompress()
+	image.convert(Image.FORMAT_RGBA8)
+	for y in image.get_height():
+		for x in image.get_width():
+			var c := image.get_pixel(x, y)
+			var a := maxf(c.r, maxf(c.g, c.b))
+			if a > 0.0:
+				image.set_pixel(x, y, Color(c.r / a, c.g / a, c.b / a, a * c.a))
+			else:
+				image.set_pixel(x, y, Color(0, 0, 0, 0))
+	var path := target.path_join("textures/%s_additive.res" % source.resource_path.get_file().get_basename())
+	var texture := ImageTexture.create_from_image(image)
+	ResourceSaver.save(texture, path)
+	texture.take_over_path(path)
+	_additive[source] = texture
+	return texture
 
 
 ## The ArrayMesh of an exported mesh, one surface per submesh, with `materials` (keys)
@@ -407,6 +461,10 @@ func mesh(key: Variant, material_keys: Array = []) -> ArrayMesh:
 			out_indices.append(remap[index])
 		var material_key: Variant = material_keys[mini(s, material_keys.size() - 1)] if not material_keys.is_empty() else null
 		var mat := material(material_key)
+		# Vertex colours only where the Unity shader used them: Standard ignores them, and
+		# some models carry black ones.
+		if mat == null or not mat.get_meta(&"uses_vertex_color", false):
+			c = PackedColorArray()
 		if mat != null and mat.has_meta(&"uv_transform"):
 			# The material's tiling and offset, put into the coordinates.
 			var uv: Transform2D = mat.get_meta(&"uv_transform")
@@ -421,9 +479,11 @@ func mesh(key: Variant, material_keys: Array = []) -> ArrayMesh:
 		result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 		var surface := result.get_surface_count() - 1
 		if mat != null:
-			if not c.is_empty():
+			if not c.is_empty() and mat.get_meta(&"uses_vertex_color", false):
 				mat.vertex_color_use_as_albedo = true
 			result.surface_set_material(surface, mat)
+	if generate_lods:
+		result = with_lods(result)
 	var path := target.path_join("meshes").path_join(_file_name(cache_key) + ".res")
 	if ResourceSaver.save(result, path) == OK:
 		result.take_over_path(path)
@@ -511,7 +571,8 @@ func build_tree(nodes: Array, parent: Node, owner: Node, skip := Callable()) -> 
 			if node == null:
 				continue
 			# Bodies, areas and terrains keep no scale of their own.
-			if node is CollisionObject3D:
+			# Unity ignores the scale of a camera; Godot's would see through it distorted.
+			if node is CollisionObject3D or node is Camera3D:
 				var placed := Transform3D(global.basis.orthonormalized(), global.origin)
 				var scale := global.basis.get_scale()
 				node.transform = parent_carry.affine_inverse() * placed if up >= 0 else placed
@@ -529,7 +590,98 @@ func build_tree(nodes: Array, parent: Node, owner: Node, skip := Callable()) -> 
 		if tag != "Untagged" and tag != "":
 			node.add_to_group(tag.to_snake_case(), true)
 		made[i] = node
+	for i in nodes.size():
+		if made[i] != null:
+			var comps := _components(nodes[i])
+			if comps.has("Animator") and comps.Animator.has("states") and comps.Animator.get("enabled", true):
+				_make_animation_player(nodes, made, i, comps.Animator, owner)
 	return made
+
+
+## An Animator becomes an AnimationPlayer child "AnimationPlayer": one clip per state of
+## the controller's first layer, named like the state, with the state's speed in its
+## timing. The default state plays from the start, as Unity's does. Unity's curves were
+## sampled by the exporter; position, rotation, scale and the active flag are taken.
+func _make_animation_player(nodes: Array, made: Array, index: int, info: Dictionary, owner: Node) -> void:
+	var holder: Node = made[index]
+	var library := AnimationLibrary.new()
+	var speed := float(info.get("speed", 1.0))
+	for state: Dictionary in info.states:
+		var key: Variant = state.get("clip")
+		if key == null or not data.get("animations", {}).has(key):
+			continue
+		var clip: Dictionary = data.animations[key]
+		var scale := speed * float(state.get("speed", 1.0))
+		if scale <= 0.0:
+			scale = 1.0
+		var anim := Animation.new()
+		anim.length = maxf(float(clip.length) / scale, 0.001)
+		anim.loop_mode = Animation.LOOP_LINEAR if clip.get("loop", false) else Animation.LOOP_NONE
+		var rate := float(clip.get("rate", 30.0))
+		for track: Dictionary in clip.tracks:
+			var target := _node_at_unity_path(nodes, made, index, String(track.path))
+			if target == null:
+				warn("%s: animation %s: no node '%s'" % [nodes[index].name, state.name, track.path])
+				continue
+			var path := holder.get_path_to(target)
+			var property := String(track.property)
+			var values: Array = track.values
+			if property == "scale" and target is CollisionObject3D:
+				warn("%s: animation %s: the scale of a body is left out" % [nodes[index].name, state.name])
+				continue
+			var t: int
+			match property:
+				"position":
+					t = anim.add_track(Animation.TYPE_POSITION_3D)
+				"rotation":
+					t = anim.add_track(Animation.TYPE_ROTATION_3D)
+				"scale":
+					t = anim.add_track(Animation.TYPE_SCALE_3D)
+				"visible":
+					t = anim.add_track(Animation.TYPE_VALUE)
+					anim.value_track_set_update_mode(t, Animation.UPDATE_DISCRETE)
+				_:
+					continue
+			anim.track_set_path(t, NodePath(String(path) + (":visible" if property == "visible" else "")))
+			for k in values.size():
+				var time: float = (float(track.times[k]) if track.has("times") else minf(k / rate, float(clip.length))) / scale
+				match property:
+					"position":
+						anim.position_track_insert_key(t, time, _vec3(values[k]))
+					"rotation":
+						anim.rotation_track_insert_key(t, time, _quat(values[k]))
+					"scale":
+						anim.scale_track_insert_key(t, time, _vec3(values[k]))
+					"visible":
+						anim.track_insert_key(t, time, bool(values[k]))
+		library.add_animation(StringName(_node_name(String(state.name))), anim)
+	if library.get_animation_list().is_empty():
+		return
+	var player := AnimationPlayer.new()
+	player.name = "AnimationPlayer"
+	player.add_animation_library("", library)
+	var default_state := _node_name(String(info.get("default_state", "")))
+	if library.has_animation(StringName(default_state)):
+		player.autoplay = default_state
+	holder.add_child(player, true)
+	player.owner = owner
+
+
+## The made node at a path of Unity names below the node `index` ("" is the node itself).
+func _node_at_unity_path(nodes: Array, made: Array, index: int, path: String) -> Node:
+	var at := index
+	if path.is_empty():
+		return made[at]
+	for part in path.split("/"):
+		var found := -1
+		for j in nodes.size():
+			if int(nodes[j].parent) == at and String(nodes[j].name) == part:
+				found = j
+				break
+		if found < 0:
+			return null
+		at = found
+	return made[at]
 
 
 func _own(node: Node, owner: Node) -> void:
@@ -558,9 +710,17 @@ func _node_name(text: String) -> String:
 func _make_3d(n: Dictionary, comps: Dictionary, owner: Node) -> Node:
 	var node: Node3D
 	var shapes: Array = []
-	for type in ["BoxCollider", "SphereCollider", "CapsuleCollider", "MeshCollider"]:
+	# Mesh colliders have no shape in the runtime; they are left out unless asked for.
+	var collider_types := ["BoxCollider", "SphereCollider", "CapsuleCollider", "MeshCollider"]
+	if keep_colliders.is_valid() and not keep_colliders.call(n):
+		collider_types.clear()
+	for type in collider_types:
 		for comp: Dictionary in n.components:
 			if comp.type == type and comp.get("collider_enabled", true):
+				# A concave mesh collider (a road, a bridge) has no shape in the runtime; a
+				# convex one becomes the box around its mesh below.
+				if type == "MeshCollider" and not mesh_colliders and not comp.get("convex", false):
+					continue
 				shapes.append(comp)
 	var trigger := shapes.any(func(s): return s.get("trigger", false))
 	var has_mesh: bool = comps.has("MeshFilter") and comps.has("MeshRenderer") and comps.MeshRenderer.get("renderer_enabled", true)
@@ -598,7 +758,7 @@ func _make_3d(n: Dictionary, comps: Dictionary, owner: Node) -> Node:
 		node = Node3D.new()
 	if comps.has("AudioSource"):
 		for comp: Dictionary in n.components:
-			if comp.type == "AudioSource":
+			if comp.type == "AudioSource" and comp.get("enabled", true):
 				var player := _make_audio(comp, n.active)
 				if player != null:
 					node.add_child(player, true)
@@ -657,7 +817,14 @@ func _make_shape(info: Dictionary) -> CollisionShape3D:
 			var m := mesh(info.mesh)
 			if m == null:
 				return null
-			if info.get("convex", false):
+			if info.get("convex", false) and not mesh_colliders:
+				# The box around the mesh: exact for a cube, close for most convex shapes.
+				var bounds: Dictionary = data.meshes[info.mesh]
+				var box := BoxShape3D.new()
+				box.size = _vec3(bounds.bounds_size).abs().max(Vector3(0.01, 0.01, 0.01))
+				node.shape = box
+				node.position = _vec3(bounds.bounds_center)
+			elif info.get("convex", false):
 				node.shape = m.create_convex_shape()
 			else:
 				node.shape = m.create_trimesh_shape()
@@ -887,6 +1054,8 @@ func _make_control(n: Dictionary, comps: Dictionary, is_canvas: bool, on_canvas:
 		if margin is Array and margin.size() == 4:
 			omin += Vector2(margin[0], margin[3])
 			omax -= Vector2(margin[2], margin[1])
+	elif comps.has("Text"):
+		control = _make_legacy_label(comps.Text.fields, rect)
 	elif comps.has("Image") or comps.has("RawImage"):
 		control = _make_image(comps.get("Image", comps.get("RawImage")).fields)
 	else:
@@ -1181,6 +1350,19 @@ func _color(a: Variant) -> Color:
 
 # --- Level of detail ---------------------------------------------------------------------
 
+## The mesh with Godot's automatic LOD levels (as the scene importer makes them), the
+## surfaces and materials unchanged.
+func with_lods(source: Mesh) -> ArrayMesh:
+	var importer := ImporterMesh.new()
+	for s in source.get_surface_count():
+		importer.add_surface(source.surface_get_primitive_type(s), source.surface_get_arrays(s),
+				[], {}, source.surface_get_material(s))
+	importer.generate_lods(25.0, 60.0, [])
+	var out := importer.get_mesh()
+	out.resource_name = source.resource_name
+	return out
+
+
 ## A version of a mesh with fewer triangles, made with Godot's own LOD generator
 ## (meshoptimizer): about `ratio` of the triangles of every surface, with the materials
 ## kept. For a far copy that a visibility range switches to.
@@ -1234,3 +1416,28 @@ func _compact(arrays: Array, indices: PackedInt32Array) -> Array:
 func _screen_size() -> Vector2:
 	return Vector2(ProjectSettings.get_setting("display/window/size/viewport_width", 640),
 			ProjectSettings.get_setting("display/window/size/viewport_height", 480))
+
+
+## Unity's older UI text (UnityEngine.UI.Text): font data with the size and one of nine
+## anchors (upper left to lower right).
+func _make_legacy_label(f: Dictionary, rect: Dictionary) -> Label:
+	var label := Label.new()
+	label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	label.grow_vertical = Control.GROW_DIRECTION_BOTH
+	label.text = RegEx.create_from_string("<[^>]*>").sub(String(f.get("m_Text", "")), "", true).strip_edges()
+	var font_data: Dictionary = f.get("m_FontData", {})
+	var scale_y := absf(float(rect.unity_scale[1])) if rect.has("unity_scale") else 1.0
+	var size := float(font_data.get("m_FontSize", 14)) * ui_scale * (scale_y if scale_y > 0.01 else 1.0)
+	label.add_theme_font_size_override("font_size", _font_size(size))
+	var asset: Variant = font_data.get("m_Font")
+	if asset is Dictionary and asset.has("font"):
+		var ttf := font(asset.font)
+		if ttf != null:
+			label.add_theme_font_override("font", ttf)
+	label.add_theme_color_override("font_color", _color(f.get("m_Color", [1, 1, 1, 1])))
+	var anchor := int(font_data.get("m_Alignment", 0))
+	label.horizontal_alignment = [HORIZONTAL_ALIGNMENT_LEFT, HORIZONTAL_ALIGNMENT_CENTER,
+			HORIZONTAL_ALIGNMENT_RIGHT][anchor % 3]
+	label.vertical_alignment = [VERTICAL_ALIGNMENT_TOP, VERTICAL_ALIGNMENT_CENTER,
+			VERTICAL_ALIGNMENT_BOTTOM][clampi(anchor / 3, 0, 2)]
+	return label

@@ -16,6 +16,12 @@ Measured in Flycast with `FPS=1`, the time the program itself needs for drawing 
 | Racing, start grid        | about 40 fps (time not recorded)   | 2.4 to 2.9 ms |
 
 Flycast does not model the SH-4's cache or the PVR's fill rate, so a real console will
-differ; the numbers compare the two backends, not more. The list buffers take 1.3 MB of
-main memory and 640 KB of video memory twice (`OP_UNITS` and so on in `dc_pvr.c`); a full
-list prints a message and leaves polygons out.
+differ; the numbers compare the two backends, not more. The list buffers (`OP_UNITS` and
+so on in `dc_pvr.c`; 24576 units for solid polygons, 4096 each for punch-through and
+translucent ones) take 2.1 MB of main memory and 1 MB of video memory twice. A full list
+prints a message and leaves the polygons drawn last out, which shows as meshes that
+flicker. A build with `FPS=1` prints the peaks of the lists every 120 frames (`pvr: peak
+units op .../24576 ..., full in N of 120 frames, ... KB video memory free`). The highway
+demo needs up to some 20500 solid units, with Godot's mesh LOD at
+`rendering/mesh_lod/lod_change/threshold_pixels.dreamcast = 10` (see
+[package-format.md](package-format.md#mesh-asset)).
