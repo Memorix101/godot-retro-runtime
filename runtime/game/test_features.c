@@ -737,6 +737,93 @@ COMPONENT_BEGIN(CastTest, "CastTest")
     ON_UPDATE(cast_test_update)
 COMPONENT_END()
 
+/* --- ConcaveTest: a ConcavePolygonShape3D in scenes/tests/concave_test.tscn ----------- */
+
+typedef struct {
+    Node *down0, *down1, *down2, *down3, *wall_front, *wall_back, *wall_back_hit; /* exported */
+    Node *fence_back, *fence_back_hit;                                            /* exported */
+    Node *walker, *ball;                                                          /* exported */
+
+    int   frame;
+    float fall;   /* the walker's upward speed */
+    bool  landed; /* the ball's first body_entered came */
+} ConcaveTest;
+
+/* The same lines tools/concave_reference.gd prints from Godot's physics. The sum with 0
+ * turns a negative zero into a plain one. */
+static void concave_test_update(Node *self, ConcaveTest *t, float dt)
+{
+    /* From the middle of the bowl to its wall: (1, 0, 0) turned 30 degrees around Y. */
+    static const float out[3] = { 0.8660254f, 0.0f, -0.5f };
+    float              velocity[3];
+    int                i;
+
+    (void)self;
+    if (t->frame == 3) {
+        Node *const rays[9] = { t->down0,     t->down1,     t->down2,         t->down3,        t->wall_front,
+                                t->wall_back, t->wall_back_hit, t->fence_back, t->fence_back_hit };
+        for (i = 0; i < 9; i++) {
+            float point[3] = { 0.0f, 0.0f, 0.0f }, normal[3] = { 0.0f, 0.0f, 0.0f };
+            if (rr_raycast_is_colliding(rays[i])) {
+                rr_raycast_get_collision_point(rays[i], point);
+                rr_raycast_get_collision_normal(rays[i], normal);
+                printf("concave: %s hits at %.2f %.2f %.2f normal %.2f %.2f %.2f\n", rays[i]->name,
+                       (double)(point[0] + 0.0f), (double)(point[1] + 0.0f), (double)(point[2] + 0.0f),
+                       (double)(normal[0] + 0.0f), (double)(normal[1] + 0.0f), (double)(normal[2] + 0.0f));
+            } else {
+                printf("concave: %s hits nothing\n", rays[i]->name);
+            }
+        }
+        fflush(stdout);
+    }
+    if (t->frame == 480) {
+        const float *w = t->walker->local.m, *b = t->ball->local.m;
+        printf("concave: walker at %.1f %.1f %.1f\n", (double)(w[9] + 0.0f), (double)(w[10] + 0.0f),
+               (double)(w[11] + 0.0f));
+        printf("concave: ball at %.1f %.1f %.1f\n", (double)(b[9] + 0.0f), (double)(b[10] + 0.0f),
+               (double)(b[11] + 0.0f));
+        fflush(stdout);
+    }
+    t->frame++;
+    t->fall -= 9.8f * dt;
+    for (i = 0; i < 3; i++) {
+        velocity[i] = out[i] * 2.0f;
+    }
+    velocity[1] = t->fall;
+    rr_body_move_and_slide(t->walker, velocity, dt);
+    if (rr_body_is_on_floor(t->walker)) {
+        t->fall = 0.0f;
+    }
+}
+
+/* The first body the ball touches. It bounces when it lands, and how often depends on the
+ * physics engine, so only the first one is printed. */
+static void concave_test_on_ball(Node *self, ConcaveTest *t, Node *body)
+{
+    (void)self;
+    if (!t->landed) {
+        t->landed = true;
+        printf("concave: %s entered %s\n", t->ball->name, body != NULL ? body->name : "nothing");
+        fflush(stdout);
+    }
+}
+
+COMPONENT_BEGIN(ConcaveTest, "ConcaveTest")
+    EXPORT_NODE(down0)
+    EXPORT_NODE(down1)
+    EXPORT_NODE(down2)
+    EXPORT_NODE(down3)
+    EXPORT_NODE(wall_front)
+    EXPORT_NODE(wall_back)
+    EXPORT_NODE(wall_back_hit)
+    EXPORT_NODE(fence_back)
+    EXPORT_NODE(fence_back_hit)
+    EXPORT_NODE(walker)
+    EXPORT_NODE(ball)
+    ON_UPDATE(concave_test_update)
+    ON_SIGNAL_NODE("_on_ball_body_entered", concave_test_on_ball)
+COMPONENT_END()
+
 /* --- SkinTest: a mesh that two bones bend, in scenes/tests/skin_test.tscn -------------- */
 
 typedef struct {

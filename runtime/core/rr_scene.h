@@ -92,7 +92,8 @@ typedef struct {
     bool     playing;
     float    left; /* seconds of the sound until one that does not loop has run out */
     float    pitch; /* how fast it plays: 1.0 = as recorded */
-    bool     changed; /* the pitch was set since the platform heard of it */
+    float    volume; /* linear: the node's volume_db at first, then what game code set */
+    bool     changed; /* the pitch or volume was set since the platform heard of it */
 } RRAudioState;
 
 /* Tweens: what to change, and how the change is spread over the time. The transition
@@ -145,6 +146,10 @@ typedef struct {
     bool     synced;      /* the body has been put where the node is */
     uint8_t  contact_max, contact_count; /* contacts it reports, and how many the last step had */
     float    contact_normals[RR_MAX_CONTACTS][3]; /* out of what was touched, world space */
+    /* RigidBody3D with contact_monitor: the bodies it touched in the last step and in the
+     * one before, as node indices, for body_entered and body_exited. */
+    uint16_t touching[RR_MAX_CONTACTS], touched[RR_MAX_CONTACTS];
+    uint8_t  touching_count, touched_count;
 } RRRigidState;
 
 /* A mesh that bones deform, or one whose colour changes: the copy of its mesh asset that
@@ -380,6 +385,11 @@ bool rr_audio_is_playing(const Node *player);
  * Music keeps its speed. */
 void  rr_audio_set_pitch_scale(Node *player, float pitch);
 float rr_audio_get_pitch_scale(const Node *player);
+
+/* The volume of a player in decibels, as Godot's volume_db: 0 is the sound as it is, -6
+ * about half, -80 silence. It can be changed while the sound plays. */
+void  rr_audio_set_volume_db(Node *player, float db);
+float rr_audio_get_volume_db(const Node *player);
 
 /* Audio buses, after Godot's AudioServer: the buses of the project's bus layout, which
  * the players name in their `bus` property. A player is heard at its own volume times

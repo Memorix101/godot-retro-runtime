@@ -83,7 +83,20 @@ struct RRVolume {
     const RRPkgHeightMap *map;
     float                 origin[3]; /* where point (0, 0) with height 0 is */
     float                 scale[3];  /* distance between two points along X and Z; Y: of the heights */
+    /* Concave shape (ConcavePolygonShape3D), NULL for the others: its triangles in the
+     * shape's space and the shape's world transform. center, axis and half are the box
+     * around the triangles, which is what code that does not know such shapes sees. */
+    const RRPkgTriangles *tris;
+    bool                  backface; /* solid from behind its faces too */
+    RRMat34               frame;
 };
+
+/* Triangle `index` of a concave volume in the world, and the unit normal of its front
+ * (Godot's: the side its corners go round clockwise). False if it has no area. */
+bool rr_concave_triangle(const RRVolume *v, uint32_t index, float *a, float *b, float *c, float *normal);
+/* The deepest place where a sphere, capsule or box overlaps the faces of a concave
+ * volume: the way out of them (unit) and how deep. False if it overlaps none. */
+bool rr_concave_contact(const RRVolume *concave, const RRVolume *other, float *normal, float *depth);
 
 /* The height of a height map's ground below or above (x, z) in the world, and the normal
  * of the ground there if `normal` is not NULL. False if (x, z) is outside of the map. */

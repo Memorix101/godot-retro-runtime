@@ -159,6 +159,60 @@ static float hit_height(const RRVolume *v, const float *from, const float *dir, 
     return -1.0f;
 }
 
+/* Where the ray meets the faces of a concave shape, as hit_volume (Moeller and Trumbore).
+ * A face that the ray meets from behind counts only if the ray has hit_back_faces and
+ * the shape backface_collision, as in Godot; the normal then faces the ray. */
+static float hit_concave(const RRVolume *v, const float *from, const float *dir, bool back_faces, float *normal)
+{
+    float    best = -1.0f;
+    uint32_t i;
+    int      k;
+
+    for (i = 0; i < v->tris->count; i++) {
+        float a[3], b[3], c[3], n[3], e1[3], e2[3], p[3], s[3], q[3], det, inv, u, w, t, facing;
+        if (!rr_concave_triangle(v, i, a, b, c, n)) {
+            continue;
+        }
+        facing = dot3(dir, n);
+        if (facing > 0.0f && !back_faces) {
+            continue;
+        }
+        for (k = 0; k < 3; k++) {
+            e1[k] = b[k] - a[k];
+            e2[k] = c[k] - a[k];
+            s[k]  = from[k] - a[k];
+        }
+        p[0] = dir[1] * e2[2] - dir[2] * e2[1];
+        p[1] = dir[2] * e2[0] - dir[0] * e2[2];
+        p[2] = dir[0] * e2[1] - dir[1] * e2[0];
+        det  = dot3(e1, p);
+        if (fabsf(det) < 1.0e-12f) {
+            continue; /* along the face */
+        }
+        inv = 1.0f / det;
+        u   = dot3(s, p) * inv;
+        if (u < 0.0f || u > 1.0f) {
+            continue;
+        }
+        q[0] = s[1] * e1[2] - s[2] * e1[1];
+        q[1] = s[2] * e1[0] - s[0] * e1[2];
+        q[2] = s[0] * e1[1] - s[1] * e1[0];
+        w    = dot3(dir, q) * inv;
+        if (w < 0.0f || u + w > 1.0f) {
+            continue;
+        }
+        t = dot3(e2, q) * inv;
+        if (t < 0.0f || t > 1.0f || (best >= 0.0f && t >= best)) {
+            continue;
+        }
+        best = t;
+        for (k = 0; k < 3; k++) {
+            normal[k] = facing > 0.0f ? -n[k] : n[k];
+        }
+    }
+    return best;
+}
+
 /* --- shape casts ----------------------------------------------------------------------
  * A box, sphere or capsule that is moved along the line. There is no test for a moving
  * shape, so it is put down at places along the line, close enough together that nothing
@@ -242,7 +296,7 @@ static void cast_shape(Node *node, RRRayState *state)
     const RRScene          *scene = node->scene;
     const RRPkgRayCastNode *data = (const RRPkgRayCastNode *)node->data;
     const RRPkgShapeNode    shape = { data->shape, { data->shape_size[0], data->shape_size[1], data->shape_size[2] },
-                                      0, 0, { 0, 0 }, RR_NONE32 };
+                                      0, 0, 0, 0, RR_NONE32 };
     ShapeCast               c;
     RRMat34                 world;
     float                   lo[3], hi[3], length, smallest;
@@ -323,7 +377,7 @@ static void cast_shape(Node *node, RRRayState *state)
         }
         for (k = 0; k < map->box_count; k++) {
             const RRPkgShapeNode box = { RR_SHAPE_BOX, { boxes[k].w * 0.5f, boxes[k].h * 0.5f, 0.5f },
-                                         0, 0, { 0, 0 }, RR_NONE32 };
+                                         0, 0, 0, 0, RR_NONE32 };
             const float          cx = boxes[k].x + boxes[k].w * 0.5f, cy = boxes[k].y + boxes[k].h * 0.5f;
             RRMat34              at = n->world;
             RRVolume             solid;
@@ -411,7 +465,11 @@ static void cast(Node *ray, RRRayState *state)
             if (!v->used || (scene->nodes[scene->collider_shapes[col->shape_first + k]].flags & RR_NODE_FLAG_FREE)) {
                 continue;
             }
-            t = v->map != NULL ? hit_height(v, from, dir, normal) : hit_volume(v, from, dir, normal);
+            if (v->tris != NULL) {
+                t = hit_concave(v, from, dir, data->hit_back_faces && v->backface, normal);
+            } else {
+                t = v->map != NULL ? hit_height(v, from, dir, normal) : hit_volume(v, from, dir, normal);
+            }
             if (t >= 0.0f && t < best) {
                 best            = t;
                 state->collider = col->node;

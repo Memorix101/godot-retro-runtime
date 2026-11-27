@@ -13,6 +13,7 @@ typedef struct {
     const char *airplane_scene;      /* exported */
     const char *highway_scene;       /* exported */
     const char *neonleague_scene;    /* exported */
+    const char *starter_racing_scene; /* exported */
     const char *feature_scene;       /* exported */
 } MainMenu;
 
@@ -76,6 +77,12 @@ static void main_menu_on_neonleague(Node *self, MainMenu *menu)
     rr_change_scene(menu->neonleague_scene);
 }
 
+static void main_menu_on_starter_racing(Node *self, MainMenu *menu)
+{
+    (void)self;
+    rr_change_scene(menu->starter_racing_scene);
+}
+
 static void main_menu_on_features(Node *self, MainMenu *menu)
 {
     GameState *game = game_state(self->scene);
@@ -103,6 +110,7 @@ COMPONENT_BEGIN(MainMenu, "MainMenu")
     EXPORT_SCENE(airplane_scene)
     EXPORT_SCENE(highway_scene)
     EXPORT_SCENE(neonleague_scene)
+    EXPORT_SCENE(starter_racing_scene)
     EXPORT_SCENE(feature_scene)
     ON_SIGNAL("_on_start_pressed", main_menu_on_start)
     ON_SIGNAL("_on_test_2d_pressed", main_menu_on_test_2d)
@@ -114,6 +122,7 @@ COMPONENT_BEGIN(MainMenu, "MainMenu")
     ON_SIGNAL("_on_airplane_pressed", main_menu_on_airplane)
     ON_SIGNAL("_on_highway_pressed", main_menu_on_highway)
     ON_SIGNAL("_on_neonleague_pressed", main_menu_on_neonleague)
+    ON_SIGNAL("_on_starter_racing_pressed", main_menu_on_starter_racing)
     ON_SIGNAL("_on_features_pressed", main_menu_on_features)
     ON_SIGNAL("_on_quit_pressed", main_menu_on_quit)
 COMPONENT_END()

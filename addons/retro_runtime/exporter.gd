@@ -80,6 +80,7 @@ const ASSET_CURVE := 8
 const ASSET_MUSIC := 9
 const ASSET_HEIGHT_MAP := 10
 const ASSET_SKIN := 11
+const ASSET_TRIANGLES := 12
 
 const AUDIO_PLAIN := 0
 const AUDIO_2D := 1
@@ -131,6 +132,7 @@ const SHAPE_BOX := 1
 const SHAPE_SPHERE := 2
 const SHAPE_CAPSULE := 3
 const SHAPE_HEIGHT_MAP := 4
+const SHAPE_CONCAVE := 5
 
 const TILE_FLIP_H := 1
 const TILE_FLIP_V := 2
@@ -880,9 +882,6 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 		# platforms.gd freezes rigid bodies for the export and notes what the scene had.
 		if node.get_meta(&"retro_frozen", node.freeze) or node.custom_integrator:
 			_fail(node, "freeze and a custom integrator are not supported")
-		# The enum values are the same in 2D and 3D.
-		if node.linear_damp_mode != RigidBody3D.DAMP_MODE_COMBINE:
-			_fail(node, "linear damp mode must be Combine")
 		if is_3d:
 			_check_rigid_3d(node)
 		else:
@@ -896,16 +895,20 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 			moving = node.constant_linear_velocity != Vector2.ZERO or node.constant_angular_velocity != 0.0
 		if moving:
 			_fail(node, "constant velocities are not supported")
-	if material != null and (material.rough or material.absorbent):
-		_fail(node, "rough and absorbent physics materials are not supported")
-
 	out.put_u32(node.collision_layer)
 	out.put_u32(node.collision_mask)
 	out.put_u8(1 if not is_3d else 0)
 	out.put_u8(0)
 	out.put_u16(0)
-	out.put_float(material.bounce if material != null else 0.0)
-	out.put_float(material.friction if material != null else 1.0)
+	# As Godot hands them to its physics servers (PhysicsMaterial.computed_bounce and
+	# computed_friction): an absorbent bounce and a rough friction are negative.
+	var bounce := 0.0
+	var friction := 1.0
+	if material != null:
+		bounce = -material.bounce if material.absorbent else material.bounce
+		friction = -material.friction if material.rough else material.friction
+	out.put_float(bounce)
+	out.put_float(friction)
 
 	var gravity := Vector3.ZERO
 	var mass := 1.0
@@ -917,7 +920,10 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 		var strength: float = ProjectSettings.get_setting(space + "default_gravity") * node.gravity_scale
 		gravity = Vector3(direction.x, direction.y, direction.z if is_3d else 0.0) * strength
 		mass = node.mass
-		damp = ProjectSettings.get_setting(space + "default_linear_damp") + node.linear_damp
+		# Combine adds the body's damping to the project's, Replace takes the body's alone. The
+		# enum values are the same in 2D and 3D.
+		damp = node.linear_damp if node.linear_damp_mode == RigidBody3D.DAMP_MODE_REPLACE \
+				else ProjectSettings.get_setting(space + "default_linear_damp") + node.linear_damp
 		velocity = Vector3(node.linear_velocity.x, node.linear_velocity.y, node.linear_velocity.z if is_3d else 0.0)
 	for vector: Vector3 in [gravity]:
 		out.put_float(vector.x)
@@ -935,7 +941,8 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 	var lock := 0
 	var contacts := 0
 	if node is RigidBody3D:
-		angular_damp = ProjectSettings.get_setting("physics/3d/default_angular_damp") + node.angular_damp
+		angular_damp = node.angular_damp if node.angular_damp_mode == RigidBody3D.DAMP_MODE_REPLACE \
+				else ProjectSettings.get_setting("physics/3d/default_angular_damp") + node.angular_damp
 		angular_velocity = node.angular_velocity
 		if node.lock_rotation or node.axis_lock_angular_x:
 			lock |= 1
@@ -945,7 +952,8 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 			lock |= 4
 	elif node is RigidBody2D:
 		# A 2D body turns around Z only.
-		angular_damp = ProjectSettings.get_setting("physics/2d/default_angular_damp") + node.angular_damp
+		angular_damp = node.angular_damp if node.angular_damp_mode == RigidBody2D.DAMP_MODE_REPLACE \
+				else ProjectSettings.get_setting("physics/2d/default_angular_damp") + node.angular_damp
 		angular_velocity = Vector3(0, 0, node.angular_velocity)
 		if node.lock_rotation:
 			lock = 4
@@ -962,8 +970,6 @@ func _body_data(node: Node, out: StreamPeerBuffer) -> void:
 
 ## What the runtime's 3D rigid bodies (picophysics) cannot do, said at export time.
 func _check_rigid_3d(node: RigidBody3D) -> void:
-	if node.angular_damp_mode != RigidBody3D.DAMP_MODE_COMBINE:
-		_fail(node, "angular damp mode must be Combine")
 	if node.axis_lock_linear_x or node.axis_lock_linear_y or node.axis_lock_linear_z:
 		_fail(node, "locking the movement along an axis is not supported (only the rotation)")
 	if node.center_of_mass_mode != RigidBody3D.CENTER_OF_MASS_MODE_AUTO or node.inertia != Vector3.ZERO:
@@ -991,8 +997,6 @@ func _check_rigid_3d(node: RigidBody3D) -> void:
 
 ## What the runtime's 2D rigid bodies (Box2D) cannot do, said at export time.
 func _check_rigid_2d(node: RigidBody2D) -> void:
-	if node.angular_damp_mode != RigidBody2D.DAMP_MODE_COMBINE:
-		_fail(node, "angular damp mode must be Combine")
 	if node.center_of_mass_mode != RigidBody2D.CENTER_OF_MASS_MODE_AUTO or node.inertia != 0.0:
 		_fail(node, "a custom centre of mass or inertia is not supported")
 	if node.constant_force != Vector2.ZERO or node.constant_torque != 0.0:
@@ -1052,6 +1056,36 @@ func _shape_data(node: Node, out: StreamPeerBuffer) -> void:
 				data.put_float(h)
 			map = _add_asset(ASSET_HEIGHT_MAP, _resource_name(shape, _node_path(node)), data.data_array)
 			_asset_cache[shape] = map
+	elif shape is ConcavePolygonShape3D:
+		# Faces: the triangles go into an asset that the shapes using the same resource
+		# share (the cells of a GridMap), the shape only names it.
+		kind = SHAPE_CONCAVE
+		if owner_type != NODE_STATIC_BODY:
+			_fail(node, "a ConcavePolygonShape3D must belong to a StaticBody3D")
+		var faces: PackedVector3Array = shape.get_faces()
+		if faces.size() < 3:
+			_fail(node, "the ConcavePolygonShape3D has no faces")
+		elif _asset_cache.has(shape):
+			map = _asset_cache[shape]
+		else:
+			var count := faces.size() / 3
+			var low := faces[0]
+			var high := faces[0]
+			for p in faces:
+				low = low.min(p)
+				high = high.max(p)
+			var data := _new_buffer()
+			data.put_u32(count)
+			for v in [low, high]:
+				data.put_float(v.x)
+				data.put_float(v.y)
+				data.put_float(v.z)
+			for i in count * 3:
+				data.put_float(faces[i].x)
+				data.put_float(faces[i].y)
+				data.put_float(faces[i].z)
+			map = _add_asset(ASSET_TRIANGLES, _resource_name(shape, _node_path(node)), data.data_array)
+			_asset_cache[shape] = map
 	elif shape is BoxShape3D:
 		size = shape.size * 0.5
 	elif shape is SphereShape3D:
@@ -1070,7 +1104,7 @@ func _shape_data(node: Node, out: StreamPeerBuffer) -> void:
 	elif moving:
 		_fail(node, "shape must be a box, a sphere or a capsule (a rectangle, a circle or a capsule in 2D)")
 	elif node is Node3D:
-		_fail(node, "shape must be a BoxShape3D or a SphereShape3D (or a HeightMapShape3D below a StaticBody3D)")
+		_fail(node, "shape must be a BoxShape3D or a SphereShape3D (or a HeightMapShape3D or ConcavePolygonShape3D below a StaticBody3D)")
 	else:
 		_fail(node, "shape must be a RectangleShape2D or a CircleShape2D")
 	var one_way: bool = node is CollisionShape2D and node.one_way_collision
@@ -1086,7 +1120,8 @@ func _shape_data(node: Node, out: StreamPeerBuffer) -> void:
 	out.put_float(size.z)
 	out.put_u8(1 if node.disabled else 0)
 	out.put_u8(1 if one_way else 0)
-	out.put_u16(0)
+	out.put_u8(1 if shape is ConcavePolygonShape3D and shape.backface_collision else 0)
+	out.put_u8(0)
 	out.put_u32(map)
 
 
@@ -1347,6 +1382,9 @@ func _raycast_data(node: Node, out: StreamPeerBuffer) -> void:
 	out.put_float(size.x)
 	out.put_float(size.y)
 	out.put_float(size.z)
+	out.put_u8(1 if node is RayCast3D and node.hit_back_faces else 0)
+	out.put_u8(0)
+	out.put_u16(0)
 
 
 ## Most points one curve is sampled at. A longer curve needs a larger bake interval.

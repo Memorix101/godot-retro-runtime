@@ -11,7 +11,7 @@ It moves the `RigidBody3D` nodes of the runtime (`runtime/core/rr_physics.c`).
 
 ## What was changed
 
-Two places. In `pp_integrate_velocities` the turn of a step is put in front of the body's
+Four places. In `pp_integrate_velocities` the turn of a step is put in front of the body's
 rotation instead of behind it,
 
 ```
@@ -36,6 +36,18 @@ is, which is at most one step's way before the surface:
 if (manifold->separation > 0.0f && r > 0.0f) {
     allowed = 0.0f;     /* was: if (manifold->separation > 0.0f) r = 0.0f; */
 }
+```
+
+The third and fourth changes mix two physics materials the way Godot does, also in
+`pp_solve_velocities`: the bounce of a contact is the sum of the two (was: the larger
+one), kept between 0 and 1, and its friction the smaller of the two, as a size (was: the
+two multiplied). The runtime gives the engine Godot's computed values, which are negative
+for an absorbent bounce and a rough friction; so a rough material's friction wins, as in
+Godot.
+
+```
+float r = fminf(fmaxf(manifold->obj1_bounce + manifold->obj2_bounce, 0.0f), 1.0f);
+float f = fabsf(fminf(manifold->obj1_friction, manifold->obj2_friction));
 ```
 
 Nothing else differs from the source. To take a newer version, copy the header and make

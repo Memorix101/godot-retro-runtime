@@ -49,7 +49,7 @@ _Static_assert(sizeof(RRPkgResource) == 12, "resource layout");
 _Static_assert(sizeof(RRPkgMeshNode) == 24, "mesh node layout");
 _Static_assert(sizeof(RRPkgInfluence) == 8, "skin influence layout");
 _Static_assert(sizeof(RRVertexPC) == 24 && sizeof(RRVertexDC) == 24, "vertex layout");
-_Static_assert(sizeof(RRPkgRayCastNode) == 36, "ray cast layout");
+_Static_assert(sizeof(RRPkgRayCastNode) == 40, "ray cast layout");
 _Static_assert(sizeof(RRPkgPathFollowNode) == 16, "path follow layout");
 _Static_assert(sizeof(RRPkgColorRectNode) == 20, "colour rect layout");
 _Static_assert(sizeof(RRPkgProgressBarNode) == 48, "progress bar layout");
@@ -476,9 +476,12 @@ static bool check_node_data(const RRPackage *pkg, uint32_t index)
               (owner == RR_NODE_AREA || owner == RR_NODE_STATIC_BODY)) ||
              ((s->kind >= RR_SHAPE_BOX && s->kind <= RR_SHAPE_CAPSULE) &&
               (owner == RR_NODE_CHARACTER_BODY || owner == RR_NODE_RIGID_BODY)) ||
-             /* A height map is ground: it does not move. */
+             /* A height map is ground: it does not move. Concave shapes are for static
+              * bodies only, as in Godot. */
              (s->kind == RR_SHAPE_HEIGHT_MAP && owner == RR_NODE_STATIC_BODY &&
-              asset_is(pkg, s->map, RR_ASSET_HEIGHT_MAP));
+              asset_is(pkg, s->map, RR_ASSET_HEIGHT_MAP)) ||
+             (s->kind == RR_SHAPE_CONCAVE && owner == RR_NODE_STATIC_BODY &&
+              asset_is(pkg, s->map, RR_ASSET_TRIANGLES));
         break;
     }
     case RR_NODE_SPRITE:
@@ -784,6 +787,16 @@ bool rr_package_open(RRPackage *pkg, const void *data, uint32_t size, uint8_t pl
                          (uint64_t)m->width * m->depth * sizeof(float) <= a->size;
             if (!ok) {
                 rr_set_error("package is corrupt: height map asset %u is malformed", (unsigned)i);
+            }
+            break;
+        }
+        case RR_ASSET_TRIANGLES: {
+            const RRPkgTriangles *t = (const RRPkgTriangles *)rr_package_asset(pkg, i);
+            ok = a->size >= offsetof(RRPkgTriangles, corners) + 9 * sizeof(float) && t->count >= 1 &&
+                 (uint64_t)offsetof(RRPkgTriangles, corners) + (uint64_t)t->count * 9 * sizeof(float) <= a->size &&
+                 t->min[0] <= t->max[0] && t->min[1] <= t->max[1] && t->min[2] <= t->max[2];
+            if (!ok) {
+                rr_set_error("package is corrupt: triangles asset %u is malformed", (unsigned)i);
             }
             break;
         }

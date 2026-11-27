@@ -15,7 +15,7 @@
  *   or a tile map if its mask has one of the other's layers, and two rigid bodies meet if
  *   either one's mask has one of the other's layers.
  * - Two materials are mixed as Godot mixes them: the smaller friction counts, the bounces
- *   add up.
+ *   add up, and rough and absorbent materials count as negative there, as in Godot.
  * - one_way_collision works as in Godot: such a shape stops only what comes down onto it.
  * - A body that monitors its contacts (contact_monitor, max_contacts_reported) can be
  *   asked what it touches.
@@ -70,18 +70,23 @@ static bool           g_full;
 
 /* --- Godot's rules, as the engine asks for them -------------------------------------- */
 
+/* Box2D takes no negative friction or bounce, so a material keeps the sizes of its two
+ * values and says in its user material id whether it is rough or absorbent. The mix is
+ * then Godot's: a rough friction counts as negative, the smaller of the two wins and its
+ * size is the pair's; an absorbent bounce counts as negative, and the two add up. */
+#define MATERIAL_ROUGH     1u
+#define MATERIAL_ABSORBENT 2u
+
 static float mix_friction(float a, uint64_t id_a, float b, uint64_t id_b)
 {
-    (void)id_a;
-    (void)id_b;
-    return a < b ? a : b;
+    const float sa = (id_a & MATERIAL_ROUGH) ? -a : a, sb = (id_b & MATERIAL_ROUGH) ? -b : b;
+    return fabsf(sa < sb ? sa : sb);
 }
 
 static float mix_bounce(float a, uint64_t id_a, float b, uint64_t id_b)
 {
-    (void)id_a;
-    (void)id_b;
-    return a + b > 1.0f ? 1.0f : a + b;
+    const float sum = ((id_a & MATERIAL_ABSORBENT) ? -a : a) + ((id_b & MATERIAL_ABSORBENT) ? -b : b);
+    return sum < 0.0f ? 0.0f : (sum > 1.0f ? 1.0f : sum);
 }
 
 static bool may_meet(b2ShapeId shape_a, b2ShapeId shape_b, void *context)
@@ -206,8 +211,10 @@ static int add_shapes(b2BodyId body, const Node *owner, const RRMat34 *owner_wor
     int        made = 0;
 
     scale_of(owner_world, &sx, &sy);
-    def.material.friction    = friction < 0.0f ? 0.0f : friction;
-    def.material.restitution = bounce < 0.0f ? 0.0f : (bounce > 1.0f ? 1.0f : bounce);
+    /* The package holds Godot's computed values: negative when rough or absorbent. */
+    def.material.friction       = fabsf(friction);
+    def.material.restitution    = fabsf(bounce) > 1.0f ? 1.0f : fabsf(bounce);
+    def.material.userMaterialId = (friction < 0.0f ? MATERIAL_ROUGH : 0u) | (bounce < 0.0f ? MATERIAL_ABSORBENT : 0u);
     def.density              = 1.0f;
     def.enableCustomFiltering = true;
     for (shape = rr_node_child((Node *)owner, NULL); shape != NULL; shape = rr_node_child((Node *)owner, shape)) {

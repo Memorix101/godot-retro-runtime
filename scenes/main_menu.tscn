@@ -26,6 +26,7 @@ ball_scene = "res://scenes/ball_roll.tscn"
 airplane_scene = "res://scenes/airplane.tscn"
 highway_scene = "res://scenes/highway_title.tscn"
 neonleague_scene = "res://scenes/neonleague_title.tscn"
+starter_racing_scene = "res://scenes/starter_racing.tscn"
 feature_scene = "res://scenes/features.tscn"
 
 [node name="Backdrop" type="TextureRect" parent="." unique_id=2044799120]
@@ -116,6 +117,11 @@ layout_mode = 2
 size_flags_vertical = 3
 text = "Neon League"
 
+[node name="StarterRacing" type="Button" parent="Buttons" unique_id=1488302118]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Starter Kit Racing"
+
 [node name="Features" type="Button" parent="Buttons" unique_id=353392737]
 layout_mode = 2
 size_flags_vertical = 3
@@ -158,5 +164,6 @@ volume_db = -8.0
 [connection signal="pressed" from="Buttons/Airplane" to="." method="_on_airplane_pressed"]
 [connection signal="pressed" from="Buttons/Highway" to="." method="_on_highway_pressed"]
 [connection signal="pressed" from="Buttons/NeonLeague" to="." method="_on_neonleague_pressed"]
+[connection signal="pressed" from="Buttons/StarterRacing" to="." method="_on_starter_racing_pressed"]
 [connection signal="pressed" from="Buttons/Features" to="." method="_on_features_pressed"]
 [connection signal="pressed" from="Buttons/Quit" to="." method="_on_quit_pressed"]

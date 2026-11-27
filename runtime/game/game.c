@@ -16,6 +16,8 @@ COMPONENT_DECLARE(AiDriver)
 COMPONENT_DECLARE(CrumblePlatform)
 COMPONENT_DECLARE(BallRoller)
 COMPONENT_DECLARE(StuntCar)
+COMPONENT_DECLARE(StarterVehicle)
+COMPONENT_DECLARE(StarterView)
 COMPONENT_DECLARE(FeatureTest)
 COMPONENT_DECLARE(TriggerStress)
 COMPONENT_DECLARE(UiTest)
@@ -26,6 +28,7 @@ COMPONENT_DECLARE(AnimTest)
 COMPONENT_DECLARE(GridTest)
 COMPONENT_DECLARE(Rigid2DTest)
 COMPONENT_DECLARE(CastTest)
+COMPONENT_DECLARE(ConcaveTest)
 COMPONENT_DECLARE(SkinTest)
 COMPONENT_DECLARE(TestStats)
 COMPONENT_DECLARE(GameState)
@@ -70,6 +73,8 @@ bool game_register_components(void)
            rr_component_register(&CrumblePlatform_component) &&
            rr_component_register(&BallRoller_component) &&
            rr_component_register(&StuntCar_component) &&
+           rr_component_register(&StarterVehicle_component) &&
+           rr_component_register(&StarterView_component) &&
            rr_component_register(&FeatureTest_component) &&
            rr_component_register(&TriggerStress_component) &&
            rr_component_register(&UiTest_component) &&
@@ -80,6 +85,7 @@ bool game_register_components(void)
            rr_component_register(&GridTest_component) &&
            rr_component_register(&Rigid2DTest_component) &&
            rr_component_register(&CastTest_component) &&
+           rr_component_register(&ConcaveTest_component) &&
            rr_component_register(&SkinTest_component) &&
            rr_component_register(&TestStats_component) &&
            rr_component_register(&GameState_component) &&

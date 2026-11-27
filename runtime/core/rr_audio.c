@@ -148,6 +148,7 @@ void rr_audio_init(RRScene *scene, Node *player)
     state->playing = false;
     state->left    = 0.0f;
     state->pitch   = ((const RRPkgAudioNode *)player->data)->pitch;
+    state->volume  = ((const RRPkgAudioNode *)player->data)->volume;
     state->changed = false;
 }
 
@@ -175,7 +176,8 @@ void rr_audio_mix(const Node *player, float *volume, float *pan)
     const RRScene        *scene = player->scene;
     const RRPkgAudioNode *a = (const RRPkgAudioNode *)player->data;
     const float          *m = player->world.m;
-    float                 gain = a->volume, side = 0.0f;
+    const RRAudioState   *state = state_of(player);
+    float                 gain = state != NULL ? state->volume : a->volume, side = 0.0f;
 
     if (a->mode == RR_AUDIO_3D && scene->camera != NULL) {
         const float *c = scene->camera->world.m;
@@ -248,7 +250,7 @@ void rr_audio_play(Node *player)
             char              path[256];
             snprintf(path, sizeof(path), "%s/%s", rr_app_data_dir(),
                      rr_package_string(scene->pkg, music->file));
-            rr_music_play(path, a->volume * bus_gain(scene->pkg, a->bus), a->loop != 0);
+            rr_music_play(path, state->volume * bus_gain(scene->pkg, a->bus), a->loop != 0);
         } else {
             if (a->mode != RR_AUDIO_PLAIN) {
                 /* The node may have been placed just now. */
@@ -313,7 +315,7 @@ void rr_audios_update(RRScene *scene, float dt)
          * its pitch or a bus was changed. */
         if (is_music(node)) {
             if (g_bus_changed) {
-                rr_music_set_volume(a->volume * bus_gain(scene->pkg, a->bus));
+                rr_music_set_volume(state->volume * bus_gain(scene->pkg, a->bus));
             }
         } else if (a->mode != RR_AUDIO_PLAIN || g_bus_changed || state->changed) {
             float volume, pan;
@@ -338,4 +340,27 @@ float rr_audio_get_pitch_scale(const Node *player)
 {
     const RRAudioState *state = state_of(player);
     return state != NULL ? state->pitch : 1.0f;
+}
+
+void rr_audio_set_volume_db(Node *player, float db)
+{
+    RRAudioState *state = state_of(player);
+    if (state != NULL) {
+        /* Godot's db_to_linear; -80 dB and below is silence there. */
+        state->volume  = db <= -80.0f ? 0.0f : powf(10.0f, db / 20.0f);
+        state->changed = true;
+        if (state->playing && is_music(player)) {
+            const RRPkgAudioNode *a = (const RRPkgAudioNode *)player->data;
+            rr_music_set_volume(state->volume * bus_gain(player->scene->pkg, a->bus));
+        }
+    }
+}
+
+float rr_audio_get_volume_db(const Node *player)
+{
+    const RRAudioState *state = state_of(player);
+    if (state == NULL) {
+        return 0.0f;
+    }
+    return state->volume > 0.0f ? 20.0f * log10f(state->volume) : -80.0f;
 }

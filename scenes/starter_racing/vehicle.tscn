@@ -1,0 +1,113 @@
+[gd_scene format=3 uid="uid://badoy1c127yhf"]
+
+[ext_resource type="Script" path="res://components/starter_vehicle.gd" id="1_e2g1l"]
+[ext_resource type="PackedScene" uid="uid://bynb5jk1d478y" path="res://assets/kenney/starter-kit-racing/models/vehicle-truck-yellow.glb" id="2_vuxys"]
+[ext_resource type="Texture2D" uid="uid://c026qrhqxgw3n" path="res://assets/kenney/starter-kit-racing/sprites/smoke.png" id="3_p2hth"]
+[ext_resource type="AudioStream" path="res://assets/kenney/starter-kit-racing/audio/skid.wav" id="4_mcce1"]
+[ext_resource type="AudioStream" path="res://assets/kenney/starter-kit-racing/audio/engine.wav" id="5_kcati"]
+[ext_resource type="AudioStream" path="res://assets/kenney/starter-kit-racing/audio/impact.wav" id="6_v3p7b"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tfk12"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("3_p2hth")
+disable_receive_shadows = true
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_68fxn"]
+material = SubResource("StandardMaterial3D_tfk12")
+
+[sub_resource type="Gradient" id="Gradient_smoke"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_eyo0u"]
+friction = 5.0
+rough = true
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hhncp"]
+
+[node name="Vehicle" type="Node3D" node_paths=PackedStringArray("sphere", "ground", "container", "vehicle_body", "wheel_fl", "wheel_fr", "wheel_bl", "wheel_br", "trail_left", "trail_right", "screech_sound", "engine_sound", "impact_sound")]
+script = ExtResource("1_e2g1l")
+sphere = NodePath("Sphere")
+ground = NodePath("Ground")
+container = NodePath("Container")
+vehicle_body = NodePath("Container/Model/body")
+wheel_fl = NodePath("Container/Model/wheel-front-left")
+wheel_fr = NodePath("Container/Model/wheel-front-right")
+wheel_bl = NodePath("Container/Model/wheel-back-left")
+wheel_br = NodePath("Container/Model/wheel-back-right")
+trail_left = NodePath("Container/TrailLeft")
+trail_right = NodePath("Container/TrailRight")
+screech_sound = NodePath("Container/ScreechSound")
+engine_sound = NodePath("Container/EngineSound")
+impact_sound = NodePath("Container/ImpactSound")
+
+[node name="Ground" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+target_position = Vector3(0, -0.7, 0)
+hit_back_faces = false
+debug_shape_custom_color = Color(0.898039, 0, 0, 1)
+
+[node name="Container" type="Node3D" parent="."]
+
+[node name="Model" parent="Container" instance=ExtResource("2_vuxys")]
+
+[node name="TrailLeft" type="CPUParticles3D" parent="Container"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.05, -0.35)
+cast_shadow = 0
+emitting = false
+amount = 32
+lifetime = 0.5
+mesh = SubResource("QuadMesh_68fxn")
+gravity = Vector3(0, 0, 0)
+scale_amount_min = 0.25
+scale_amount_max = 0.5
+color = Color(0.3696, 0.3738, 0.42, 1)
+color_ramp = SubResource("Gradient_smoke")
+
+[node name="TrailRight" type="CPUParticles3D" parent="Container"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0.05, -0.35)
+cast_shadow = 0
+emitting = false
+amount = 32
+lifetime = 0.5
+mesh = SubResource("QuadMesh_68fxn")
+gravity = Vector3(0, 0, 0)
+scale_amount_min = 0.25
+scale_amount_max = 0.5
+color = Color(0.3696, 0.3738, 0.42, 1)
+color_ramp = SubResource("Gradient_smoke")
+
+[node name="ScreechSound" type="AudioStreamPlayer3D" parent="Container"]
+stream = ExtResource("4_mcce1")
+autoplay = true
+
+[node name="EngineSound" type="AudioStreamPlayer3D" parent="Container"]
+stream = ExtResource("5_kcati")
+autoplay = true
+
+[node name="ImpactSound" type="AudioStreamPlayer3D" parent="Container"]
+stream = ExtResource("6_v3p7b")
+
+[node name="Sphere" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+collision_layer = 8
+mass = 1000.0
+physics_material_override = SubResource("PhysicsMaterial_eyo0u")
+gravity_scale = 1.5
+continuous_cd = true
+contact_monitor = true
+max_contacts_reported = 2
+linear_damp = 0.1
+angular_damp_mode = 1
+angular_damp = 4.0
+
+[node name="CollisionShape" type="CollisionShape3D" parent="Sphere"]
+shape = SubResource("SphereShape3D_hhncp")
+
+[connection signal="body_entered" from="Sphere" to="." method="_on_sphere_body_entered"]

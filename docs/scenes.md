@@ -29,7 +29,7 @@ something the runtime cannot handle is not exported; the message names the node.
 | `Camera3D`                    | perspective or orthogonal (`size`), Keep Height; an orthogonal camera not together with fog or a sky background |
 | `DirectionalLight3D`, `OmniLight3D`, `SpotLight3D` | inputs of the light bake only; they become `Node3D` nodes. Colour, energy, range, attenuation, spot angle and its attenuation; no shadows, no negative lights |
 | `Area3D`, `Area2D` + `CollisionShape3D`, `CollisionShape2D` | box and sphere shapes, rectangle and circle in 2D; emits `area_entered` / `area_exited`; `body_entered` and `body_exited` for static and character bodies |
-| `StaticBody3D`, `StaticBody2D` | what the other bodies cannot pass; box and sphere shapes (rectangle and circle), rotated or not; a `HeightMapShape3D` as ground (not rotated; see [terrain.md](terrain.md)); physics material; `one_way_collision` on a `RectangleShape2D` that is not rotated |
+| `StaticBody3D`, `StaticBody2D` | what the other bodies cannot pass; box and sphere shapes (rectangle and circle), rotated or not; a `HeightMapShape3D` as ground (not rotated; see [terrain.md](terrain.md)); a `ConcavePolygonShape3D` (its faces, turned and scaled as the shape is, solid from the front or with `backface_collision` from both sides; see "Collision"); physics material with `rough` and `absorbent`; `one_way_collision` on a `RectangleShape2D` that is not rotated |
 | `CharacterBody3D`, `CharacterBody2D` | moved by a component with `rr_body_move_and_slide`; box, sphere or capsule shape that is not rotated; layers and masks as in Godot |
 | `Sprite2D`                    | position, rotation, scale, flip, modulate, offset; region and sprite sheets (`hframes`, `vframes`, `frame`; C code changes `node->frame`) |
 | `z_index`, `z_as_relative`    | on every 2D node and control: lower levels are drawn first, tree order inside a level; up to 16 different levels in a scene; no `y_sort_enabled` |
@@ -38,10 +38,10 @@ something the runtime cannot handle is not exported; the message names the node.
 | `Parallax2D`                  | scroll scale and offset, limits, repeat size and times, autoscroll, follow viewport, ignore camera scroll; sprites, tile maps and particles below it are repeated; not inside another Parallax2D |
 | `CanvasLayer`                 | holds the HUD: what is inside is drawn over everything outside, wherever it is in the tree; with a `Camera2D` in the scene, controls must be inside one |
 | `TileMapLayer`                | square tiles from one atlas (`TileSetAtlasSource`); tiles flipped and turned in the editor; animated tiles (frame durations, speed; mode Default); one physics layer whose rectangles become solid boxes, one-way or not; no other alternative tiles |
-| `RigidBody3D`                 | moved by a physics engine (picophysics): falls, turns, rubs, bounces, is kept out of static bodies (boxes, spheres, height maps) and pushes other rigid bodies; box and sphere shapes, up to 8, not rotated against the body; mass, physics material, gravity scale, linear and angular damp, start velocities, `lock_rotation` and the three angular axis locks, layers and masks, `contact_monitor` with `max_contacts_reported` up to 8 (asked from C); up to 64 in a scene; see "Collision" |
+| `RigidBody3D`                 | moved by a physics engine (picophysics): falls, turns, rubs, bounces, is kept out of static bodies (boxes, spheres, height maps, concave shapes) and pushes other rigid bodies; box and sphere shapes, up to 8, not rotated against the body; mass, physics material, gravity scale, linear and angular damp with the damp modes Combine and Replace, start velocities, `lock_rotation` and the three angular axis locks, layers and masks, `contact_monitor` with `max_contacts_reported` up to 8: `body_entered` and `body_exited`, and the contacts asked from C; up to 64 in a scene; see "Collision" |
 | `RigidBody2D`                 | moved by a physics engine (Box2D): falls, turns, rubs, bounces, stacks, is kept out of static bodies and tile maps (one-way shapes and tiles as in Godot) and pushes other rigid bodies; rectangle, circle and capsule shapes; mass, physics material, gravity scale, linear and angular damp, start velocities, `lock_rotation`, layers and masks, `contact_monitor` with `max_contacts_reported` up to 8 (asked from C); see "Collision" |
 | `Timer`                       | wait time, one-shot, autostart; emits `timeout`               |
-| `RayCast3D`, `RayCast2D`      | hits box and sphere shapes of bodies and areas, height maps, and tile maps; mask, areas/bodies, exclude parent; no `hit_from_inside` |
+| `RayCast3D`, `RayCast2D`      | hits box and sphere shapes of bodies and areas, height maps, concave shapes and tile maps; mask, areas/bodies, exclude parent, `hit_back_faces` (a concave shape is met from behind only with it and its `backface_collision`, as in Godot); no `hit_from_inside` |
 | `ShapeCast3D`, `ShapeCast2D`  | moves a box, sphere or capsule (rectangle, circle, capsule) along its line and reports the first thing it touches: one result, with collider, point, normal and the safe and unsafe fraction (`rr_raycast_*`, `rr_shapecast_get_safe_fraction`, `rr_shapecast_get_unsafe_fraction`); no margin |
 | `Path3D`, `Path2D` + `PathFollow3D`, `PathFollow2D` | the curve is sampled at its bake interval; progress, offsets, loop; rotation none, Y, along the curve, oriented |
 | `Marker3D`, `Marker2D`        | a position, like `Node3D` and `Node2D`                        |
@@ -64,7 +64,7 @@ something the runtime cannot handle is not exported; the message names the node.
 | `ColorRect`                   | a filled rectangle                                            |
 | `ProgressBar`                 | range, value, four fill modes, percentage; theme styles as plain colours |
 | `NinePatchRect`               | patch margins, region, draw centre; stretch mode Stretch      |
-| `AudioStreamPlayer`           | WAV, mono or stereo (import with Compress Mode PCM): a sound in memory; Ogg Vorbis or MP3: music, streamed from the disc. Volume, `pitch_scale` (sounds only, changeable with `rr_audio_set_pitch_scale`), `bus`, autoplay, loop; emits `finished` |
+| `AudioStreamPlayer`           | WAV, mono or stereo (import with Compress Mode PCM): a sound in memory; Ogg Vorbis or MP3: music, streamed from the disc. Volume (`volume_db`, changeable with `rr_audio_set_volume_db`), `pitch_scale` (sounds only, changeable with `rr_audio_set_pitch_scale`), `bus`, autoplay, loop; emits `finished` |
 | Audio buses                   | the project's bus layout: name, volume, mute and send of up to 16 buses; `rr_audio_bus_index`, `rr_audio_bus_set_volume`, `rr_audio_bus_set_mute`, kept across scene changes; no effects, solo or bypass |
 | `AudioStreamPlayer2D`, `AudioStreamPlayer3D` | sounds heard from the camera: volume by distance (all four models, unit size, max dB, max distance), panning; no filter, doppler or emission angle |
 | `AnimationPlayer`             | tracks: 3D position, rotation, scale; `visible`; 2D `position`, `rotation`, `scale`; `frame` of a `Sprite2D`; `value` of a `ProgressBar`; `progress` of a `PathFollow`; method calls without arguments. Linear or nearest; loop, autoplay, `speed_scale`, the default blend time (weights and rotation as in Godot; `rr_anim_set_speed_scale`, `rr_anim_set_blend_time`); emits `animation_finished` |
@@ -271,6 +271,17 @@ and `rr_body_is_on_floor` and its siblings tell what it touched. It works in two
   A body that leaves the floor without jumping is put back down if the floor is within
   0.1 m (Godot's floor snap), which keeps it on the ground when it walks downhill.
 
+A `ConcavePolygonShape3D` below a `StaticBody3D` is a list of faces with nothing inside,
+as in Godot: the faces go into the package as they are, and the shape may be turned and
+scaled. What is in front of a face is pushed out to the front; what is behind it goes
+through, unless the shape has `backface_collision`. The front of a face is the side its
+corners go round clockwise (Godot's order, which a mesh's faces have). Character bodies,
+rigid bodies, rays, shape casts and areas all meet it. Every test goes through all faces
+of a shape whose box is near, so many small shapes (the cells of a `GridMap`) are
+cheaper than one large one. `scenes/tests/concave_test.tscn` compares rays, a character
+body and a rigid body on a turned, scaled bowl with what Godot's physics does
+(`make test`).
+
 A `RigidBody3D` is a body of a physics engine: picophysics, a small one in a single
 header, made for the N64 and the Dreamcast (`runtime/third_party/picophysics`, public
 domain). It is set up from the node the way Godot reads it: the box and sphere shapes
@@ -285,8 +296,12 @@ Godot. From C: `rr_rigid_body_get/set_linear_velocity`, `..._angular_velocity`,
 `rr_rigid_body_apply_impulse`, `rr_rigid_body_apply_impulse_at`, and for a body that
 monitors its contacts `rr_rigid_body_get_contact_count` and `..._get_contact_normal`.
 
-Where it differs from Godot: two frictions are multiplied (Godot takes the smaller), the
-bounce of a pair is the larger of the two, a resting body may tremble a little, and a
+Two physics materials are mixed as Godot mixes them: the smaller friction counts, the
+bounces add up (to at most 1), and `rough` and `absorbent` work as in Godot (a rough
+material's friction is the pair's, an absorbent bounce takes away from the other's).
+This holds for `RigidBody2D` as well.
+
+Where it differs from Godot: a resting body may tremble a little, and a
 body that comes in fast may bounce a step's way before the surface. A rigid body does
 not meet character bodies, capsules or tile maps, and areas do not report it. No joints,
 no sleeping, no continuous collision detection beyond what the engine does by itself.

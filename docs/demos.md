@@ -20,6 +20,7 @@ described in [terrain.md](terrain.md).
 | Racing: gas   | W, Up, A, right trigger | A, right trigger |
 | Racing: brake | S, Down, B, left trigger | B, left trigger |
 | Racing: steer | A/D, Left/Right, d-pad, stick | d-pad, stick |
+| Starter Kit Racing | gas, brake and steering as in the racing demo (the brake held at a standstill reverses); Escape or Start goes back to the menu | the same on the pad |
 
 The actions come from the project's Input Map (Project Settings > Input Map).
 
@@ -271,3 +272,31 @@ stage 4 and two cones rise in stage 5. Three lives, three bombs per stage.
   and sound volume, rumble) are kept in the saved game `NEONLEAGUE`.
 - Left out: the online leaderboard, the ASCII mode, the screen resolution, the
   post-processing.
+
+## Starter Kit Racing
+
+`scenes/starter_racing.tscn` ("Starter Kit Racing" in the main menu) is Kenney's
+[Starter Kit Racing](https://github.com/KenneyNL/Starter-Kit-Racing) for Godot, brought
+over as a Godot project: its scenes, its `GridMap` track and its assets (CC0) are the
+kit's, and its two scripts, `vehicle.gd` and `view.gd` (MIT licence), are the components
+`StarterVehicle` and `StarterView` in `runtime/game/starter_racing.c`, line by line. The
+licence and what was changed are in `assets/kenney/starter-kit-racing/License.txt`.
+Gas, brake and steering are the actions of the racing demo; `leave` goes back to the menu.
+
+- The car is a `RigidBody3D` sphere with a rough physics material (friction 5) on a track
+  without friction, so the rough sphere's friction counts, as in Godot. The gas spins the
+  sphere around the car's X axis, and it rolls. The model follows the sphere, turns with
+  the steering and is laid onto the ground that a `RayCast3D` finds below it; its body
+  leans and tilts, the front wheels steer, all wheels turn.
+- The walls of the track are the `ConcavePolygonShape3D` faces of the `MeshLibrary`
+  items, one shape per cell. The sphere has `angular_damp_mode` Replace and reports
+  `body_entered`, which plays the knock.
+- Smoke (`CPUParticles3D` here; the kit has `GPUParticles3D`) and the skid sound come when
+  the car slides; the engine sound's `volume_db` and `pitch_scale` follow the speed.
+- Changed for the runtime: the particles as said, without their random angle and scale
+  curve; the environment without SSAO, SSIL, glow and the Filmic tonemapper; the sounds
+  as WAV instead of Ogg Vorbis. The motorcycle of the kit is left out.
+
+The same input in Godot (the kit as it is) and in the runtime puts the sphere within
+0.15 m of each other over five seconds: straight on at full gas for 3.7 s, into the wall
+of the first bend, and to a stop there.

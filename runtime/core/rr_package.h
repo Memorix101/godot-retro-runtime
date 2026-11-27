@@ -86,7 +86,8 @@ enum {
     RR_ASSET_CURVE,
     RR_ASSET_MUSIC,
     RR_ASSET_HEIGHT_MAP,
-    RR_ASSET_SKIN
+    RR_ASSET_SKIN,
+    RR_ASSET_TRIANGLES
 };
 enum {
     RR_TRACK_POSITION = 1, /* 3D: x y z */
@@ -102,7 +103,7 @@ enum {
 };
 enum { RR_INTERP_NEAREST = 0, RR_INTERP_LINEAR = 1 };
 enum { RR_BLEND_OPAQUE = 0, RR_BLEND_PUNCH_THROUGH = 1, RR_BLEND_TRANSLUCENT = 2 };
-enum { RR_SHAPE_BOX = 1, RR_SHAPE_SPHERE = 2, RR_SHAPE_CAPSULE = 3, RR_SHAPE_HEIGHT_MAP = 4 };
+enum { RR_SHAPE_BOX = 1, RR_SHAPE_SPHERE = 2, RR_SHAPE_CAPSULE = 3, RR_SHAPE_HEIGHT_MAP = 4, RR_SHAPE_CONCAVE = 5 };
 enum { RR_FOG_EXPONENTIAL = 0, RR_FOG_DEPTH = 1 };
 enum { RR_BILLBOARD_OFF = 0, RR_BILLBOARD_ON = 1, RR_BILLBOARD_Y = 2 };
 enum { RR_AUDIO_PLAIN = 0, RR_AUDIO_2D = 1, RR_AUDIO_3D = 2 };
@@ -203,9 +204,11 @@ typedef struct {
                        * size[0], half the length of its line in size[1]. 2D shapes are a
                        * box that is 0.5 thick along Z, or a sphere. */
     uint8_t  disabled;
-    uint8_t  one_way; /* 2D, on a static body: solid only for what comes down onto it */
-    uint8_t  pad[2];
-    uint32_t map;     /* height map: asset id of its heights; RR_NONE32 for the others */
+    uint8_t  one_way;  /* 2D, on a static body: solid only for what comes down onto it */
+    uint8_t  backface; /* concave: solid from behind its faces too (backface_collision) */
+    uint8_t  pad;
+    uint32_t map;      /* height map: asset id of its heights; concave: of its triangles
+                        * (RRPkgTriangles); RR_NONE32 for the others */
 } RRPkgShapeNode;
 
 /* StaticBody, CharacterBody and RigidBody, 2D and 3D. Their shapes are their direct
@@ -342,6 +345,8 @@ typedef struct {
      * RRPkgShapeNode. 0 for a ray. */
     uint32_t shape;
     float    shape_size[3];
+    /* RayCast3D: hit_back_faces, which counts for concave shapes and height maps. */
+    uint8_t  hit_back_faces, pad[3];
 } RRPkgRayCastNode;
 
 /* Path3D and Path2D: a curve its PathFollow children move along. */
@@ -798,6 +803,16 @@ typedef struct {
     float    min, max;     /* the lowest and the highest height */
     float    heights[1];   /* width * depth entries, row by row along X */
 } RRPkgHeightMap;
+
+/* Triangles asset: the faces of a ConcavePolygonShape3D, in the shape's own space, three
+ * corners each in Godot's order. The front of a face is the side its corners go round
+ * clockwise, seen from there; its normal is (a - c) x (a - b), as Godot's Face3 has it. */
+typedef struct {
+    uint32_t count;     /* triangles, at least 1 */
+    float    min[3];    /* the box around all of them */
+    float    max[3];
+    float    corners[1]; /* count * 9 numbers: a, b, c of each triangle */
+} RRPkgTriangles;
 
 /* Curve asset: the curve of a Path, sampled at equal distances. */
 typedef struct {

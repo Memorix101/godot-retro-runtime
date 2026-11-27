@@ -365,6 +365,8 @@ static void dump_node_data(const RRPackage *pkg, const RRPkgNode *n, uint32_t de
             fprintf(out, "capsule radius %.3f half length %.3f", tidy(s->size[0]), tidy(s->size[1]));
         } else if (s->kind == RR_SHAPE_HEIGHT_MAP) {
             fprintf(out, "height map asset %u", (unsigned)s->map);
+        } else if (s->kind == RR_SHAPE_CONCAVE) {
+            fprintf(out, "concave triangles asset %u%s", (unsigned)s->map, s->backface ? " backface" : "");
         } else {
             fprintf(out, "sphere radius %.3f", tidy(s->size[0]));
         }
@@ -713,6 +715,15 @@ static void dump_asset(const RRPackage *pkg, uint32_t index, FILE *out)
         const RRPkgHeightMap *map = (const RRPkgHeightMap *)rr_package_asset(pkg, index);
         fprintf(out, "  [%u] height map %s %u x %u points, heights %.3f to %.3f\n", (unsigned)index,
                 name, (unsigned)map->width, (unsigned)map->depth, tidy(map->min), tidy(map->max));
+        break;
+    }
+    case RR_ASSET_TRIANGLES: {
+        const RRPkgTriangles *t = (const RRPkgTriangles *)rr_package_asset(pkg, index);
+        fprintf(out, "  [%u] triangles %s %u, from ", (unsigned)index, name, (unsigned)t->count);
+        dump_vec3(out, t->min);
+        fputs(" to ", out);
+        dump_vec3(out, t->max);
+        fputc('\n', out);
         break;
     }
     case RR_ASSET_CURVE: {

@@ -52,10 +52,11 @@ SCENES := scenes/main_menu.tscn scenes/test_track.tscn scenes/sprites_2d.tscn \
           scenes/platformer_2d.tscn scenes/platformer_3d.tscn scenes/racing.tscn \
           scenes/island.tscn scenes/ball_roll.tscn scenes/stunt_track.tscn scenes/features.tscn \
           scenes/airplane.tscn scenes/highway_title.tscn scenes/highway.tscn \
-          scenes/neonleague_title.tscn scenes/neonleague.tscn
+          scenes/neonleague_title.tscn scenes/neonleague.tscn scenes/starter_racing.tscn
 # Scenes that are instanced by the ones above.
 PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/*.tscn \
-                    scenes/airplane/*.tscn scenes/highway/*.tscn scenes/neonleague/*.tscn)
+                    scenes/airplane/*.tscn scenes/highway/*.tscn scenes/neonleague/*.tscn \
+                    scenes/starter_racing/*.tscn)
 
 CORE_SRC := $(wildcard runtime/core/*.c)
 GAME_SRC := $(wildcard runtime/game/*.c)
@@ -248,6 +249,14 @@ test: all $(BUILD)/pkg/pc/.exported
 	    test "$$(grep '^cast:' $(T)/cast.log | tr -d '\r' | sed 's/-0\.0/0.0/g')" = \
 	         "$$(grep '^cast:' $(T)/cast_godot.log | tr -d '\r' | sed 's/-0\.0/0.0/g')" || \
 	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/cast.log $(T)/cast_godot.log; exit 1; }
+	@echo "== ConcavePolygonShape3D: rays, a character body and a rigid body meet its faces where Godot's physics says, and the rigid body reports body_entered"
+	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/concave_test.tscn
+	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/concave_reference.gd > $(T)/concave_godot.log
+	RR_MUTE=1 $(RUNTIME) concave_test --data $(T)/pc --frames 485 > $(T)/concave.log
+	@test "$$(grep -c '^concave:' $(T)/concave.log)" = 12 && \
+	    test "$$(grep '^concave:' $(T)/concave.log | tr -d '\r' | sed 's/-0\.0/0.0/g')" = \
+	         "$$(grep '^concave:' $(T)/concave_godot.log | tr -d '\r' | sed 's/-0\.0/0.0/g')" || \
+	    { echo "FAIL: the runtime and Godot disagree:"; cat $(T)/concave.log $(T)/concave_godot.log; exit 1; }
 	@echo "== skinning: vertices between two bones are where the pose of Godot's skeleton puts them"
 	$(EXPORT) --platform pc --out $(T)/pc res://scenes/tests/skin_test.tscn
 	$(GODOT) --headless --fixed-fps 60 --path . --script res://tools/skin_reference.gd > $(T)/skin_godot.log
@@ -271,7 +280,7 @@ test: all $(BUILD)/pkg/pc/.exported
 	    "scene: main_menu scene: stunt_track stunt: checkpoint 1/3 scene: main_menu " || \
 	    { echo "FAIL: unexpected output:"; cat $(T)/flow_stunt.log; exit 1; }
 	@echo "== game flow: menu -> 2D test -> cancel -> menu -> quit"
-	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_down,210:ui_down,215:ui_down,220:ui_accept" > $(T)/flow_2d.log
+	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_down,210:ui_down,215:ui_down,218:ui_down,222:ui_accept" > $(T)/flow_2d.log
 	@test "$$(tr -d '\r' < $(T)/flow_2d.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: sprites_2d scene: main_menu quit " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_2d.log; exit 1; }
@@ -281,7 +290,7 @@ test: all $(BUILD)/pkg/pc/.exported
 	    "scene: main_menu scene: sprites_2d scene: main_menu " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_pool.log; exit 1; }
 	@echo "== game flow: menu -> feature test, report on screen -> cancel -> menu"
-	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,55:ui_down,60:ui_down,65:ui_down,70:ui_down,75:ui_down,80:ui_accept,230:ui_cancel" > $(T)/flow_features.log
+	$(FLOW) "10:ui_down,20:ui_down,30:ui_down,40:ui_down,50:ui_down,55:ui_down,60:ui_down,65:ui_down,70:ui_down,75:ui_down,78:ui_down,82:ui_accept,230:ui_cancel" > $(T)/flow_features.log
 	@test "$$(tr -d '\r' < $(T)/flow_features.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: features scene: features features: ok scene: main_menu " || \
 	    { echo "FAIL: unexpected output:"; cat $(T)/flow_features.log; exit 1; }
@@ -338,6 +347,13 @@ test: all $(BUILD)/pkg/pc/.exported
 	@test "$$(grep -E '^(scene|neonleague: (died|game over))' $(T)/flow_neonleague.log | sed 's/, score.*//' | tr -d '\r' | tr '\n' ' ')" = \
 	    "scene: main_menu scene: neonleague_title scene: neonleague neonleague: died, 2 lives left neonleague: died, 1 lives left neonleague: died, 0 lives left neonleague: game over scene: neonleague_title scene: main_menu " || \
 	    { echo "FAIL: unexpected output:"; cat $(T)/flow_neonleague.log; exit 1; }
+	@echo "== game flow: menu -> Starter Kit Racing, driven into the first bend -> leave -> menu"
+	RR_SAVE_DIR=$(T) RR_MUTE=1 $(RUNTIME) --data $(BUILD)/pkg/pc --frames 500 \
+	    --input "10:ui_down,15:ui_down,20:ui_down,25:ui_down,30:ui_down,35:ui_down,40:ui_down,45:ui_down,50:ui_down,55:ui_down,65:ui_accept,90:accelerate:300,200:steer_right:60,450:leave" \
+	    > $(T)/flow_starter.log
+	@test "$$(grep -E '^scene' $(T)/flow_starter.log | tr -d '\r' | tr '\n' ' ')" = \
+	    "scene: main_menu scene: starter_racing scene: main_menu " || \
+	    { echo "FAIL: unexpected output:"; cat $(T)/flow_starter.log; exit 1; }
 	@echo "ALL TESTS PASSED"
 
 clean:

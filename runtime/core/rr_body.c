@@ -129,7 +129,7 @@ static bool passes_one_way(const Bounds *box, const Bounds *solid, int axis, flo
 static void tile_box_bounds(Bounds *b, const RRMat34 *world, const RRPkgTileBox *box)
 {
     const float          cx = box->x + box->w * 0.5f, cy = box->y + box->h * 0.5f;
-    const RRPkgShapeNode shape = { RR_SHAPE_BOX, { box->w * 0.5f, box->h * 0.5f, 0.5f }, 0, 0, { 0, 0 }, RR_NONE32 };
+    const RRPkgShapeNode shape = { RR_SHAPE_BOX, { box->w * 0.5f, box->h * 0.5f, 0.5f }, 0, 0, 0, 0, RR_NONE32 };
     RRMat34              at = *world;
 
     at.m[9]  += world->m[0] * cx + world->m[3] * cy;
@@ -390,6 +390,9 @@ static bool volume_contact(const RRVolume *mover, const RRVolume *solid, Contact
 {
     int k;
 
+    if (solid->tris != NULL) {
+        return rr_concave_contact(solid, mover, c->n, &c->depth);
+    }
     if (solid->map != NULL) {
         return height_contact(mover, solid, c);
     }
@@ -567,7 +570,7 @@ static void move_and_collide(Node *body, float *velocity, float dt)
             }
             for (k = 0; k < map->box_count; k++) {
                 const RRPkgShapeNode box = { RR_SHAPE_BOX, { boxes[k].w * 0.5f, boxes[k].h * 0.5f, 0.5f },
-                                             0, (uint8_t)boxes[k].one_way, { 0, 0 }, RR_NONE32 };
+                                             0, (uint8_t)boxes[k].one_way, 0, 0, RR_NONE32 };
                 const float          cx = boxes[k].x + boxes[k].w * 0.5f, cy = boxes[k].y + boxes[k].h * 0.5f;
                 RRMat34              at = map_node->world;
                 RRVolume             solid;

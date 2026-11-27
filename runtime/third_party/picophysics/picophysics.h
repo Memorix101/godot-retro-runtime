@@ -2150,7 +2150,8 @@ static void pp_solve_velocities(const PPCollision *manifold, float t)
     float allowed = (manifold->separation > 0.0f) ? (manifold->separation / t) : 0.0f;
 
     // Moving towards each other
-    float r = fmaxf(manifold->obj1_bounce, manifold->obj2_bounce);
+    // Godot's rule (godot4-retro): the bounces add up, an absorbent one is negative.
+    float r = fminf(fmaxf(manifold->obj1_bounce + manifold->obj2_bounce, 0.0f), 1.0f);
 
     const float bounce_threshold = 0.1f;
     if (fabsf(vel_along_normal) < bounce_threshold) {
@@ -2230,7 +2231,8 @@ static void pp_solve_velocities(const PPCollision *manifold, float t)
     pp_vec3_add(&rhs->a_vel, &ang_imp, &rhs->a_vel);
 
     // Friction!!!
-    float f = manifold->obj1_friction * manifold->obj2_friction;
+    // Godot's rule (godot4-retro): the smaller friction counts, a rough one is negative.
+    float f = fabsf(fminf(manifold->obj1_friction, manifold->obj2_friction));
     PPVec3 lhs_fv, rhs_fv;
 
     // Calculate velocities at the contact point

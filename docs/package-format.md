@@ -161,8 +161,9 @@ Area: `u32 layer`, `u32 mask`, `u8 monitoring`, `u8 monitorable`, `u8[2] pad`. A
 about area B when A is monitoring, B is monitorable and `A.mask & B.layer` is not zero.
 
 Shape: `u32 kind` (see below), `float[3] size`, `u8 disabled`, `u8 one_way` (2D, below a static
-body: it stops only what comes down onto it), `u8[2] pad`, `u32 map` (asset
-index of a height map for kind 4, else 0xFFFFFFFF). A shape is always
+body: it stops only what comes down onto it), `u8 backface` (kind 5: solid from behind its
+faces too, `backface_collision`), `u8 pad`, `u32 map` (asset index of a height map for kind
+4, of a triangles asset for kind 5, else 0xFFFFFFFF). A shape is always
 a direct child of its area or body. A 2D shape is stored as a box that is 0.5 thick along Z
 (`RectangleShape2D`), as a sphere (`CircleShape2D`) or as a capsule; with all 2D nodes at
 Z = 0 that gives the 2D result.
@@ -204,7 +205,8 @@ quad faces: 0 X, 1 Y, 2 Z), `u8 pad`.
 origin), `u8 billboard`, `u8 pad`.
 
 Body (static, character and rigid): `u32 layer`, `u32 mask`, `u8 two_d`, `u8[3] pad`,
-`float bounce`, `float friction` (of the physics material; 0 and 1 without one), for
+`float bounce`, `float friction` (of the physics material; 0 and 1 without one; as Godot
+computes them, so an absorbent bounce and a rough friction are negative), for
 rigid bodies `float[3] gravity` (the acceleration, with the body's gravity scale),
 `float mass`, `float linear_damp`, `float[3] velocity` (at the start), and, because a
 rigid body turns, `float angular_damp`, `float[3] angular_velocity` (at the
@@ -218,11 +220,13 @@ Shape kinds: 1 box (`size` = half extents), 2 sphere (radius in `size[0]`), 3 ca
 (radius in `size[0]`, half the length of its line along Y in `size[1]`; only for
 character and rigid bodies), 4 height map (`HeightMapShape3D`; `size` is 0 and `map` names
 the heights; only below a static body, and never rotated: the world transform of the
-shape is a position and three positive scales).
+shape is a position and three positive scales), 5 concave (`ConcavePolygonShape3D`; `size`
+is 0 and `map` names its triangles; only below a static body, turned and scaled freely).
 
 Ray cast: `float[3] target` (end of the ray in the node's space, Z is 0 in 2D),
 `u32 mask`, `u8 enabled`, `u8 collide_areas`, `u8 collide_bodies`, `u8 exclude_parent`,
-`u32 shape`, `float[3] shape_size`. `shape` is 0 for a ray. For a ShapeCast it is the kind of
+`u32 shape`, `float[3] shape_size`, `u8 hit_back_faces` (`RayCast3D`; with a concave shape's
+`backface_collision` the ray meets its faces from behind too), `u8[3] pad`. `shape` is 0 for a ray. For a ShapeCast it is the kind of
 the shape that is moved along the line (1 box, 2 sphere, 3 capsule) with its size as for a
 collision shape; the node then reports the first thing the shape touches and how far along
 the line that is.
@@ -543,7 +547,7 @@ Events for inputs a platform does not have are left out by the baker.
 | Offset | Type  | Field    | Meaning                                         |
 |-------:|-------|----------|-------------------------------------------------|
 | 0      | u32   | `name`   | string offset, for diagnostics                  |
-| 4      | u8    | `type`   | 1 mesh, 2 texture, 3 font, 4 sound, 5 animation, 6 sprite frames, 7 tile map, 8 curve, 9 music, 10 height map, 11 skin |
+| 4      | u8    | `type`   | 1 mesh, 2 texture, 3 font, 4 sound, 5 animation, 6 sprite frames, 7 tile map, 8 curve, 9 music, 10 height map, 11 skin, 12 triangles |
 | 5      | u8[3] | `pad`    | 0                                               |
 | 8      | u32   | `offset` | file offset of the data, inside the data region |
 | 12     | u32   | `size`   | size of the data in bytes                       |
@@ -798,6 +802,21 @@ The points are one unit apart in the shape's own space and centred on its origin
 node's scale makes that metres. Every cell between four points is two triangles, split
 along the diagonal from point (x + 1, z) to point (x, z + 1). The ground is solid all the
 way down.
+
+### Triangles asset
+
+The faces of a `ConcavePolygonShape3D` (`get_faces()`), in the shape's own space. Shapes
+that use the same resource, as the cells of a `GridMap` do, share one asset.
+
+```
+u32       count            triangles, at least 1
+float[3]  min              the box around all corners
+float[3]  max
+float     corners[count * 9]   a, b, c of each triangle
+```
+
+The front of a face is the side its corners go round clockwise, seen from there; its
+normal is `(a - c) x (a - b)`, as Godot's `Face3` has it.
 
 ### Curve asset
 

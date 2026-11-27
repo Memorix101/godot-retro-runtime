@@ -51,7 +51,261 @@ void rr_volume_from_shape(RRVolume *v, const Node *shape)
                 v->axis[i][k] = i == k ? 1.0f : 0.0f;
             }
         }
+    } else if (s->kind == RR_SHAPE_CONCAVE) {
+        /* The triangles stay in the shape's space; the box around them is turned and
+         * scaled with the shape, a little larger, so that what touches a face that lies
+         * in a side of the box is inside it. */
+        const RRPkgTriangles *t = (const RRPkgTriangles *)rr_package_asset(shape->scene->pkg, s->map);
+        const float          *m = shape->world.m;
+        float                 mid[3];
+        int                   i, k;
+
+        v->tris     = t;
+        v->backface = s->backface != 0;
+        v->frame    = shape->world;
+        for (k = 0; k < 3; k++) {
+            mid[k] = 0.5f * (t->min[k] + t->max[k]);
+        }
+        for (i = 0; i < 3; i++) {
+            const float length = sqrtf(dot3(&m[i * 3], &m[i * 3]));
+            v->half[i]   = 0.5f * (t->max[i] - t->min[i]) * length + 0.01f;
+            v->center[i] = m[i] * mid[0] + m[3 + i] * mid[1] + m[6 + i] * mid[2] + m[9 + i];
+        }
     }
+}
+
+/* --- concave shapes --------------------------------------------------------------------
+ * A ConcavePolygonShape3D is a list of triangles with nothing inside: what is in front of
+ * a face is pushed out to the front, what is behind it goes through, unless the shape is
+ * solid from both sides (backface_collision). Every test goes through all triangles of
+ * the shape whose box is near; the shapes of a GridMap are small, one per cell. */
+
+bool rr_concave_triangle(const RRVolume *v, uint32_t index, float *a, float *b, float *c, float *normal)
+{
+    const float *m = v->frame.m;
+    const float *p = &v->tris->corners[index * 9];
+    float       *out[3];
+    float        e1[3], e2[3], length;
+    int          i, k;
+
+    out[0] = a;
+    out[1] = b;
+    out[2] = c;
+    for (i = 0; i < 3; i++) {
+        for (k = 0; k < 3; k++) {
+            out[i][k] = m[k] * p[i * 3] + m[3 + k] * p[i * 3 + 1] + m[6 + k] * p[i * 3 + 2] + m[9 + k];
+        }
+    }
+    /* Godot's normal of a face: (a - c) x (a - b). */
+    for (k = 0; k < 3; k++) {
+        e1[k] = a[k] - c[k];
+        e2[k] = a[k] - b[k];
+    }
+    normal[0] = e1[1] * e2[2] - e1[2] * e2[1];
+    normal[1] = e1[2] * e2[0] - e1[0] * e2[2];
+    normal[2] = e1[0] * e2[1] - e1[1] * e2[0];
+    length    = sqrtf(dot3(normal, normal));
+    if (length < 1.0e-12f) {
+        return false;
+    }
+    for (k = 0; k < 3; k++) {
+        normal[k] /= length;
+    }
+    return true;
+}
+
+/* The point of triangle a b c that is closest to p (Ericson, Real-Time Collision
+ * Detection, 5.1.5). */
+static void closest_on_triangle(const float *p, const float *a, const float *b, const float *c, float *out)
+{
+    float ab[3], ac[3], ap[3], bp[3], cp[3], d1, d2, d3, d4, d5, d6, va, vb, vc, v, w, denom;
+    int   k;
+
+    for (k = 0; k < 3; k++) {
+        ab[k] = b[k] - a[k];
+        ac[k] = c[k] - a[k];
+        ap[k] = p[k] - a[k];
+        bp[k] = p[k] - b[k];
+        cp[k] = p[k] - c[k];
+    }
+    d1 = dot3(ab, ap);
+    d2 = dot3(ac, ap);
+    if (d1 <= 0.0f && d2 <= 0.0f) {
+        for (k = 0; k < 3; k++) out[k] = a[k];
+        return;
+    }
+    d3 = dot3(ab, bp);
+    d4 = dot3(ac, bp);
+    if (d3 >= 0.0f && d4 <= d3) {
+        for (k = 0; k < 3; k++) out[k] = b[k];
+        return;
+    }
+    vc = d1 * d4 - d3 * d2;
+    if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
+        v = d1 / (d1 - d3);
+        for (k = 0; k < 3; k++) out[k] = a[k] + ab[k] * v;
+        return;
+    }
+    d5 = dot3(ab, cp);
+    d6 = dot3(ac, cp);
+    if (d6 >= 0.0f && d5 <= d6) {
+        for (k = 0; k < 3; k++) out[k] = c[k];
+        return;
+    }
+    vb = d5 * d2 - d1 * d6;
+    if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
+        w = d2 / (d2 - d6);
+        for (k = 0; k < 3; k++) out[k] = a[k] + ac[k] * w;
+        return;
+    }
+    va = d3 * d6 - d5 * d4;
+    if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
+        w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        for (k = 0; k < 3; k++) out[k] = b[k] + (c[k] - b[k]) * w;
+        return;
+    }
+    denom = 1.0f / (va + vb + vc);
+    v     = vb * denom;
+    w     = vc * denom;
+    for (k = 0; k < 3; k++) {
+        out[k] = a[k] + ab[k] * v + ac[k] * w;
+    }
+}
+
+/* How far a box (center, axis, half) reaches from its centre along a direction. */
+static float box_reach(const RRVolume *box, const float *dir)
+{
+    return box->half[0] * fabsf(dot3(box->axis[0], dir)) + box->half[1] * fabsf(dot3(box->axis[1], dir)) +
+           box->half[2] * fabsf(dot3(box->axis[2], dir));
+}
+
+/* Separating axis test of a box and a triangle (13 axes: the face normal, the box's three
+ * axes and the nine crosses of their edges). */
+static bool box_triangle(const RRVolume *box, const float *a, const float *b, const float *c, const float *normal)
+{
+    const float *corner[3];
+    float        edge[3][3], axis[3];
+    int          i, j, k;
+
+    corner[0] = a;
+    corner[1] = b;
+    corner[2] = c;
+    for (k = 0; k < 3; k++) {
+        edge[0][k] = b[k] - a[k];
+        edge[1][k] = c[k] - b[k];
+        edge[2][k] = a[k] - c[k];
+    }
+    for (i = 0; i < 13; i++) {
+        float lo = 1.0e30f, hi = -1.0e30f, mid, r, length2;
+        if (i == 0) {
+            for (k = 0; k < 3; k++) axis[k] = normal[k];
+        } else if (i < 4) {
+            for (k = 0; k < 3; k++) axis[k] = box->axis[i - 1][k];
+        } else {
+            const float *u = box->axis[(i - 4) / 3], *e = edge[(i - 4) % 3];
+            axis[0] = u[1] * e[2] - u[2] * e[1];
+            axis[1] = u[2] * e[0] - u[0] * e[2];
+            axis[2] = u[0] * e[1] - u[1] * e[0];
+        }
+        length2 = dot3(axis, axis);
+        if (length2 < 1.0e-10f) {
+            continue; /* an edge along an axis of the box: another axis covers it */
+        }
+        for (j = 0; j < 3; j++) {
+            const float p = dot3(corner[j], axis);
+            lo = p < lo ? p : lo;
+            hi = p > hi ? p : hi;
+        }
+        mid = dot3(box->center, axis);
+        r   = box_reach(box, axis);
+        if (mid + r < lo || mid - r > hi) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/* One sphere against the faces: the deepest of its overlaps, kept in `best` if deeper. */
+static void concave_sphere(const RRVolume *v, const float *center, float radius, float *best_normal, float *best)
+{
+    uint32_t i;
+    int      k;
+
+    for (i = 0; i < v->tris->count; i++) {
+        float a[3], b[3], c[3], n[3], q[3], d[3], dist2, dist, side, depth;
+        if (!rr_concave_triangle(v, i, a, b, c, n)) {
+            continue;
+        }
+        side = (center[0] - a[0]) * n[0] + (center[1] - a[1]) * n[1] + (center[2] - a[2]) * n[2];
+        if (side > radius || side < -radius || (side < 0.0f && !v->backface)) {
+            continue; /* too far from the plane, or behind a face that is open from behind */
+        }
+        closest_on_triangle(center, a, b, c, q);
+        for (k = 0; k < 3; k++) {
+            d[k] = center[k] - q[k];
+        }
+        dist2 = dot3(d, d);
+        if (dist2 >= radius * radius) {
+            continue;
+        }
+        dist  = sqrtf(dist2);
+        depth = radius - dist;
+        if (depth <= *best) {
+            continue;
+        }
+        *best = depth;
+        for (k = 0; k < 3; k++) {
+            /* Away from the closest point; on the face itself, along its normal. */
+            best_normal[k] = dist > 1.0e-5f ? d[k] / dist : (side >= 0.0f ? n[k] : -n[k]);
+        }
+    }
+}
+
+bool rr_concave_contact(const RRVolume *v, const RRVolume *other, float *normal, float *depth)
+{
+    float best = 0.0f;
+    int   k;
+
+    if (other->sphere) {
+        concave_sphere(v, other->center, other->half[0], normal, &best);
+    } else if (other->capsule) {
+        /* Spheres along the capsule's line, no farther apart than its radius. */
+        int count = (int)(2.0f * other->seg / (other->radius > 0.0f ? other->radius : 1.0f)) + 2, i;
+        count     = count > 9 ? 9 : count;
+        for (i = 0; i < count; i++) {
+            const float along = -other->seg + 2.0f * other->seg * (float)i / (float)(count - 1);
+            float       p[3];
+            for (k = 0; k < 3; k++) {
+                p[k] = other->center[k] + other->axis[1][k] * along;
+            }
+            concave_sphere(v, p, other->radius, normal, &best);
+        }
+    } else if (other->map == NULL && other->tris == NULL) {
+        /* A box is pushed out of a face it overlaps along the face's normal, by as much
+         * as it reaches over the face's plane. */
+        uint32_t i;
+        for (i = 0; i < v->tris->count; i++) {
+            float a[3], b[3], c[3], n[3], side, reach, d;
+            if (!rr_concave_triangle(v, i, a, b, c, n) || !box_triangle(other, a, b, c, n)) {
+                continue;
+            }
+            side  = (other->center[0] - a[0]) * n[0] + (other->center[1] - a[1]) * n[1] +
+                   (other->center[2] - a[2]) * n[2];
+            reach = box_reach(other, n);
+            if (side < 0.0f && !v->backface) {
+                continue;
+            }
+            d = reach - fabsf(side);
+            if (d > best) {
+                best = d;
+                for (k = 0; k < 3; k++) {
+                    normal[k] = side >= 0.0f ? n[k] : -n[k];
+                }
+            }
+        }
+    }
+    *depth = best;
+    return best > 0.0f;
 }
 
 bool rr_height_at(const RRVolume *v, float x, float z, float *height, float *normal)
@@ -110,6 +364,7 @@ void rr_volume_make(RRVolume *v, const RRMat34 *world, const RRPkgShapeNode *s)
     v->capsule = s->kind == RR_SHAPE_CAPSULE;
     v->one_way = s->one_way != 0;
     v->map     = NULL;
+    v->tris    = NULL;
     for (i = 0; i < 3; i++) {
         const float length = sqrtf(dot3(&m[i * 3], &m[i * 3]));
         const float inv = length > 0.0f ? 1.0f / length : 0.0f;
@@ -214,6 +469,15 @@ static bool touches_ground(const RRVolume *ground, const RRVolume *other)
 
 static bool volumes_overlap(const RRVolume *a, const RRVolume *b)
 {
+    float normal[3], depth;
+
+    if (a->tris != NULL || b->tris != NULL) {
+        /* Two concave shapes are both static: they never meet. */
+        if (a->tris != NULL && b->tris != NULL) {
+            return false;
+        }
+        return a->tris != NULL ? rr_concave_contact(a, b, normal, &depth) : rr_concave_contact(b, a, normal, &depth);
+    }
     if (a->map != NULL || b->map != NULL) {
         return a->map != NULL ? (b->map == NULL && touches_ground(a, b)) : touches_ground(b, a);
     }

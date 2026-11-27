@@ -20,9 +20,12 @@
  * - A body that monitors its contacts (contact_monitor, max_contacts_reported) is told
  *   what it touched in the step: rr_rigid_body_get_contact_count and its siblings.
  *
- * Where picophysics has its own rules they stand: two frictions are multiplied (Godot
- * takes the smaller one), and a triangle does not bounce by itself. RigidBody2D is not
- * done here: rr_body.c moves those.
+ * - Two physics materials are mixed as Godot mixes them (picophysics was changed for it,
+ *   see its README): the smaller friction counts and the bounces add up, and a rough
+ *   friction and an absorbent bounce count as negative, so a rough material's friction
+ *   is the pair's. The package has the values as Godot computes them, signed.
+ *
+ * RigidBody2D is not done here: rr_physics2d.c moves those.
  *
  * The engine has one world for the whole program, which is this scene's as long as the
  * scene is the one that was made last. */
@@ -74,19 +77,65 @@ static int            g_body_classes, g_static_classes;
 static bool           g_pairs_full, g_bodies_full, g_triangles_full, g_spheres_full;
 static PPBody        *g_spheres[RR_MAX_STATIC_SPHERES];
 static bool           g_gravity_set;
+/* The StaticBody3D node each of the engine's triangles and static spheres comes from, for
+ * body_entered: the triangles of this step in the order they were made. */
+static uint16_t       g_triangle_owner[PICOPHYSICS_MAX_TRIANGLES];
+static uint16_t       g_sphere_owner[RR_MAX_STATIC_SPHERES];
+static uint16_t       g_adding; /* the node whose shapes are being given to the engine */
 
 /* --- kinds and what meets what ---------------------------------------------------------- */
 
 /* Called by the engine for every contact of two kinds that meet: notes it for the bodies
  * that monitor theirs. The normal the engine gives points from the first body into what
  * it touches; a body is told the way out of what it touches. */
+/* The node of what the engine says a body touched: a rigid body, a static sphere or a
+ * triangle of a static body. */
+static uint16_t node_of(const void *thing, BodyKind kind)
+{
+    const PPTriangle *tri = (const PPTriangle *)thing;
+    int               i;
+
+    if (kind < KIND_STATIC) {
+        const RRRigidState *state = (const RRRigidState *)((const PPBody *)thing)->user_data;
+        return state != NULL ? state->node : RR_NONE16;
+    }
+    if (tri >= &tris[0] && tri < &tris[PICOPHYSICS_MAX_TRIANGLES]) {
+        return g_triangle_owner[tri - &tris[0]];
+    }
+    for (i = 0; i < RR_MAX_STATIC_SPHERES; i++) {
+        if ((const void *)g_spheres[i] == thing) {
+            return g_sphere_owner[i];
+        }
+    }
+    return RR_NONE16;
+}
+
+/* Notes that a body that monitors its contacts touches a node in this step, once. */
+static void note_touch(RRRigidState *state, uint16_t other)
+{
+    int i;
+
+    if (other == RR_NONE16) {
+        return;
+    }
+    for (i = 0; i < state->touching_count; i++) {
+        if (state->touching[i] == other) {
+            return;
+        }
+    }
+    if (state->touching_count < state->contact_max) {
+        state->touching[state->touching_count++] = other;
+    }
+}
+
 static bool on_contact(const void *lhs, const void *rhs, BodyKind k0, BodyKind k1, const PPCollision *hit,
                        const void *user)
 {
     const PPBody *bodies[2] = { (const PPBody *)lhs, k1 >= KIND_STATIC ? NULL : (const PPBody *)rhs };
+    const void   *others[2] = { rhs, lhs };
+    const BodyKind kinds[2] = { k1, k0 };
     int           side, k;
 
-    (void)k0;
     (void)user;
     for (side = 0; side < 2; side++) {
         RRRigidState *state = bodies[side] != NULL ? (RRRigidState *)bodies[side]->user_data : NULL;
@@ -95,6 +144,9 @@ static bool on_contact(const void *lhs, const void *rhs, BodyKind k0, BodyKind k
             for (k = 0; k < 3; k++) {
                 n[k] = side == 0 ? -hit->n.xyz[k] : hit->n.xyz[k];
             }
+        }
+        if (state != NULL && state->contact_max > 0) {
+            note_touch(state, node_of(others[side], kinds[side]));
         }
     }
     return true; /* and the engine is to keep the two apart */
@@ -322,8 +374,8 @@ void rr_physics_body_init(RRScene *scene, Node *node, RRRigidState *state)
     }
     body->kind      = kind;
     body->user_data = state;
-    body->bounce    = data->bounce < 0.0f ? 0.0f : (data->bounce > 1.0f ? 1.0f : data->bounce);
-    body->friction  = data->friction < 0.0f ? 0.0f : (data->friction > 1.0f ? 1.0f : data->friction);
+    body->bounce    = data->bounce; /* signed, as Godot computes it: see pp_solve_velocities */
+    body->friction  = data->friction;
     body->damping   = data->linear_damp;
     body->a_damping = data->angular_damp;
     body->lock      = (PPAxisLock)data->lock_angular; /* the same three bits */
@@ -346,7 +398,9 @@ void rr_physics_body_reset(Node *node, RRRigidState *state)
     const RRPkgBodyNode *data = (const RRPkgBodyNode *)node->data;
     PPBody              *body = (PPBody *)state->body;
 
-    state->contact_count = 0;
+    state->contact_count  = 0;
+    state->touching_count = 0;
+    state->touched_count  = 0;
     state->synced        = false; /* the node may not be where it will be yet */
     if (body != NULL) {
         pp_vec3_set(&body->vel, data->velocity[0], data->velocity[1], data->velocity[2]);
@@ -396,8 +450,9 @@ static void add_triangle(const float *a, const float *b, const float *c, const R
     pp_vec3_set(&v[0], a[0], a[1], a[2]);
     pp_vec3_set(&v[1], b[0], b[1], b[2]);
     pp_vec3_set(&v[2], c[0], c[1], c[2]);
+    g_triangle_owner[tri_count] = g_adding;
     made           = pp_physics_create_triangle(&v[0], &v[1], &v[2], kind);
-    made->friction = owner->friction < 0.0f ? 0.0f : (owner->friction > 1.0f ? 1.0f : owner->friction);
+    made->friction = owner->friction;
     made->bounce   = owner->bounce;
 }
 
@@ -465,6 +520,26 @@ static void add_height_map(const RRVolume *ground, const RRPkgBodyNode *owner, B
     }
 }
 
+/* The faces of a concave shape. The engine's triangles stop what comes from the side
+ * their corners go round counter-clockwise, Godot's faces what comes from the side they
+ * go round clockwise: so b and c change places. A shape that is solid from both sides
+ * gives every face twice, once for each side. */
+static void add_concave(const RRVolume *v, const RRPkgBodyNode *owner, BodyKind kind, const Reach *reach, int count)
+{
+    uint32_t i;
+
+    for (i = 0; i < v->tris->count; i++) {
+        float a[3], b[3], c[3], n[3];
+        if (!rr_concave_triangle(v, i, a, b, c, n)) {
+            continue;
+        }
+        add_triangle(a, c, b, owner, kind, reach, count);
+        if (v->backface) {
+            add_triangle(a, b, c, owner, kind, reach, count);
+        }
+    }
+}
+
 /* A static sphere is a body of the engine that does not move. */
 static void add_sphere(const RRVolume *ball, const RRPkgBodyNode *owner, BodyKind kind, int *used)
 {
@@ -483,13 +558,14 @@ static void add_sphere(const RRVolume *ball, const RRPkgBodyNode *owner, BodyKin
         pp_vec3_set(&at, 0.0f, 0.0f, 0.0f);
         g_spheres[*used] = pp_physics_create_sphere(1.0f, &at, 0.0f, kind);
     }
+    g_sphere_owner[*used]          = g_adding;
     body                           = g_spheres[(*used)++];
     body->is_alive                 = true;
     body->kind                     = kind;
     body->shapes[0].kind           = kind;
     body->shapes[0].sphere.radius  = ball->half[0];
-    body->friction                 = owner->friction < 0.0f ? 0.0f : (owner->friction > 1.0f ? 1.0f : owner->friction);
-    body->bounce                   = owner->bounce < 0.0f ? 0.0f : (owner->bounce > 1.0f ? 1.0f : owner->bounce);
+    body->friction                 = owner->friction;
+    body->bounce                   = owner->bounce;
     pp_vec3_set(&body->pos, ball->center[0], ball->center[1], ball->center[2]);
 }
 
@@ -520,13 +596,16 @@ static void gather_static(const RRScene *scene, const Reach *reach, int count)
         if (!near) {
             continue;
         }
-        kind = static_kind(data->layer);
+        kind     = static_kind(data->layer);
+        g_adding = col->node;
         for (s = 0; s < col->shape_count; s++) {
             const RRVolume *v = &scene->volumes[col->shape_first + s];
             if (!v->used || (scene->nodes[scene->collider_shapes[col->shape_first + s]].flags & RR_NODE_FLAG_FREE)) {
                 continue;
             }
-            if (v->map != NULL) {
+            if (v->tris != NULL) {
+                add_concave(v, data, kind, reach, count);
+            } else if (v->map != NULL) {
                 add_height_map(v, data, kind, reach, count);
             } else if (v->sphere) {
                 add_sphere(v, data, kind, &spheres);
@@ -565,7 +644,8 @@ void rr_physics_step(RRScene *scene, float dt)
         }
         /* A body whose node is out of the tree is out of the world. */
         body->is_alive       = !(node->flags & RR_NODE_FLAG_FREE);
-        state->contact_count = 0;
+        state->contact_count  = 0;
+        state->touching_count = 0;
         if (!body->is_alive) {
             continue;
         }
@@ -606,6 +686,38 @@ void rr_physics_step(RRScene *scene, float dt)
         body_world(body, &world);
         rr_node_set_world(node, &world);
         state->placed = node->local;
+    }
+    /* body_entered and body_exited, as Godot emits them for a RigidBody3D that monitors its
+     * contacts: when it starts and stops touching another body. A body that was freed is
+     * left; one that touches the same body over many steps is told once. */
+    for (i = 0; i < scene->rigid_count; i++) {
+        RRRigidState *state = &scene->rigids[i];
+        Node         *node = &scene->nodes[state->node];
+        int           a, b;
+
+        if (state->body == NULL || state->contact_max == 0 || (node->flags & RR_NODE_FLAG_FREE)) {
+            continue;
+        }
+        for (a = 0; a < state->touched_count; a++) {
+            bool still = false;
+            for (b = 0; b < state->touching_count && !still; b++) {
+                still = state->touching[b] == state->touched[a];
+            }
+            if (!still && !(scene->nodes[state->touched[a]].flags & RR_NODE_FLAG_FREE)) {
+                rr_emit(node, "body_exited", &scene->nodes[state->touched[a]]);
+            }
+        }
+        for (b = 0; b < state->touching_count; b++) {
+            bool before = false;
+            for (a = 0; a < state->touched_count && !before; a++) {
+                before = state->touched[a] == state->touching[b];
+            }
+            if (!before) {
+                rr_emit(node, "body_entered", &scene->nodes[state->touching[b]]);
+            }
+        }
+        memcpy(state->touched, state->touching, sizeof(state->touched));
+        state->touched_count = state->touching_count;
     }
 }
 
