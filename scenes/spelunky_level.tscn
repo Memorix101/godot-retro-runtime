@@ -1,0 +1,1418 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/spelunky_level.gd" id="1_lu1ad"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_16a.tscn" id="2_onybw"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_16b.tscn" id="3_ndaga"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_32a.tscn" id="4_87sp2"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_32b.tscn" id="5_uy686"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_64a.tscn" id="6_qhgpr"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_64b.tscn" id="7_mumnc"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/bg/bg_cave_tile.png" id="8_gt2mk"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/bg/bg_trees_tile.png" id="9_qfopk"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/bg/bg_sky_tile.png" id="10_4ktpm"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/bg/bg_temple_tile.png" id="11_j1csp"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/bg/background_night.png" id="12_q2be0"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/heart_0.png" id="13_5yow6"]
+[ext_resource type="FontFile" path="res://assets/airplane/fonts/LiberationSans.ttf" id="14_h3gw2"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/bomb_icon_0.png" id="15_p1c7y"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/sticky_bomb_icon_0.png" id="16_k7jrg"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/rope_icon_0.png" id="17_0wy0p"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/dollar_sign_0.png" id="18_7fqcy"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/hold_item_icon_0.png" id="19_83b6d"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/udjat_eye_icon_0.png" id="20_l83in"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/ankh_icon_0.png" id="21_7xf4u"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/crown_icon_0.png" id="22_123oy"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/kapala_icon_0.png" id="23_genl0"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/spectacles_icon_0.png" id="24_wlpo1"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/gloves_icon_0.png" id="25_8kpfg"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/mitt_icon_0.png" id="26_dcvfo"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/spring_shoes_icon_0.png" id="27_v2w4i"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/spike_shoes_icon_0.png" id="28_wn307"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/cape_icon_0.png" id="29_a3kmk"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/jetpack_icon_0.png" id="30_wd5g4"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/compass_icon_0.png" id="31_yfq3f"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/hud/parachute_icon_0.png" id="32_27glj"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/cave.ogg" id="33_152kf"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/lush.ogg" id="34_0echt"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/ice.ogg" id="35_rhnuf"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/temple.ogg" id="36_ccv6x"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/boss.ogg" id="37_04iny"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/credits.ogg" id="38_ewa1p"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/jump.wav" id="39_lm064"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/bigjump.wav" id="40_p5kb0"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/whip.wav" id="41_auj8r"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/throw.wav" id="42_8ie7e"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/pickup.wav" id="43_7w7dh"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/coin.wav" id="44_vkt8y"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/gem.wav" id="45_m2p35"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/hurt.wav" id="46_7i424"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/die.wav" id="47_jbvte"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/hit.wav" id="48_wqpeu"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/explosion.wav" id="49_bpv34"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/smallexplode.wav" id="50_spjp2"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/break.wav" id="51_iapav"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/land.wav" id="52_im6f5"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/climb1.wav" id="53_v2ko5"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/climb2.wav" id="54_5ag5n"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/steps.wav" id="55_v4ne7"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/splash.wav" id="56_o5sr4"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/arrowtrap.wav" id="57_nihyj"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/shotgun.wav" id="58_tkh60"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/bowpull.wav" id="59_mw1r8"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/bat.wav" id="60_alxe4"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/frog.wav" id="61_boohc"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/ghost.wav" id="62_txxt7"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/giantspider.wav" id="63_qn3l0"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/spiderjump.wav" id="64_em4hy"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/alien.wav" id="65_iol0c"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/laser.wav" id="66_lari5"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/yetiyell.wav" id="67_cq5j5"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/zombie.wav" id="68_lvsct"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/cavemandie.wav" id="69_lbkwf"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/alert.wav" id="70_nb28p"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/chestopen.wav" id="71_w34pg"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/kiss.wav" id="72_ai40x"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/damsel.wav" id="73_epyp8"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/jetpack.wav" id="74_6ea2j"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/teleport.wav" id="75_3ue3f"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/slam.wav" id="76_ccii7"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/boing.wav" id="77_r5df2"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/trap.wav" id="78_jta0t"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/push.wav" id="79_ck44l"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/thud.wav" id="80_ax0nv"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/pause.wav" id="81_u506m"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/click.wav" id="82_x4q1o"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/letsexplore.wav" id="83_ko140"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/mattockbreak.wav" id="84_lao2u"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/psychic.wav" id="85_pqp4u"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/ignite.wav" id="86_w1sat"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/bombready.wav" id="87_tcjfh"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/blink1.wav" id="88_ckqfa"]
+
+[sub_resource type="Environment" id="Environment_5u25w"]
+background_mode = 1
+background_color = Color(0.06, 0.04, 0.03, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ej20o"]
+bg_color = Color(0.08, 0.06, 0.05, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.68, 0.25, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nglpd"]
+bg_color = Color(0.08, 0.06, 0.05, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.68, 0.25, 1)
+
+[node name="SpelunkyLevel" type="Node" unique_id=1583264779 node_paths=PackedStringArray("world_node", "hud_node", "audio_node")]
+script = ExtResource("1_lu1ad")
+world_node = NodePath("World")
+hud_node = NodePath("HudLayer/Hud")
+audio_node = NodePath("Audio")
+slot_16a_scene = ExtResource("2_onybw")
+slot_16a_scene_max = 540
+slot_16b_scene = ExtResource("3_ndaga")
+slot_16b_scene_max = 96
+slot_32a_scene = ExtResource("4_87sp2")
+slot_32a_scene_max = 48
+slot_32b_scene = ExtResource("5_uy686")
+slot_32b_scene_max = 32
+slot_64a_scene = ExtResource("6_qhgpr")
+slot_64a_scene_max = 16
+slot_64b_scene = ExtResource("7_mumnc")
+slot_64b_scene_max = 8
+
+[node name="Env" type="WorldEnvironment" parent="." unique_id=2123324870]
+environment = SubResource("Environment_5u25w")
+
+[node name="World" type="Node2D" parent="." unique_id=760522461]
+texture_filter = 1
+
+[node name="ZAnchors" type="Node2D" parent="World" unique_id=460164745]
+
+[node name="Z0" type="Node2D" parent="World/ZAnchors" unique_id=1755711964]
+z_as_relative = false
+
+[node name="Z1" type="Node2D" parent="World/ZAnchors" unique_id=903331801]
+z_index = 1
+z_as_relative = false
+
+[node name="Z2" type="Node2D" parent="World/ZAnchors" unique_id=922526404]
+z_index = 2
+z_as_relative = false
+
+[node name="Z3" type="Node2D" parent="World/ZAnchors" unique_id=518310794]
+z_index = 3
+z_as_relative = false
+
+[node name="Z4" type="Node2D" parent="World/ZAnchors" unique_id=1895388408]
+z_index = 4
+z_as_relative = false
+
+[node name="Z5" type="Node2D" parent="World/ZAnchors" unique_id=791784595]
+z_index = 5
+z_as_relative = false
+
+[node name="Z6" type="Node2D" parent="World/ZAnchors" unique_id=903975415]
+z_index = 6
+z_as_relative = false
+
+[node name="Z7" type="Node2D" parent="World/ZAnchors" unique_id=1369425233]
+z_index = 7
+z_as_relative = false
+
+[node name="Camera2D" type="Camera2D" parent="World" unique_id=576369900]
+anchor_mode = 0
+zoom = Vector2(2, 2)
+limit_left = 0
+limit_top = 0
+limit_right = 2048
+limit_bottom = 2048
+
+[node name="BgCave" type="Node2D" parent="World" unique_id=255285455]
+z_as_relative = false
+
+[node name="T_0_0" type="Sprite2D" parent="World/BgCave" unique_id=163248079]
+modulate = Color(0.65, 0.58, 0.52, 1)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_1_0" type="Sprite2D" parent="World/BgCave" unique_id=2077403047]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(128, 0)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_2_0" type="Sprite2D" parent="World/BgCave" unique_id=832049642]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(256, 0)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_3_0" type="Sprite2D" parent="World/BgCave" unique_id=1213043037]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(384, 0)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_4_0" type="Sprite2D" parent="World/BgCave" unique_id=227620936]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(512, 0)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_5_0" type="Sprite2D" parent="World/BgCave" unique_id=1181630163]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(640, 0)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_0_1" type="Sprite2D" parent="World/BgCave" unique_id=1151943045]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(0, 128)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_1_1" type="Sprite2D" parent="World/BgCave" unique_id=1194418924]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(128, 128)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_2_1" type="Sprite2D" parent="World/BgCave" unique_id=347852162]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(256, 128)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_3_1" type="Sprite2D" parent="World/BgCave" unique_id=2039369673]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(384, 128)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_4_1" type="Sprite2D" parent="World/BgCave" unique_id=295938946]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(512, 128)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_5_1" type="Sprite2D" parent="World/BgCave" unique_id=439313188]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(640, 128)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_0_2" type="Sprite2D" parent="World/BgCave" unique_id=696618863]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(0, 256)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_1_2" type="Sprite2D" parent="World/BgCave" unique_id=1163184038]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(128, 256)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_2_2" type="Sprite2D" parent="World/BgCave" unique_id=2034302446]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(256, 256)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_3_2" type="Sprite2D" parent="World/BgCave" unique_id=2006478272]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(384, 256)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_4_2" type="Sprite2D" parent="World/BgCave" unique_id=1879287966]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(512, 256)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_5_2" type="Sprite2D" parent="World/BgCave" unique_id=288851617]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(640, 256)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_0_3" type="Sprite2D" parent="World/BgCave" unique_id=2008341189]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(0, 384)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_1_3" type="Sprite2D" parent="World/BgCave" unique_id=254150312]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(128, 384)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_2_3" type="Sprite2D" parent="World/BgCave" unique_id=1377218200]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(256, 384)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_3_3" type="Sprite2D" parent="World/BgCave" unique_id=239294580]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(384, 384)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_4_3" type="Sprite2D" parent="World/BgCave" unique_id=1801144888]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(512, 384)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_5_3" type="Sprite2D" parent="World/BgCave" unique_id=940507769]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(640, 384)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_0_4" type="Sprite2D" parent="World/BgCave" unique_id=1233632513]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(0, 512)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_1_4" type="Sprite2D" parent="World/BgCave" unique_id=1118685120]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(128, 512)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_2_4" type="Sprite2D" parent="World/BgCave" unique_id=1752322258]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(256, 512)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_3_4" type="Sprite2D" parent="World/BgCave" unique_id=2109235714]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(384, 512)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_4_4" type="Sprite2D" parent="World/BgCave" unique_id=365587343]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(512, 512)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="T_5_4" type="Sprite2D" parent="World/BgCave" unique_id=1196848963]
+modulate = Color(0.65, 0.58, 0.52, 1)
+position = Vector2(640, 512)
+texture = ExtResource("8_gt2mk")
+centered = false
+
+[node name="BgLush" type="Node2D" parent="World" unique_id=2106271775]
+z_as_relative = false
+
+[node name="T_0_0" type="Sprite2D" parent="World/BgLush" unique_id=929753254]
+modulate = Color(0.55, 0.72, 0.55, 1)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_1_0" type="Sprite2D" parent="World/BgLush" unique_id=1761513859]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(128, 0)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_2_0" type="Sprite2D" parent="World/BgLush" unique_id=1015983937]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(256, 0)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_3_0" type="Sprite2D" parent="World/BgLush" unique_id=1825111166]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(384, 0)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_4_0" type="Sprite2D" parent="World/BgLush" unique_id=352393023]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(512, 0)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_5_0" type="Sprite2D" parent="World/BgLush" unique_id=1344597230]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(640, 0)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_0_1" type="Sprite2D" parent="World/BgLush" unique_id=594250425]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(0, 192)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_1_1" type="Sprite2D" parent="World/BgLush" unique_id=2026483248]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(128, 192)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_2_1" type="Sprite2D" parent="World/BgLush" unique_id=832459109]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(256, 192)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_3_1" type="Sprite2D" parent="World/BgLush" unique_id=984104256]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(384, 192)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_4_1" type="Sprite2D" parent="World/BgLush" unique_id=969475848]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(512, 192)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_5_1" type="Sprite2D" parent="World/BgLush" unique_id=2127868456]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(640, 192)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_0_2" type="Sprite2D" parent="World/BgLush" unique_id=1422982602]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(0, 384)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_1_2" type="Sprite2D" parent="World/BgLush" unique_id=1383791076]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(128, 384)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_2_2" type="Sprite2D" parent="World/BgLush" unique_id=594398028]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(256, 384)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_3_2" type="Sprite2D" parent="World/BgLush" unique_id=1851349311]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(384, 384)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_4_2" type="Sprite2D" parent="World/BgLush" unique_id=432863662]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(512, 384)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="T_5_2" type="Sprite2D" parent="World/BgLush" unique_id=143851549]
+modulate = Color(0.55, 0.72, 0.55, 1)
+position = Vector2(640, 384)
+texture = ExtResource("9_qfopk")
+centered = false
+
+[node name="BgIce" type="Node2D" parent="World" unique_id=1138387740]
+z_as_relative = false
+
+[node name="T_0_0" type="Sprite2D" parent="World/BgIce" unique_id=1267409695]
+modulate = Color(0.75, 0.85, 1, 1)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_1_0" type="Sprite2D" parent="World/BgIce" unique_id=1331008147]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(192, 0)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_2_0" type="Sprite2D" parent="World/BgIce" unique_id=27329400]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(384, 0)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_3_0" type="Sprite2D" parent="World/BgIce" unique_id=146677116]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(576, 0)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_0_1" type="Sprite2D" parent="World/BgIce" unique_id=378073518]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(0, 128)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_1_1" type="Sprite2D" parent="World/BgIce" unique_id=552524702]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(192, 128)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_2_1" type="Sprite2D" parent="World/BgIce" unique_id=90519713]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(384, 128)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_3_1" type="Sprite2D" parent="World/BgIce" unique_id=976160507]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(576, 128)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_0_2" type="Sprite2D" parent="World/BgIce" unique_id=1441389829]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(0, 256)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_1_2" type="Sprite2D" parent="World/BgIce" unique_id=757494204]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(192, 256)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_2_2" type="Sprite2D" parent="World/BgIce" unique_id=1192871022]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(384, 256)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_3_2" type="Sprite2D" parent="World/BgIce" unique_id=1266072125]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(576, 256)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_0_3" type="Sprite2D" parent="World/BgIce" unique_id=605890848]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(0, 384)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_1_3" type="Sprite2D" parent="World/BgIce" unique_id=1175375081]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(192, 384)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_2_3" type="Sprite2D" parent="World/BgIce" unique_id=1573041524]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(384, 384)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_3_3" type="Sprite2D" parent="World/BgIce" unique_id=934581991]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(576, 384)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_0_4" type="Sprite2D" parent="World/BgIce" unique_id=1800773285]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(0, 512)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_1_4" type="Sprite2D" parent="World/BgIce" unique_id=415986784]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(192, 512)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_2_4" type="Sprite2D" parent="World/BgIce" unique_id=2066496012]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(384, 512)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="T_3_4" type="Sprite2D" parent="World/BgIce" unique_id=1743556569]
+modulate = Color(0.75, 0.85, 1, 1)
+position = Vector2(576, 512)
+texture = ExtResource("10_4ktpm")
+centered = false
+
+[node name="BgTemple" type="Node2D" parent="World" unique_id=770938522]
+z_as_relative = false
+
+[node name="T_0_0" type="Sprite2D" parent="World/BgTemple" unique_id=793370558]
+modulate = Color(0.68, 0.58, 0.45, 1)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_1_0" type="Sprite2D" parent="World/BgTemple" unique_id=976078002]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(128, 0)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_2_0" type="Sprite2D" parent="World/BgTemple" unique_id=250360511]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(256, 0)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_3_0" type="Sprite2D" parent="World/BgTemple" unique_id=1345358798]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(384, 0)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_4_0" type="Sprite2D" parent="World/BgTemple" unique_id=2098434864]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(512, 0)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_5_0" type="Sprite2D" parent="World/BgTemple" unique_id=1004904077]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(640, 0)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_0_1" type="Sprite2D" parent="World/BgTemple" unique_id=2000912751]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(0, 128)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_1_1" type="Sprite2D" parent="World/BgTemple" unique_id=1312012955]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(128, 128)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_2_1" type="Sprite2D" parent="World/BgTemple" unique_id=944088306]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(256, 128)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_3_1" type="Sprite2D" parent="World/BgTemple" unique_id=967547945]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(384, 128)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_4_1" type="Sprite2D" parent="World/BgTemple" unique_id=485975802]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(512, 128)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_5_1" type="Sprite2D" parent="World/BgTemple" unique_id=233860097]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(640, 128)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_0_2" type="Sprite2D" parent="World/BgTemple" unique_id=1091449640]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(0, 256)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_1_2" type="Sprite2D" parent="World/BgTemple" unique_id=1337571140]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(128, 256)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_2_2" type="Sprite2D" parent="World/BgTemple" unique_id=2107771665]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(256, 256)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_3_2" type="Sprite2D" parent="World/BgTemple" unique_id=372236098]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(384, 256)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_4_2" type="Sprite2D" parent="World/BgTemple" unique_id=969556865]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(512, 256)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_5_2" type="Sprite2D" parent="World/BgTemple" unique_id=1296471534]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(640, 256)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_0_3" type="Sprite2D" parent="World/BgTemple" unique_id=1464814079]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(0, 384)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_1_3" type="Sprite2D" parent="World/BgTemple" unique_id=729438340]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(128, 384)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_2_3" type="Sprite2D" parent="World/BgTemple" unique_id=46445403]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(256, 384)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_3_3" type="Sprite2D" parent="World/BgTemple" unique_id=163581342]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(384, 384)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_4_3" type="Sprite2D" parent="World/BgTemple" unique_id=703216328]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(512, 384)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_5_3" type="Sprite2D" parent="World/BgTemple" unique_id=1510836113]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(640, 384)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_0_4" type="Sprite2D" parent="World/BgTemple" unique_id=1920022339]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(0, 512)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_1_4" type="Sprite2D" parent="World/BgTemple" unique_id=689546727]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(128, 512)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_2_4" type="Sprite2D" parent="World/BgTemple" unique_id=447772827]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(256, 512)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_3_4" type="Sprite2D" parent="World/BgTemple" unique_id=469501066]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(384, 512)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_4_4" type="Sprite2D" parent="World/BgTemple" unique_id=1808643122]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(512, 512)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="T_5_4" type="Sprite2D" parent="World/BgTemple" unique_id=344610368]
+modulate = Color(0.68, 0.58, 0.45, 1)
+position = Vector2(640, 512)
+texture = ExtResource("11_j1csp")
+centered = false
+
+[node name="DarkSprite" type="Sprite2D" parent="World" unique_id=23558736]
+visible = false
+z_index = 7
+z_as_relative = false
+scale = Vector2(21, 18)
+texture = ExtResource("12_q2be0")
+centered = false
+
+[node name="HudLayer" type="CanvasLayer" parent="." unique_id=1105071491]
+
+[node name="Hud" type="Control" parent="HudLayer" unique_id=1774769299]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="HeartIcon" type="TextureRect" parent="HudLayer/Hud" unique_id=1977629602]
+texture_filter = 1
+layout_mode = 0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 40.0
+offset_bottom = 36.0
+texture = ExtResource("13_5yow6")
+
+[node name="LifeLabel" type="Label" parent="HudLayer/Hud" unique_id=981454565]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 10.0
+offset_right = 92.0
+offset_bottom = 38.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "4"
+vertical_alignment = 1
+
+[node name="BombIcon" type="TextureRect" parent="HudLayer/Hud" unique_id=1349302270]
+texture_filter = 1
+layout_mode = 0
+offset_left = 104.0
+offset_top = 12.0
+offset_right = 128.0
+offset_bottom = 36.0
+texture = ExtResource("15_p1c7y")
+
+[node name="StickyBombIcon" type="TextureRect" parent="HudLayer/Hud" unique_id=206237441]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 104.0
+offset_top = 12.0
+offset_right = 128.0
+offset_bottom = 36.0
+texture = ExtResource("16_k7jrg")
+
+[node name="BombLabel" type="Label" parent="HudLayer/Hud" unique_id=1143906065]
+layout_mode = 0
+offset_left = 132.0
+offset_top = 10.0
+offset_right = 180.0
+offset_bottom = 38.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "4"
+vertical_alignment = 1
+
+[node name="RopeIcon" type="TextureRect" parent="HudLayer/Hud" unique_id=609499992]
+texture_filter = 1
+layout_mode = 0
+offset_left = 192.0
+offset_top = 12.0
+offset_right = 216.0
+offset_bottom = 36.0
+texture = ExtResource("17_0wy0p")
+
+[node name="RopeLabel" type="Label" parent="HudLayer/Hud" unique_id=1186952787]
+layout_mode = 0
+offset_left = 220.0
+offset_top = 10.0
+offset_right = 268.0
+offset_bottom = 38.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "4"
+vertical_alignment = 1
+
+[node name="DollarIcon" type="TextureRect" parent="HudLayer/Hud" unique_id=355642719]
+texture_filter = 1
+layout_mode = 0
+offset_left = 280.0
+offset_top = 12.0
+offset_right = 304.0
+offset_bottom = 36.0
+texture = ExtResource("18_7fqcy")
+
+[node name="MoneyLabel" type="Label" parent="HudLayer/Hud" unique_id=1730619257]
+layout_mode = 0
+offset_left = 308.0
+offset_top = 10.0
+offset_right = 428.0
+offset_bottom = 38.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0"
+vertical_alignment = 1
+
+[node name="CollectLabel" type="Label" parent="HudLayer/Hud" unique_id=1365396348]
+layout_mode = 0
+offset_left = 308.0
+offset_top = 36.0
+offset_right = 418.0
+offset_bottom = 59.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+vertical_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="HudLayer/Hud" unique_id=699535169]
+layout_mode = 0
+offset_left = 444.0
+offset_top = 10.0
+offset_right = 520.0
+offset_bottom = 38.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.88, 0.5, 1)
+text = "1-1"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="HudLayer/Hud" unique_id=1864352740]
+layout_mode = 0
+offset_left = 528.0
+offset_top = 10.0
+offset_right = 624.0
+offset_bottom = 38.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0:00"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="HoldIconBox" type="TextureRect" parent="HudLayer/Hud" unique_id=1362637464]
+texture_filter = 1
+layout_mode = 0
+offset_left = 16.0
+offset_top = 44.0
+offset_right = 44.0
+offset_bottom = 72.0
+texture = ExtResource("19_83b6d")
+
+[node name="HeldLabel" type="Label" parent="HudLayer/Hud" unique_id=703237129]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 46.0
+offset_right = 208.0
+offset_bottom = 70.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.95, 0.95, 0.8, 1)
+vertical_alignment = 1
+
+[node name="Icons" type="Control" parent="HudLayer/Hud" unique_id=1663676241]
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 78.0
+offset_right = 16.0
+offset_bottom = 78.0
+
+[node name="Udjat" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=1922900891]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_right = 20.0
+offset_bottom = 20.0
+texture = ExtResource("20_l83in")
+
+[node name="Ankh" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=1182394579]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 22.0
+offset_right = 42.0
+offset_bottom = 20.0
+texture = ExtResource("21_7xf4u")
+
+[node name="Crown" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=675003070]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 44.0
+offset_right = 64.0
+offset_bottom = 20.0
+texture = ExtResource("22_123oy")
+
+[node name="Kapala" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=1476925667]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 66.0
+offset_right = 86.0
+offset_bottom = 20.0
+texture = ExtResource("23_genl0")
+
+[node name="Spectacles" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=1838711275]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 88.0
+offset_right = 108.0
+offset_bottom = 20.0
+texture = ExtResource("24_wlpo1")
+
+[node name="Gloves" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=1991331848]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 110.0
+offset_right = 130.0
+offset_bottom = 20.0
+texture = ExtResource("25_8kpfg")
+
+[node name="Mitt" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=1283904892]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 132.0
+offset_right = 152.0
+offset_bottom = 20.0
+texture = ExtResource("26_dcvfo")
+
+[node name="Spring" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=961704400]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 154.0
+offset_right = 174.0
+offset_bottom = 20.0
+texture = ExtResource("27_v2w4i")
+
+[node name="Spike" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=98563008]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 176.0
+offset_right = 196.0
+offset_bottom = 20.0
+texture = ExtResource("28_wn307")
+
+[node name="Cape" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=1390400230]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 198.0
+offset_right = 218.0
+offset_bottom = 20.0
+texture = ExtResource("29_a3kmk")
+
+[node name="Jetpack" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=2139377216]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 220.0
+offset_right = 240.0
+offset_bottom = 20.0
+texture = ExtResource("30_wd5g4")
+
+[node name="Compass" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=726947710]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 242.0
+offset_right = 262.0
+offset_bottom = 20.0
+texture = ExtResource("31_yfq3f")
+
+[node name="Parachute" type="TextureRect" parent="HudLayer/Hud/Icons" unique_id=2105483405]
+visible = false
+texture_filter = 1
+layout_mode = 0
+offset_left = 264.0
+offset_right = 284.0
+offset_bottom = 20.0
+texture = ExtResource("32_27glj")
+
+[node name="CompassLabel" type="Label" parent="HudLayer/Hud" unique_id=1307782478]
+layout_mode = 0
+offset_left = 540.0
+offset_top = 44.0
+offset_right = 624.0
+offset_bottom = 68.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="MsgLine1" type="Label" parent="HudLayer/Hud" unique_id=1618391184]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 424.0
+offset_right = 620.0
+offset_bottom = 448.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MsgLine2" type="Label" parent="HudLayer/Hud" unique_id=159831800]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 446.0
+offset_right = 620.0
+offset_bottom = 470.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.9, 0.25, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PausePanel" type="Panel" parent="HudLayer/Hud" unique_id=751915195]
+layout_mode = 0
+offset_left = 180.0
+offset_top = 100.0
+offset_right = 460.0
+offset_bottom = 370.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ej20o")
+
+[node name="PauseTitle" type="Label" parent="HudLayer/Hud/PausePanel" unique_id=1072658225]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 14.0
+offset_right = 260.0
+offset_bottom = 46.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.86, 0.3, 1)
+text = "PAUSED"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BtnResume" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=278799083]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 56.0
+offset_right = 240.0
+offset_bottom = 96.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnMenu")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnRestart")
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+text = "Resume"
+
+[node name="BtnRestart" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=2114298872]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 106.0
+offset_right = 240.0
+offset_bottom = 146.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnResume")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnTitle")
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+text = "Restart (1-1)"
+
+[node name="BtnTitle" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=1560648942]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 156.0
+offset_right = 240.0
+offset_bottom = 196.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnRestart")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnMenu")
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+text = "Title Cave"
+
+[node name="BtnMenu" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=1804554533]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 206.0
+offset_right = 240.0
+offset_bottom = 246.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnTitle")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnResume")
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+text = "Retro Main Menu"
+
+[node name="SummaryPanel" type="Panel" parent="HudLayer/Hud" unique_id=367519204]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 66.0
+offset_right = 540.0
+offset_bottom = 414.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_nglpd")
+
+[node name="SumTitle" type="Label" parent="HudLayer/Hud/SummaryPanel" unique_id=1251323382]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 16.0
+offset_right = 420.0
+offset_bottom = 52.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
+text = "LEVEL COMPLETED!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SumBody" type="Label" parent="HudLayer/Hud/SummaryPanel" unique_id=1934113362]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 60.0
+offset_right = 412.0
+offset_bottom = 270.0
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+vertical_alignment = 1
+
+[node name="BtnNext" type="Button" parent="HudLayer/Hud/SummaryPanel" unique_id=1042280802]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 286.0
+offset_right = 210.0
+offset_bottom = 328.0
+focus_neighbor_left = NodePath("../BtnQuitTitle")
+focus_neighbor_top = NodePath(".")
+focus_neighbor_right = NodePath("../BtnQuitTitle")
+focus_neighbor_bottom = NodePath(".")
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+text = "Continue"
+
+[node name="BtnQuitTitle" type="Button" parent="HudLayer/Hud/SummaryPanel" unique_id=1842225385]
+layout_mode = 0
+offset_left = 230.0
+offset_top = 286.0
+offset_right = 400.0
+offset_bottom = 328.0
+focus_neighbor_left = NodePath("../BtnNext")
+focus_neighbor_top = NodePath(".")
+focus_neighbor_right = NodePath("../BtnNext")
+focus_neighbor_bottom = NodePath(".")
+theme_override_fonts/font = ExtResource("14_h3gw2")
+theme_override_font_sizes/font_size = 16
+text = "Title Cave"
+
+[node name="Audio" type="Node" parent="." unique_id=465384297]
+
+[node name="mus_cave" type="AudioStreamPlayer" parent="Audio" unique_id=1200934122]
+stream = ExtResource("33_152kf")
+volume_db = -4.0
+
+[node name="mus_lush" type="AudioStreamPlayer" parent="Audio" unique_id=833920720]
+stream = ExtResource("34_0echt")
+volume_db = -4.0
+
+[node name="mus_ice" type="AudioStreamPlayer" parent="Audio" unique_id=1587243415]
+stream = ExtResource("35_rhnuf")
+volume_db = -4.0
+
+[node name="mus_temple" type="AudioStreamPlayer" parent="Audio" unique_id=662312389]
+stream = ExtResource("36_ccv6x")
+volume_db = -4.0
+
+[node name="mus_boss" type="AudioStreamPlayer" parent="Audio" unique_id=358888223]
+stream = ExtResource("37_04iny")
+volume_db = -4.0
+
+[node name="mus_credits" type="AudioStreamPlayer" parent="Audio" unique_id=86519705]
+stream = ExtResource("38_ewa1p")
+volume_db = -4.0
+
+[node name="sfx_jump" type="AudioStreamPlayer" parent="Audio" unique_id=1043643427]
+stream = ExtResource("39_lm064")
+
+[node name="sfx_bigjump" type="AudioStreamPlayer" parent="Audio" unique_id=2076867380]
+stream = ExtResource("40_p5kb0")
+
+[node name="sfx_whip" type="AudioStreamPlayer" parent="Audio" unique_id=638632569]
+stream = ExtResource("41_auj8r")
+
+[node name="sfx_throw" type="AudioStreamPlayer" parent="Audio" unique_id=2024966231]
+stream = ExtResource("42_8ie7e")
+
+[node name="sfx_pickup" type="AudioStreamPlayer" parent="Audio" unique_id=831435707]
+stream = ExtResource("43_7w7dh")
+
+[node name="sfx_coin" type="AudioStreamPlayer" parent="Audio" unique_id=1231212982]
+stream = ExtResource("44_vkt8y")
+
+[node name="sfx_gem" type="AudioStreamPlayer" parent="Audio" unique_id=1464150394]
+stream = ExtResource("45_m2p35")
+
+[node name="sfx_hurt" type="AudioStreamPlayer" parent="Audio" unique_id=52116037]
+stream = ExtResource("46_7i424")
+
+[node name="sfx_die" type="AudioStreamPlayer" parent="Audio" unique_id=385911136]
+stream = ExtResource("47_jbvte")
+
+[node name="sfx_hit" type="AudioStreamPlayer" parent="Audio" unique_id=904308373]
+stream = ExtResource("48_wqpeu")
+
+[node name="sfx_explosion" type="AudioStreamPlayer" parent="Audio" unique_id=1132554819]
+stream = ExtResource("49_bpv34")
+
+[node name="sfx_smallexplode" type="AudioStreamPlayer" parent="Audio" unique_id=877308793]
+stream = ExtResource("50_spjp2")
+
+[node name="sfx_break" type="AudioStreamPlayer" parent="Audio" unique_id=74470893]
+stream = ExtResource("51_iapav")
+
+[node name="sfx_land" type="AudioStreamPlayer" parent="Audio" unique_id=1847975989]
+stream = ExtResource("52_im6f5")
+
+[node name="sfx_climb1" type="AudioStreamPlayer" parent="Audio" unique_id=64099939]
+stream = ExtResource("53_v2ko5")
+
+[node name="sfx_climb2" type="AudioStreamPlayer" parent="Audio" unique_id=1027133902]
+stream = ExtResource("54_5ag5n")
+
+[node name="sfx_steps" type="AudioStreamPlayer" parent="Audio" unique_id=1866885127]
+stream = ExtResource("55_v4ne7")
+volume_db = -6.0
+
+[node name="sfx_splash" type="AudioStreamPlayer" parent="Audio" unique_id=1923059848]
+stream = ExtResource("56_o5sr4")
+
+[node name="sfx_arrowtrap" type="AudioStreamPlayer" parent="Audio" unique_id=183749904]
+stream = ExtResource("57_nihyj")
+
+[node name="sfx_shotgun" type="AudioStreamPlayer" parent="Audio" unique_id=1713681175]
+stream = ExtResource("58_tkh60")
+
+[node name="sfx_bowpull" type="AudioStreamPlayer" parent="Audio" unique_id=75517471]
+stream = ExtResource("59_mw1r8")
+
+[node name="sfx_bat" type="AudioStreamPlayer" parent="Audio" unique_id=1341220635]
+stream = ExtResource("60_alxe4")
+
+[node name="sfx_frog" type="AudioStreamPlayer" parent="Audio" unique_id=1557155345]
+stream = ExtResource("61_boohc")
+
+[node name="sfx_ghost" type="AudioStreamPlayer" parent="Audio" unique_id=1233753038]
+stream = ExtResource("62_txxt7")
+
+[node name="sfx_giantspider" type="AudioStreamPlayer" parent="Audio" unique_id=389045649]
+stream = ExtResource("63_qn3l0")
+
+[node name="sfx_spiderjump" type="AudioStreamPlayer" parent="Audio" unique_id=1187267295]
+stream = ExtResource("64_em4hy")
+
+[node name="sfx_alien" type="AudioStreamPlayer" parent="Audio" unique_id=563129039]
+stream = ExtResource("65_iol0c")
+
+[node name="sfx_laser" type="AudioStreamPlayer" parent="Audio" unique_id=1114998351]
+stream = ExtResource("66_lari5")
+
+[node name="sfx_yetiyell" type="AudioStreamPlayer" parent="Audio" unique_id=1945732769]
+stream = ExtResource("67_cq5j5")
+
+[node name="sfx_zombie" type="AudioStreamPlayer" parent="Audio" unique_id=1357847251]
+stream = ExtResource("68_lvsct")
+
+[node name="sfx_cavemandie" type="AudioStreamPlayer" parent="Audio" unique_id=2121203018]
+stream = ExtResource("69_lbkwf")
+
+[node name="sfx_alert" type="AudioStreamPlayer" parent="Audio" unique_id=10832114]
+stream = ExtResource("70_nb28p")
+
+[node name="sfx_chestopen" type="AudioStreamPlayer" parent="Audio" unique_id=1721703196]
+stream = ExtResource("71_w34pg")
+
+[node name="sfx_kiss" type="AudioStreamPlayer" parent="Audio" unique_id=1723386849]
+stream = ExtResource("72_ai40x")
+
+[node name="sfx_damsel" type="AudioStreamPlayer" parent="Audio" unique_id=1292447466]
+stream = ExtResource("73_epyp8")
+
+[node name="sfx_jetpack" type="AudioStreamPlayer" parent="Audio" unique_id=1757826]
+stream = ExtResource("74_6ea2j")
+
+[node name="sfx_teleport" type="AudioStreamPlayer" parent="Audio" unique_id=505543854]
+stream = ExtResource("75_3ue3f")
+
+[node name="sfx_slam" type="AudioStreamPlayer" parent="Audio" unique_id=1668558880]
+stream = ExtResource("76_ccii7")
+
+[node name="sfx_boing" type="AudioStreamPlayer" parent="Audio" unique_id=1757146144]
+stream = ExtResource("77_r5df2")
+
+[node name="sfx_trap" type="AudioStreamPlayer" parent="Audio" unique_id=438723732]
+stream = ExtResource("78_jta0t")
+
+[node name="sfx_push" type="AudioStreamPlayer" parent="Audio" unique_id=6725276]
+stream = ExtResource("79_ck44l")
+
+[node name="sfx_thud" type="AudioStreamPlayer" parent="Audio" unique_id=2007081412]
+stream = ExtResource("80_ax0nv")
+
+[node name="sfx_pause" type="AudioStreamPlayer" parent="Audio" unique_id=867080741]
+stream = ExtResource("81_u506m")
+
+[node name="sfx_click" type="AudioStreamPlayer" parent="Audio" unique_id=417567115]
+stream = ExtResource("82_x4q1o")
+
+[node name="sfx_letsexplore" type="AudioStreamPlayer" parent="Audio" unique_id=2044576873]
+stream = ExtResource("83_ko140")
+
+[node name="sfx_mattockbreak" type="AudioStreamPlayer" parent="Audio" unique_id=496266174]
+stream = ExtResource("84_lao2u")
+
+[node name="sfx_psychic" type="AudioStreamPlayer" parent="Audio" unique_id=688082364]
+stream = ExtResource("85_pqp4u")
+
+[node name="sfx_ignite" type="AudioStreamPlayer" parent="Audio" unique_id=826091069]
+stream = ExtResource("86_w1sat")
+
+[node name="sfx_bombready" type="AudioStreamPlayer" parent="Audio" unique_id=233914466]
+stream = ExtResource("87_tcjfh")
+
+[node name="sfx_blink1" type="AudioStreamPlayer" parent="Audio" unique_id=1863462282]
+stream = ExtResource("88_ckqfa")
+
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnResume" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnRestart" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnTitle" to="." method="_on_title_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnMenu" to="." method="_on_main_menu_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/SummaryPanel/BtnNext" to="." method="_on_next_level_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/SummaryPanel/BtnQuitTitle" to="." method="_on_title_pressed"]

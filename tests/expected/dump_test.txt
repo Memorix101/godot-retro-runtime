@@ -225,7 +225,7 @@ audio buses 3
   [0] Master volume 1.000
   [1] Music volume 1.000 -> Master
   [2] SFX volume 1.000 -> Master
-actions 37
+actions 49
   accelerate deadzone 0.20: key 87 key 265 button 7 axis 5+
   boost deadzone 0.30: key 341 button 7
   brake deadzone 0.20: key 83 key 264 button 6 axis 4+
@@ -252,6 +252,18 @@ actions 37
   pitch_down deadzone 0.30: key 265 axis 1-
   pitch_up deadzone 0.30: key 264 axis 1+
   respawn deadzone 0.20: key 82 button 5
+  sp_accept deadzone 0.25: key 257 key 32 button 7
+  sp_bomb deadzone 0.25: key 67 key 75 button 6
+  sp_down deadzone 0.25: key 264 key 83 button 3 axis 1+
+  sp_jump deadzone 0.25: key 90 key 32 button 7
+  sp_left deadzone 0.25: key 263 key 65 button 4 axis 0-
+  sp_pause deadzone 0.25: key 256 button 15
+  sp_pay deadzone 0.25: key 69 key 80 button 9 axis 4+
+  sp_right deadzone 0.25: key 262 key 68 button 2 axis 0+
+  sp_rope deadzone 0.25: key 86 key 76 button 5
+  sp_run deadzone 0.25: key 340 axis 5+ button 11
+  sp_up deadzone 0.25: key 265 key 87 button 1 axis 1-
+  sp_whip deadzone 0.25: key 88 key 74 button 8
   start deadzone 0.30: key 257 key 32 button 15
   steer_left deadzone 0.20: key 65 key 263 button 4 axis 0-
   steer_right deadzone 0.20: key 68 key 262 button 2 axis 0+

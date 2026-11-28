@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/spelunky/atlas_32a.png" id="1_w43my"]
+
+[node name="Slot" type="Sprite2D" unique_id=556491288]
+texture_filter = 1
+texture = ExtResource("1_w43my")
+centered = false
+hframes = 16
+vframes = 16

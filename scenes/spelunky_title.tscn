@@ -1,0 +1,439 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/spelunky_title.gd" id="1_p1nki"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_16a.tscn" id="2_c1lln"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_16b.tscn" id="3_ii04x"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_32a.tscn" id="4_3uosq"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_32b.tscn" id="5_8yag6"]
+[ext_resource type="PackedScene" path="res://scenes/spelunky/slot_64b.tscn" id="6_bo31y"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/bg/bg_sky.png" id="7_iud3u"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/large/moon_0.png" id="8_o1i2s"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/large/intro_bg_0.png" id="9_cybhr"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/large/title_bg_0.png" id="10_3ke07"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/large/title_0.png" id="11_suyos"]
+[ext_resource type="Texture2D" path="res://assets/spelunky/large/copy_0.png" id="12_p8wa0"]
+[ext_resource type="FontFile" path="res://assets/airplane/fonts/LiberationSans.ttf" id="13_2fg0d"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/title.ogg" id="14_glk0t"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/jump.wav" id="15_3xjep"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/whip.wav" id="16_qqgbs"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/pickup.wav" id="17_4auq7"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/ignite.wav" id="18_atxl7"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/click.wav" id="19_0tf0j"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/steps.wav" id="20_4557l"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/land.wav" id="21_36d1j"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/climb1.wav" id="22_twlcb"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/climb2.wav" id="23_nefa8"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/throw.wav" id="24_ippax"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/bombready.wav" id="25_1348t"]
+[ext_resource type="AudioStream" path="res://assets/spelunky/sounds/explosion.wav" id="26_k0mpt"]
+
+[sub_resource type="Environment" id="Environment_jeonc"]
+background_mode = 1
+background_color = Color(0.04, 0.02, 0.03, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_utu8o"]
+bg_color = Color(0, 0, 0, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ueorm"]
+bg_color = Color(0.08, 0.06, 0.05, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.68, 0.25, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fwkfk"]
+bg_color = Color(0.08, 0.06, 0.05, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.68, 0.25, 1)
+
+[node name="SpelunkyTitle" type="Node" unique_id=1516371766 node_paths=PackedStringArray("world_node", "hud_node", "audio_node")]
+script = ExtResource("1_p1nki")
+world_node = NodePath("World")
+hud_node = NodePath("HudLayer/Hud")
+audio_node = NodePath("Audio")
+slot_16a_scene = ExtResource("2_c1lln")
+slot_16b_scene = ExtResource("3_ii04x")
+slot_32a_scene = ExtResource("4_3uosq")
+slot_32b_scene = ExtResource("5_8yag6")
+slot_64b_scene = ExtResource("6_bo31y")
+
+[node name="Env" type="WorldEnvironment" parent="." unique_id=1178982056]
+environment = SubResource("Environment_jeonc")
+
+[node name="World" type="Node2D" parent="." unique_id=1598788881]
+texture_filter = 1
+
+[node name="ZAnchors" type="Node2D" parent="World" unique_id=851748699]
+
+[node name="Z0" type="Node2D" parent="World/ZAnchors" unique_id=1435253931]
+z_as_relative = false
+
+[node name="Z1" type="Node2D" parent="World/ZAnchors" unique_id=1380499022]
+z_index = 1
+z_as_relative = false
+
+[node name="Z2" type="Node2D" parent="World/ZAnchors" unique_id=1845796298]
+z_index = 2
+z_as_relative = false
+
+[node name="Z3" type="Node2D" parent="World/ZAnchors" unique_id=1431519108]
+z_index = 3
+z_as_relative = false
+
+[node name="Z4" type="Node2D" parent="World/ZAnchors" unique_id=585032186]
+z_index = 4
+z_as_relative = false
+
+[node name="Z5" type="Node2D" parent="World/ZAnchors" unique_id=1032149311]
+z_index = 5
+z_as_relative = false
+
+[node name="Z6" type="Node2D" parent="World/ZAnchors" unique_id=404810121]
+z_index = 6
+z_as_relative = false
+
+[node name="Z7" type="Node2D" parent="World/ZAnchors" unique_id=1469796599]
+z_index = 7
+z_as_relative = false
+
+[node name="Camera2D" type="Camera2D" parent="World" unique_id=1842058493]
+anchor_mode = 0
+zoom = Vector2(2, 2)
+limit_left = 0
+limit_top = 0
+limit_right = 640
+limit_bottom = 240
+
+[node name="BgSky" type="Sprite2D" parent="World" unique_id=1145531998]
+z_as_relative = false
+position = Vector2(320, 0)
+scale = Vector2(2, 2)
+texture = ExtResource("7_iud3u")
+centered = false
+
+[node name="Moon" type="Sprite2D" parent="World" unique_id=381136138]
+z_as_relative = false
+position = Vector2(380, 12)
+texture = ExtResource("8_o1i2s")
+centered = false
+
+[node name="IntroBg" type="Sprite2D" parent="World" unique_id=426445479]
+z_as_relative = false
+position = Vector2(240, 128)
+texture = ExtResource("9_cybhr")
+centered = false
+
+[node name="TitleArt" type="Node2D" parent="World" unique_id=640613942]
+z_index = 6
+z_as_relative = false
+
+[node name="LogoBg" type="Sprite2D" parent="World/TitleArt" unique_id=1228140417]
+position = Vector2(384, 20)
+texture = ExtResource("10_3ke07")
+centered = false
+
+[node name="Logo" type="Sprite2D" parent="World/TitleArt" unique_id=809955747]
+position = Vector2(416, 48)
+texture = ExtResource("11_suyos")
+centered = false
+
+[node name="Copy" type="Sprite2D" parent="World/TitleArt" unique_id=99728154]
+position = Vector2(408, 72)
+texture = ExtResource("12_p8wa0")
+centered = false
+
+[node name="HudLayer" type="CanvasLayer" parent="." unique_id=633371906]
+
+[node name="Hud" type="Control" parent="HudLayer" unique_id=1229760449]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="TitleHint" type="Label" parent="HudLayer/Hud" unique_id=1525942737]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 448.0
+offset_right = 624.0
+offset_bottom = 472.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.95, 0.9, 0.7, 1)
+text = "Z/Space: Jump   X: Whip   Up/Enter: Enter Door   Esc: Menu"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="HudLayer/Hud" unique_id=1090625938]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 412.0
+offset_right = 520.0
+offset_bottom = 440.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.92, 0.35, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="HudLayer/Hud" unique_id=190055640]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 316.0
+offset_bottom = 34.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+text = "CHAR: EXPLORER"
+vertical_alignment = 1
+
+[node name="IntroPanel" type="Panel" parent="HudLayer/Hud" unique_id=30011449]
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 480.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_utu8o")
+
+[node name="Line1" type="Label" parent="HudLayer/Hud/IntroPanel" unique_id=994025504]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 160.0
+offset_right = 600.0
+offset_bottom = 192.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Line2" type="Label" parent="HudLayer/Hud/IntroPanel" unique_id=1577506307]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 200.0
+offset_right = 600.0
+offset_bottom = 232.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Line3" type="Label" parent="HudLayer/Hud/IntroPanel" unique_id=106129726]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 240.0
+offset_right = 600.0
+offset_bottom = 272.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hint" type="Label" parent="HudLayer/Hud/IntroPanel" unique_id=1698775219]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 360.0
+offset_right = 600.0
+offset_bottom = 388.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.75, 0.75, 0.8, 1)
+text = "Press Jump / Attack / Enter to continue"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HighscorePanel" type="Panel" parent="HudLayer/Hud" unique_id=1551728423]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 70.0
+offset_right = 530.0
+offset_bottom = 410.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ueorm")
+
+[node name="HSTitle" type="Label" parent="HudLayer/Hud/HighscorePanel" unique_id=513276606]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 14.0
+offset_right = 400.0
+offset_bottom = 46.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.86, 0.3, 1)
+text = "HIGH SCORES & STATS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSBody" type="Label" parent="HudLayer/Hud/HighscorePanel" unique_id=108948652]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 56.0
+offset_right = 392.0
+offset_bottom = 266.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+vertical_alignment = 1
+
+[node name="BtnCloseScores" type="Button" parent="HudLayer/Hud/HighscorePanel" unique_id=1524900688]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 282.0
+offset_right = 280.0
+offset_bottom = 322.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath(".")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath(".")
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+text = "Back"
+
+[node name="PausePanel" type="Panel" parent="HudLayer/Hud" unique_id=1202331546]
+layout_mode = 0
+offset_left = 170.0
+offset_top = 76.0
+offset_right = 470.0
+offset_bottom = 396.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_fwkfk")
+
+[node name="PauseTitle" type="Label" parent="HudLayer/Hud/PausePanel" unique_id=1752461166]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 14.0
+offset_right = 280.0
+offset_bottom = 46.0
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.86, 0.3, 1)
+text = "SPELUNKY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BtnResume" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=977614419]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 56.0
+offset_right = 260.0
+offset_bottom = 96.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnMainMenu")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnStartRun")
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+text = "Resume Cave"
+
+[node name="BtnStartRun" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=436040186]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 104.0
+offset_right = 260.0
+offset_bottom = 144.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnResume")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnTutorial")
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+text = "Start Adventure (1-1)"
+
+[node name="BtnTutorial" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=1940131342]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 152.0
+offset_right = 260.0
+offset_bottom = 192.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnStartRun")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnChar")
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+text = "Tutorial Cave"
+
+[node name="BtnChar" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=1544025807]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 200.0
+offset_right = 260.0
+offset_bottom = 240.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnTutorial")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnMainMenu")
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+text = "Switch Character"
+
+[node name="BtnMainMenu" type="Button" parent="HudLayer/Hud/PausePanel" unique_id=2133450871]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 248.0
+offset_right = 260.0
+offset_bottom = 288.0
+focus_neighbor_left = NodePath(".")
+focus_neighbor_top = NodePath("../BtnChar")
+focus_neighbor_right = NodePath(".")
+focus_neighbor_bottom = NodePath("../BtnResume")
+theme_override_fonts/font = ExtResource("13_2fg0d")
+theme_override_font_sizes/font_size = 16
+text = "Retro Main Menu"
+
+[node name="Audio" type="Node" parent="." unique_id=921054672]
+
+[node name="mus_title" type="AudioStreamPlayer" parent="Audio" unique_id=1324207199]
+stream = ExtResource("14_glk0t")
+volume_db = -4.0
+
+[node name="sfx_jump" type="AudioStreamPlayer" parent="Audio" unique_id=271807800]
+stream = ExtResource("15_3xjep")
+
+[node name="sfx_whip" type="AudioStreamPlayer" parent="Audio" unique_id=242327170]
+stream = ExtResource("16_qqgbs")
+
+[node name="sfx_pickup" type="AudioStreamPlayer" parent="Audio" unique_id=1031217640]
+stream = ExtResource("17_4auq7")
+
+[node name="sfx_ignite" type="AudioStreamPlayer" parent="Audio" unique_id=530959667]
+stream = ExtResource("18_atxl7")
+
+[node name="sfx_click" type="AudioStreamPlayer" parent="Audio" unique_id=1395455759]
+stream = ExtResource("19_0tf0j")
+
+[node name="sfx_steps" type="AudioStreamPlayer" parent="Audio" unique_id=299474492]
+stream = ExtResource("20_4557l")
+volume_db = -6.0
+
+[node name="sfx_land" type="AudioStreamPlayer" parent="Audio" unique_id=1794877992]
+stream = ExtResource("21_36d1j")
+
+[node name="sfx_climb1" type="AudioStreamPlayer" parent="Audio" unique_id=1085078418]
+stream = ExtResource("22_twlcb")
+
+[node name="sfx_climb2" type="AudioStreamPlayer" parent="Audio" unique_id=1441046087]
+stream = ExtResource("23_nefa8")
+
+[node name="sfx_throw" type="AudioStreamPlayer" parent="Audio" unique_id=223617745]
+stream = ExtResource("24_ippax")
+
+[node name="sfx_bombready" type="AudioStreamPlayer" parent="Audio" unique_id=1363957741]
+stream = ExtResource("25_1348t")
+
+[node name="sfx_explosion" type="AudioStreamPlayer" parent="Audio" unique_id=1299730719]
+stream = ExtResource("26_k0mpt")
+
+[connection signal="pressed" from="HudLayer/Hud/HighscorePanel/BtnCloseScores" to="." method="_on_close_scores_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnResume" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnStartRun" to="." method="_on_start_run_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnTutorial" to="." method="_on_tutorial_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnChar" to="." method="_on_toggle_char_pressed"]
+[connection signal="pressed" from="HudLayer/Hud/PausePanel/BtnMainMenu" to="." method="_on_back_menu_pressed"]

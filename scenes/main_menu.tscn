@@ -6,7 +6,7 @@
 [ext_resource type="AudioStream" uid="uid://pd5x3c4mtm18" path="res://assets/sounds/music.ogg" id="5_music"]
 
 [sub_resource type="Theme" id="Theme_buttons"]
-Button/font_sizes/font_size = 14
+Button/font_sizes/font_size = 18
 
 [node name="MainMenu" type="Control" unique_id=1063516715]
 layout_mode = 3
@@ -28,6 +28,7 @@ highway_scene = "res://scenes/highway_title.tscn"
 neonleague_scene = "res://scenes/neonleague_title.tscn"
 starter_racing_scene = "res://scenes/starter_racing.tscn"
 feature_scene = "res://scenes/features.tscn"
+spelunky_scene = "res://scenes/spelunky_title.tscn"
 
 [node name="Backdrop" type="TextureRect" parent="." unique_id=2044799120]
 layout_mode = 1
@@ -43,10 +44,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -199.0
-offset_top = 2.0
-offset_right = 201.0
-offset_bottom = 50.0
+offset_left = -200.0
+offset_top = 6.0
+offset_right = 200.0
+offset_bottom = 54.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_font_sizes/font_size = 32
@@ -54,81 +55,102 @@ text = "RETRO RUNTIME"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Buttons" type="VBoxContainer" parent="." unique_id=1952239306]
+[node name="Buttons" type="GridContainer" parent="." unique_id=1952239306]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -110.0
-offset_top = 56.0
-offset_right = 110.0
-offset_bottom = 472.0
+offset_left = -260.0
+offset_top = 64.0
+offset_right = 260.0
+offset_bottom = 456.0
 grow_horizontal = 2
 theme = SubResource("Theme_buttons")
-theme_override_constants/separation = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 6
+columns = 2
 
 [node name="Start" type="Button" parent="Buttons" unique_id=158718179]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Stunt Track"
 
 [node name="Test2D" type="Button" parent="Buttons" unique_id=59678566]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "2D Test"
 
 [node name="Platformer2D" type="Button" parent="Buttons" unique_id=1817447839]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Platformer 2D"
 
 [node name="Platformer3D" type="Button" parent="Buttons" unique_id=1549367630]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Platformer 3D"
 
 [node name="Racing" type="Button" parent="Buttons" unique_id=1943154552]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Racing"
 
 [node name="Island" type="Button" parent="Buttons" unique_id=2131140703]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Island"
 
 [node name="Ball" type="Button" parent="Buttons" unique_id=1180264411]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Ball Roll"
 
 [node name="Airplane" type="Button" parent="Buttons" unique_id=1734002519]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Airplane Arcade"
 
 [node name="Highway" type="Button" parent="Buttons" unique_id=602781344]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Highway Pursuit"
 
 [node name="NeonLeague" type="Button" parent="Buttons" unique_id=1488302117]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Neon League"
 
 [node name="StarterRacing" type="Button" parent="Buttons" unique_id=1488302118]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Starter Kit Racing"
 
 [node name="Features" type="Button" parent="Buttons" unique_id=353392737]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Feature Test"
 
+[node name="Spelunky" type="Button" parent="Buttons" unique_id=1969722549]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Spelunky"
+
 [node name="Quit" type="Button" parent="Buttons" unique_id=1969722548]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Quit"
 
@@ -166,4 +188,5 @@ volume_db = -8.0
 [connection signal="pressed" from="Buttons/NeonLeague" to="." method="_on_neonleague_pressed"]
 [connection signal="pressed" from="Buttons/StarterRacing" to="." method="_on_starter_racing_pressed"]
 [connection signal="pressed" from="Buttons/Features" to="." method="_on_features_pressed"]
+[connection signal="pressed" from="Buttons/Spelunky" to="." method="_on_spelunky_pressed"]
 [connection signal="pressed" from="Buttons/Quit" to="." method="_on_quit_pressed"]

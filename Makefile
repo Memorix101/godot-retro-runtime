@@ -52,11 +52,12 @@ SCENES := scenes/main_menu.tscn scenes/test_track.tscn scenes/sprites_2d.tscn \
           scenes/platformer_2d.tscn scenes/platformer_3d.tscn scenes/racing.tscn \
           scenes/island.tscn scenes/ball_roll.tscn scenes/stunt_track.tscn scenes/features.tscn \
           scenes/airplane.tscn scenes/highway_title.tscn scenes/highway.tscn \
-          scenes/neonleague_title.tscn scenes/neonleague.tscn scenes/starter_racing.tscn
+          scenes/neonleague_title.tscn scenes/neonleague.tscn scenes/starter_racing.tscn \
+          scenes/spelunky_title.tscn scenes/spelunky_level.tscn
 # Scenes that are instanced by the ones above.
 PARTS  := $(wildcard scenes/platformer/*.tscn scenes/parts/*.tscn scenes/racing/*.tscn \
                     scenes/airplane/*.tscn scenes/highway/*.tscn scenes/neonleague/*.tscn \
-                    scenes/starter_racing/*.tscn)
+                    scenes/starter_racing/*.tscn scenes/spelunky/*.tscn)
 
 CORE_SRC := $(wildcard runtime/core/*.c)
 GAME_SRC := $(wildcard runtime/game/*.c)
@@ -280,7 +281,7 @@ test: all $(BUILD)/pkg/pc/.exported
 	    "scene: main_menu scene: stunt_track stunt: checkpoint 1/3 scene: main_menu " || \
 	    { echo "FAIL: unexpected output:"; cat $(T)/flow_stunt.log; exit 1; }
 	@echo "== game flow: menu -> 2D test -> cancel -> menu -> quit"
-	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_down,210:ui_down,215:ui_down,218:ui_down,222:ui_accept" > $(T)/flow_2d.log
+	$(FLOW) "10:ui_down,20:ui_accept,40:steer_right:60,120:ui_cancel,140:ui_down,150:ui_down,160:ui_down,170:ui_down,180:ui_down,190:ui_down,195:ui_down,200:ui_down,205:ui_down,210:ui_down,215:ui_down,218:ui_down,221:ui_down,225:ui_accept" > $(T)/flow_2d.log
 	@test "$$(tr -d '\r' < $(T)/flow_2d.log | tr '\n' ' ')" = \
 	    "scene: main_menu scene: sprites_2d scene: main_menu quit " || \
 	    { echo "FAIL: unexpected scene sequence:"; cat $(T)/flow_2d.log; exit 1; }

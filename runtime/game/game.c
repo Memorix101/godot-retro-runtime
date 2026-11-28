@@ -57,6 +57,8 @@ COMPONENT_DECLARE(NeonSpawner)
 COMPONENT_DECLARE(NeonDisco)
 COMPONENT_DECLARE(NeonFlicker)
 COMPONENT_DECLARE(NeonMenu)
+COMPONENT_DECLARE(SpelunkyTitle)
+COMPONENT_DECLARE(SpelunkyLevel)
 
 bool game_register_components(void)
 {
@@ -113,5 +115,7 @@ bool game_register_components(void)
            rr_component_register(&NeonSpawner_component) &&
            rr_component_register(&NeonDisco_component) &&
            rr_component_register(&NeonFlicker_component) &&
-           rr_component_register(&NeonMenu_component);
+           rr_component_register(&NeonMenu_component) &&
+           rr_component_register(&SpelunkyTitle_component) &&
+           rr_component_register(&SpelunkyLevel_component);
 }

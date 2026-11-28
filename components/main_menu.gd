@@ -24,6 +24,8 @@ extends Control
 @export_file("*.tscn") var starter_racing_scene: String
 ## The scene that checks the runtime's features and shows what it found.
 @export_file("*.tscn") var feature_scene: String
+## GDSpelunky port.
+@export_file("*.tscn") var spelunky_scene: String
 
 func _on_start_pressed() -> void: pass
 func _on_test_2d_pressed() -> void: pass
@@ -37,4 +39,5 @@ func _on_highway_pressed() -> void: pass
 func _on_neonleague_pressed() -> void: pass
 func _on_starter_racing_pressed() -> void: pass
 func _on_features_pressed() -> void: pass
+func _on_spelunky_pressed() -> void: pass
 func _on_quit_pressed() -> void: pass
